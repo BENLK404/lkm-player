@@ -12,8 +12,8 @@ final lyricsProvider = FutureProvider.family<String?, String>((ref, songId) asyn
   final local = await repository.getLyrics(songId);
   if (local != null && local.trim().isNotEmpty) return local;
 
-  // 2) En ligne : besoin artiste + titre
-  final onlineEnabled = ref.watch(onlineFeatureEnabledProvider).valueOrNull ?? false;
+  // 2) En ligne : besoin artiste + titre (par défaut true pendant le chargement du réglage)
+  final onlineEnabled = ref.watch(onlineFeatureEnabledProvider).valueOrNull ?? true;
   if (!onlineEnabled) return null;
 
   SongModel? song;
