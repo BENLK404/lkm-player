@@ -1,0 +1,32 @@
+include: package:flutter_lints/flutter.yaml
+
+linter:
+  rules:
+    # Style
+    - prefer_const_constructors
+    - prefer_const_literals_to_create_immutables
+    - prefer_final_fields
+    - prefer_final_locals
+    - unnecessary_const
+    - unnecessary_new
+    
+    # Documentation
+    - public_member_api_docs: false
+    
+    # Errors
+    - avoid_print: true
+    - avoid_relative_lib_imports
+    - cancel_subscriptions
+    - close_sinks
+    
+    # Formatting
+    - always_put_required_named_parameters_first
+    - directives_ordering
+    
+analyzer:
+  exclude:
+    - "**/*.g.dart"
+    - "**/*.freezed.dart"
+  
+  errors:
+    invalid_annotation_target: ignore

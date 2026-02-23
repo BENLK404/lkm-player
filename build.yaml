@@ -1,0 +1,25 @@
+targets:
+  $default:
+    builders:
+      freezed:
+        generate_for:
+          - lib/**/*.dart
+        options:
+          # Options pour Freezed
+          union_key: 'type'
+          union_value_case: pascal # <--- CORRECTION ICI (juste "pascal")
+
+      json_serializable:
+        generate_for:
+          - lib/**/*.dart
+        options:
+          # Options pour JSON serialization
+          explicit_to_json: true
+          field_rename: snake
+
+      riverpod_generator:
+        generate_for:
+          - lib/**/*.dart
+        options:
+          # Options pour Riverpod
+          line_length: 80
