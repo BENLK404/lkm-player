@@ -91,7 +91,6 @@ Architecture **Clean + Feature-First** : chaque fonctionnalité (music, player, 
 ## 🚀 Démarrage rapide
 
 ### Prérequis
-
 - [Flutter SDK](https://docs.flutter.dev/get-started/install) >= 3.2.0
 
 ### Installation
@@ -117,7 +116,7 @@ flutter build apk
 
 L’APK sera généré dans `build/app/outputs/flutter-apk/app-release.apk`.
 
-Sur Android, configure les permissions et le service audio comme indiqué dans **[GETTING_STARTED.md](./GETTING_STARTED.md)**.
+Sur Android, configure les permissions et le service audio comme indiqué dans **[GETTING_STARTED.md](./.github/GETTING_STARTED.md)**.
 
 ---
 
@@ -139,7 +138,7 @@ lib/
 └── shared/         # Widgets partagés (SongTile, MiniPlayer, …)
 ```
 
-Détails : **[ARCHITECTURE.md](./ARCHITECTURE.md)**.
+Détails : **[ARCHITECTURE.md](./.github/ARCHITECTURE.md)**.
 
 ---
 
@@ -149,9 +148,9 @@ Les retours, idées et contributions sont les bienvenus.
 
 - **Discuter** : ouvrez une [Discussion](https://github.com/BENLK404/lkm-player/discussions) pour une idée, une question ou un partage.
 - **Bug ou idée** : [ouvrez une issue](https://github.com/BENLK404/lkm-player/issues).
-- **Contribuer** : lisez **[CONTRIBUTING.md](./CONTRIBUTING.md)** (conventions, comment proposer une PR).
+- **Contribuer** : lisez **[CONTRIBUTING.md](./.github/CONTRIBUTING.md)** (conventions, comment proposer une PR).
 
-En participant, vous acceptez notre **[Code de conduite](./CODE_OF_CONDUCT.md)**.
+En participant, vous acceptez notre **[Code de conduite](./.github/CODE_OF_CONDUCT.md)**.
 
 ---
 
@@ -165,14 +164,10 @@ Ce projet est sous **[licence MIT](./LICENSE)**. Tu peux l’utiliser, le modifi
 
 | Fichier | Contenu |
 |--------|---------|
-| **[GETTING_STARTED.md](./GETTING_STARTED.md)** | Installation détaillée, permissions Android |
-| **[ARCHITECTURE.md](./ARCHITECTURE.md)** | Architecture et flux de données |
-| **[CONTRIBUTING.md](./CONTRIBUTING.md)** | Standards, comment contribuer, proposer une PR |
-| **[CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md)** | Règles de conduite |
-| **[CONVENTIONS.md](./CONVENTIONS.md)** | Conventions & standards de code |
-| **[TODO.md](./TODO.md)** | Roadmap et tâches prévues |
+| **[GETTING_STARTED.md](./.github/GETTING_STARTED.md)** | Installation détaillée, permissions Android |
+| **[ARCHITECTURE.md](./.github/ARCHITECTURE.md)** | Architecture et flux de données |
+| **[CONTRIBUTING.md](./.github/CONTRIBUTING.md)** | Standards, comment contribuer, proposer une PR |
+| **[CODE_OF_CONDUCT.md](./.github/CODE_OF_CONDUCT.md)** | Règles de conduite |
+| **[CONVENTIONS.md](./.github/CONVENTIONS.md)** | Conventions & standards de code |
+| **[TODO.md](./.github/TODO.md)** | Roadmap et tâches prévues |
 | **[LICENSE](./LICENSE)** | Licence du projet |
-
----
-
-*Fait avec Flutter • Aucun tracking • Ta musique, ton appareil.*
