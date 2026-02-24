@@ -4,7 +4,7 @@
 
 [![Flutter](https://img.shields.io/badge/Flutter-3.2+-02569B?logo=flutter)](https://flutter.dev)
 [![Dart](https://img.shields.io/badge/Dart-3.2+-0175C2?logo=dart)](https://dart.dev)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
 
 LKM Player est une application mobile Flutter qui lit **ta** bibliothèque musicale locale : scan, playlists, paroles (fichiers .lrc, tags ou API en ligne), égaliseur, thème clair/sombre, statistiques et suggestions. **Aucun compte, aucune pub, aucun tracking — tes fichiers restent sur ton appareil.**
 
@@ -117,7 +117,7 @@ flutter build apk
 
 L’APK sera généré dans `build/app/outputs/flutter-apk/app-release.apk`.
 
-Sur Android, configure les permissions et le service audio comme indiqué dans [GETTING_STARTED.md](GETTING_STARTED.md).
+Sur Android, configure les permissions et le service audio comme indiqué dans [GETTING_STARTED.md](./GETTING_STARTED.md).
 
 ---
 
@@ -139,7 +139,7 @@ lib/
 └── shared/         # Widgets partagés (SongTile, MiniPlayer, …)
 ```
 
-Détails : [ARCHITECTURE.md](ARCHITECTURE.md).
+Détails : [ARCHITECTURE.md](./ARCHITECTURE.md).
 
 ---
 
@@ -149,15 +149,15 @@ Les retours, idées et contributions sont les bienvenus.
 
 - **Discuter** : ouvrez une [Discussion](https://github.com/BENLK404/lkm-player/discussions) pour une idée, une question ou un partage.
 - **Bug ou idée** : [ouvrez une issue](https://github.com/BENLK404/lkm-player/issues).
-- **Contribuer** : lisez [CONTRIBUTING.md](CONTRIBUTING.md) (conventions, comment proposer une PR).
+- **Contribuer** : lisez [CONTRIBUTING.md](./CONTRIBUTING.md) (conventions, comment proposer une PR).
 
-En participant, vous acceptez notre [Code de conduite](CODE_OF_CONDUCT.md).
+En participant, vous acceptez notre [Code de conduite](./CODE_OF_CONDUCT.md).
 
 ---
 
 ## 📜 Licence
 
-Ce projet est sous [licence MIT](LICENSE). Tu peux l’utiliser, le modifier et le redistribuer librement.
+Ce projet est sous [licence MIT](./LICENSE). Tu peux l’utiliser, le modifier et le redistribuer librement.
 
 ---
 
@@ -165,10 +165,10 @@ Ce projet est sous [licence MIT](LICENSE). Tu peux l’utiliser, le modifier et 
 
 | Fichier | Contenu |
 |--------|---------|
-| [GETTING_STARTED.md](GETTING_STARTED.md) | Installation détaillée, permissions Android |
-| [ARCHITECTURE.md](ARCHITECTURE.md) | Architecture et flux de données |
-| [CONVENTIONS.md](CONVENTIONS.md) | Standards de code du projet |
-| [TODO.md](TODO.md) | Roadmap et tâches prévues |
+| [GETTING_STARTED.md](./GETTING_STARTED.md) | Installation détaillée, permissions Android |
+| [ARCHITECTURE.md](./ARCHITECTURE.md) | Architecture et flux de données |
+| [CONVENTIONS.md](./CONVENTIONS.md) | Standards de code du projet |
+| [TODO.md](./TODO.md) | Roadmap et tâches prévues |
 
 ---
 
