@@ -3,7 +3,6 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:musio/features/music/presentation/providers/metadata_provider.dart';
 import 'package:musio/features/music/presentation/providers/music_provider.dart';
 import 'package:musio/features/player/presentation/providers/audio_player_provider.dart';
 import 'package:musio/shared/widgets/album_art_image.dart';
@@ -33,11 +32,6 @@ class AlbumDetailsScreen extends ConsumerWidget {
       (a) => a.id == albumId,
       orElse: () => throw Exception('Album non trouvé'),
     );
-
-    final firstSongPath = songs.isNotEmpty ? songs.first.path : null;
-    final metadataAsyncValue = firstSongPath != null
-        ? ref.watch(songMetadataProvider(firstSongPath))
-        : null;
 
     return Scaffold(
       body: CustomScrollView(
@@ -135,24 +129,14 @@ class AlbumDetailsScreen extends ConsumerWidget {
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
-                  // Métadonnées (Année • Nb titres)
+                  // Métadonnées (Année • Nb titres) — année depuis le premier titre
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      if (metadataAsyncValue != null)
-                        metadataAsyncValue.when(
-                          data: (metadata) {
-                            final year = metadata?.year;
-                            if (year != null && year.isNotEmpty) {
-                              return Text(
-                                '$year • ',
-                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey),
-                              );
-                            }
-                            return const SizedBox.shrink();
-                          },
-                          loading: () => const SizedBox.shrink(),
-                          error: (e, s) => const SizedBox.shrink(),
+                      if (songs.isNotEmpty && songs.first.year != null)
+                        Text(
+                          '${songs.first.year} • ',
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey),
                         ),
                       Text(
                         '${album.trackCount} titres',

@@ -33,7 +33,6 @@ android {
         }
     }
 
-    /** ✅ Java 17 (obligatoire avec AGP 8+) */
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17

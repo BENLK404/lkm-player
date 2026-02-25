@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:audiotagger/audiotagger.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -21,7 +20,6 @@ import '../models/song_model.dart';
 /// Repository gérant l'accès aux données musicales
 class MusicRepository {
   final aq.OnAudioQuery _audioQuery = aq.OnAudioQuery();
-  final Audiotagger _tagger = Audiotagger();
   late Box<SongModel> _songBox;
   late Box<PlaylistModel> _playlistBox;
   late Box _lyricsCacheBox;
@@ -249,11 +247,11 @@ class MusicRepository {
     await _playlistBox.delete(playlistId);
   }
 
-  /// Récupère les paroles : cache → fichier .lrc → métadonnées (tags). Les résultats sont mis en cache.
-  /// Lecture du cache sécurisée : en cas d'erreur ou donnée invalide, on tente toujours .lrc et tags.
+  /// Récupère les paroles : cache → fichier .lrc. Les résultats sont mis en cache.
+  /// (Paroles en ligne gérées par lyrics_provider après appel à getLyrics.)
   Future<String?> getLyrics(String songId) async {
     try {
-      // 0) Cache (ne jamais bloquer .lrc/tags)
+      // 0) Cache
       String? cached;
       try {
         final raw = _lyricsCacheBox.get(songId);
@@ -278,14 +276,6 @@ class MusicRepository {
         }
       } catch (_) {}
 
-      // 2) Paroles dans les métadonnées (tags)
-      if (result == null) {
-        try {
-          final tags = await _tagger.readTags(path: song.path);
-          result = tags?.lyrics;
-        } catch (_) {}
-      }
-
       if (result != null && result.trim().isNotEmpty) {
         await saveLyricsToCache(songId, result);
       }
@@ -306,7 +296,7 @@ class MusicRepository {
   }
 
   static const String _userAgent = 'LKMPlayer/1.0';
-  static const Duration _timeout = Duration(seconds: 12);
+  static const Duration _timeout = Duration(seconds: 25);
 
   /// Récupère les paroles en ligne : LRCLib (direct + search) puis Lyrics.ovh.
   /// Préfère les paroles synchronisées (LRC), sinon le texte brut.
