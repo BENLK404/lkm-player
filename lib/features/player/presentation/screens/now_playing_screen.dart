@@ -204,56 +204,14 @@ class NowPlayingScreen extends ConsumerWidget {
 
                 const SizedBox(height: 32),
 
-                // Progress bar
+                // Progress bar (seek uniquement à la fin du glissement pour éviter la lenteur)
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: Column(
-                    children: [
-                      SliderTheme(
-                        data: SliderTheme.of(context).copyWith(
-                          thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
-                          trackHeight: 4,
-                          overlayShape: const RoundSliderOverlayShape(overlayRadius: 14),
-                          activeTrackColor: Theme.of(context).colorScheme.primary,
-                          inactiveTrackColor: Theme.of(context).colorScheme.onSurface.withOpacity(0.1),
-                          thumbColor: Theme.of(context).colorScheme.primary,
-                        ),
-                        child: Slider(
-                          value: playerState.duration.inMilliseconds > 0
-                              ? playerState.position.inMilliseconds
-                                  .toDouble()
-                                  .clamp(
-                                    0.0,
-                                    playerState.duration.inMilliseconds.toDouble(),
-                                  )
-                              : 0.0,
-                          max: playerState.duration.inMilliseconds > 0
-                              ? playerState.duration.inMilliseconds.toDouble()
-                              : 1.0,
-                          onChanged: (value) {
-                            ref
-                                .read(audioPlayerProvider.notifier)
-                                .seek(Duration(milliseconds: value.toInt()));
-                          },
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              _formatDuration(playerState.position),
-                              style: Theme.of(context).textTheme.bodySmall,
-                            ),
-                            Text(
-                              _formatDuration(playerState.duration),
-                              style: Theme.of(context).textTheme.bodySmall,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+                  child: _SeekBar(
+                    position: playerState.position,
+                    duration: playerState.duration,
+                    formatDuration: _formatDuration,
+                    onSeek: (d) => ref.read(audioPlayerProvider.notifier).seek(d),
                   ),
                 ),
 
@@ -1043,6 +1001,87 @@ class _SheetHandle extends StatelessWidget {
           borderRadius: BorderRadius.circular(2),
         ),
       ),
+    );
+  }
+}
+
+/// Barre de progression : seek uniquement à la fin du glissement (onChangeEnd)
+/// pour éviter les appels répétés pendant le drag et la lenteur.
+class _SeekBar extends StatefulWidget {
+  const _SeekBar({
+    required this.position,
+    required this.duration,
+    required this.formatDuration,
+    required this.onSeek,
+  });
+
+  final Duration position;
+  final Duration duration;
+  final String Function(Duration) formatDuration;
+  final ValueChanged<Duration> onSeek;
+
+  @override
+  State<_SeekBar> createState() => _SeekBarState();
+}
+
+class _SeekBarState extends State<_SeekBar> {
+  bool _isDragging = false;
+  double _dragValue = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    final maxMs = widget.duration.inMilliseconds;
+    final max = maxMs > 0 ? maxMs.toDouble() : 1.0;
+    final positionMs = widget.position.inMilliseconds.toDouble().clamp(0.0, max);
+    final value = _isDragging ? _dragValue : positionMs;
+
+    return Column(
+      children: [
+        SliderTheme(
+          data: SliderTheme.of(context).copyWith(
+            thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
+            trackHeight: 4,
+            overlayShape: const RoundSliderOverlayShape(overlayRadius: 14),
+            activeTrackColor: Theme.of(context).colorScheme.primary,
+            inactiveTrackColor: Theme.of(context).colorScheme.onSurface.withOpacity(0.1),
+            thumbColor: Theme.of(context).colorScheme.primary,
+          ),
+          child: Slider(
+            value: value,
+            max: max,
+            onChanged: (v) {
+              setState(() {
+                _isDragging = true;
+                _dragValue = v;
+              });
+            },
+            onChangeEnd: (v) {
+              final position = Duration(milliseconds: v.toInt());
+              widget.onSeek(position);
+              // Laisser le parent se mettre à jour avant de repasser à widget.position
+              Future.microtask(() => setState(() => _isDragging = false));
+            },
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                _isDragging
+                    ? widget.formatDuration(Duration(milliseconds: _dragValue.toInt()))
+                    : widget.formatDuration(widget.position),
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+              Text(
+                widget.formatDuration(widget.duration),
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

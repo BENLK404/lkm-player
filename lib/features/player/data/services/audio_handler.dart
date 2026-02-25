@@ -8,6 +8,12 @@ class MusioAudioHandler extends BaseAudioHandler with SeekHandler {
   final _playlist = ConcatenatingAudioSource(children: []);
   final AndroidEqualizer _equalizer = AndroidEqualizer();
 
+  /// Après un seek(S), on n'envoie jamais une position "en retard" : on garde S jusqu'à ce que le stream envoie une valeur proche.
+  Duration? _lastSeekPosition;
+  DateTime? _seekTime;
+  static const _closeMs = 300;
+  static const _recoveryMs = 5000;
+
   MusioAudioHandler() {
     _player = AudioPlayer(audioPipeline: AudioPipeline(androidAudioEffects: [_equalizer]));
     _loadEmptyPlaylist();
@@ -30,6 +36,7 @@ class MusioAudioHandler extends BaseAudioHandler with SeekHandler {
 
   void _notifyAudioHandlerAboutPlaybackEvents() {
     _player.playbackEventStream.listen((PlaybackEvent event) {
+      final useSeekPos = _lastSeekPosition != null;
       final playing = _player.playing;
       playbackState.add(playbackState.value.copyWith(
         controls: [
@@ -49,7 +56,7 @@ class MusioAudioHandler extends BaseAudioHandler with SeekHandler {
           ProcessingState.completed: AudioProcessingState.completed,
         }[_player.processingState]!,
         playing: playing,
-        updatePosition: _player.position,
+        updatePosition: useSeekPos ? _lastSeekPosition! : _player.position,
         bufferedPosition: _player.bufferedPosition,
         speed: _player.speed,
         queueIndex: event.currentIndex,
@@ -59,8 +66,21 @@ class MusioAudioHandler extends BaseAudioHandler with SeekHandler {
 
   void _listenToPlaybackState() {
     _player.positionStream.listen((position) {
-      final oldState = playbackState.value;
-      playbackState.add(oldState.copyWith(updatePosition: position));
+      Duration toShow = position;
+      if (_lastSeekPosition != null && _seekTime != null) {
+        final diff = (position.inMilliseconds - _lastSeekPosition!.inMilliseconds).abs();
+        final elapsed = DateTime.now().difference(_seekTime!).inMilliseconds;
+        if (diff <= _closeMs) {
+          _lastSeekPosition = null;
+          _seekTime = null;
+        } else if (elapsed > _recoveryMs) {
+          _lastSeekPosition = null;
+          _seekTime = null;
+        } else {
+          toShow = _lastSeekPosition!;
+        }
+      }
+      playbackState.add(playbackState.value.copyWith(updatePosition: toShow));
     });
     
     _player.currentIndexStream.listen((index) {
@@ -71,13 +91,40 @@ class MusioAudioHandler extends BaseAudioHandler with SeekHandler {
   }
 
   @override
-  Future<void> play() => _player.play();
+  Future<void> play() async {
+    // Mise à jour immédiate pour la notification (play/pause réactif)
+    playbackState.add(playbackState.value.copyWith(
+      playing: true,
+      controls: [
+        MediaControl.skipToPrevious,
+        MediaControl.pause,
+        MediaControl.skipToNext,
+      ],
+    ));
+    return _player.play();
+  }
 
   @override
-  Future<void> pause() => _player.pause();
+  Future<void> pause() async {
+    // Mise à jour immédiate pour la notification (play/pause réactif)
+    playbackState.add(playbackState.value.copyWith(
+      playing: false,
+      controls: [
+        MediaControl.skipToPrevious,
+        MediaControl.play,
+        MediaControl.skipToNext,
+      ],
+    ));
+    return _player.pause();
+  }
 
   @override
-  Future<void> seek(Duration position) => _player.seek(position);
+  Future<void> seek(Duration position) async {
+    _lastSeekPosition = position;
+    _seekTime = DateTime.now();
+    playbackState.add(playbackState.value.copyWith(updatePosition: position));
+    return _player.seek(position);
+  }
 
   @override
   Future<void> skipToNext() => _player.seekToNext();
@@ -87,6 +134,8 @@ class MusioAudioHandler extends BaseAudioHandler with SeekHandler {
 
   @override
   Future<void> stop() async {
+    _lastSeekPosition = null;
+    _seekTime = null;
     await _player.stop();
     return super.stop();
   }
@@ -121,6 +170,11 @@ class MusioAudioHandler extends BaseAudioHandler with SeekHandler {
     
     // Mettre à jour la file d'attente d'AudioService
     queue.add(mediaItems);
+    
+    // Afficher tout de suite le morceau courant dans la notification (titre, artiste, pochette)
+    if (mediaItems.isNotEmpty && initialIndex >= 0 && initialIndex < mediaItems.length) {
+      mediaItem.add(mediaItems[initialIndex]);
+    }
     
     // Mettre à jour la source audio de just_audio
     await _playlist.clear();

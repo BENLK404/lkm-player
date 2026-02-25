@@ -35,6 +35,8 @@ class AudioPlayer extends _$AudioPlayer {
   }
 
   void seek(Duration position) {
+    // Mise à jour immédiate de l'UI (évite que la barre reparte en arrière au release du slider)
+    state = state.copyWith(position: position);
     _audioPlayerService.seek(position);
   }
 

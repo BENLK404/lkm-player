@@ -22,6 +22,10 @@ class AudioPlayerService {
   
   List<SongModel> _localQueue = [];
   Timer? _saveTimer;
+  Duration? _lastSeekPosition;
+  DateTime? _lastSeekTime;
+  static const _closeMs = 300;
+  static const _recoveryMs = 5000;
 
   AudioPlayerService(this._ref) : _audioHandler = _ref.read(audioHandlerProvider) {
     _initializeListeners();
@@ -47,23 +51,42 @@ class AudioPlayerService {
       final isPlaying = playbackState.playing;
       final isLoading = playbackState.processingState == AudioProcessingState.loading ||
           playbackState.processingState == AudioProcessingState.buffering;
-      
       final newIndex = sequenceState?.currentIndex;
       SongModel? newCurrentSong;
-      
       if (newIndex != null && newIndex < _localQueue.length) {
         newCurrentSong = _localQueue[newIndex];
       }
 
-      // Si la chanson a changé, enregistrer l'écoute
-      if (newCurrentSong != null && newCurrentSong.id != currentState.currentSong?.id) {
+      final prev = currentState;
+      final positionOnly = prev.isPlaying == isPlaying &&
+          prev.currentSong?.id == newCurrentSong?.id &&
+          prev.currentIndex == (newIndex ?? 0) &&
+          prev.isShuffled == shuffleModeEnabled &&
+          prev.repeatMode == _mapLoopModeFromJustAudio(loopMode);
+
+      if (newCurrentSong != null && newCurrentSong.id != prev.currentSong?.id) {
         _ref.read(musicProvider.notifier).recordSongPlayed(newCurrentSong);
       }
 
-      _updateState(currentState.copyWith(
+      var position = playbackState.updatePosition;
+      if (_lastSeekPosition != null && _lastSeekTime != null) {
+        final diff = (position.inMilliseconds - _lastSeekPosition!.inMilliseconds).abs();
+        final elapsed = DateTime.now().difference(_lastSeekTime!).inMilliseconds;
+        if (diff <= _closeMs) {
+          _lastSeekPosition = null;
+          _lastSeekTime = null;
+        } else if (elapsed > _recoveryMs) {
+          _lastSeekPosition = null;
+          _lastSeekTime = null;
+        } else {
+          position = _lastSeekPosition!;
+        }
+      }
+
+      _updateState(prev.copyWith(
         isPlaying: isPlaying,
         isLoading: isLoading,
-        position: playbackState.updatePosition,
+        position: position,
         duration: newCurrentSong?.duration != null ? Duration(milliseconds: newCurrentSong!.duration) : Duration.zero,
         currentSong: newCurrentSong,
         currentIndex: newIndex ?? 0,
@@ -72,8 +95,7 @@ class AudioPlayerService {
         repeatMode: _mapLoopModeFromJustAudio(loopMode),
       ));
 
-      // Sauvegarder l'état (avec un debounce pour éviter trop d'écritures)
-      _scheduleSaveState();
+      if (!positionOnly) _scheduleSaveState();
     });
   }
 
@@ -158,14 +180,16 @@ class AudioPlayerService {
     await _audioHandler.play();
   }
 
-  /// Pause
-  Future<void> pause() async {
-    await _audioHandler.pause();
+  /// Pause (mise à jour immédiate, appel natif en arrière-plan)
+  void pause() {
+    _updateState(currentState.copyWith(isPlaying: false));
+    _audioHandler.pause();
   }
 
-  /// Resume
-  Future<void> resume() async {
-    await _audioHandler.play();
+  /// Resume (mise à jour immédiate, appel natif en arrière-plan)
+  void resume() {
+    _updateState(currentState.copyWith(isPlaying: true));
+    _audioHandler.play();
   }
 
   /// Jouer la chanson suivante
@@ -183,9 +207,12 @@ class AudioPlayerService {
     await _audioHandler.player.seek(Duration.zero, index: index);
   }
 
-  /// Seek à une position
-  Future<void> seek(Duration position) async {
-    await _audioHandler.seek(position);
+  /// Seek : mise à jour immédiate de l'UI + appel natif sans attendre
+  void seek(Duration position) {
+    _lastSeekPosition = position;
+    _lastSeekTime = DateTime.now();
+    _updateState(currentState.copyWith(position: position));
+    _audioHandler.seek(position);
   }
 
   /// Toggle shuffle
