@@ -82,6 +82,12 @@ Architecture **Clean + Feature-First** : chaque fonctionnalité (music, player, 
 
 ---
 
+## 📸 Aperçu
+
+> *Tu peux ajouter ici des captures d’écran (bibliothèque, lecteur, paroles, paramètres) pour donner un aperçu visuel de l’app.*
+
+---
+
 ## 🚀 Démarrage rapide
 
 ### Prérequis
