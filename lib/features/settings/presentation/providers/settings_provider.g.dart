@@ -76,5 +76,22 @@ final sleepTimerDefaultMinutesProvider =
 );
 
 typedef _$SleepTimerDefaultMinutes = AutoDisposeAsyncNotifier<int>;
+String _$excludeMessagingAppsHash() =>
+    r'5beaccc9781cfb90edf7c1cb4f25c9d395a4291a';
+
+/// See also [ExcludeMessagingApps].
+@ProviderFor(ExcludeMessagingApps)
+final excludeMessagingAppsProvider =
+    AutoDisposeAsyncNotifierProvider<ExcludeMessagingApps, bool>.internal(
+  ExcludeMessagingApps.new,
+  name: r'excludeMessagingAppsProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$excludeMessagingAppsHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef _$ExcludeMessagingApps = AutoDisposeAsyncNotifier<bool>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member

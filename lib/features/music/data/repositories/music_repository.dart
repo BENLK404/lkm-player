@@ -27,6 +27,36 @@ class MusicRepository {
   Directory? _artworkCacheDir;
   final Ref _ref;
 
+  /// Patterns de chemins associés aux applications de messagerie.
+  static const List<String> _messagingAppPathPatterns = [
+    'whatsapp',
+    'com.whatsapp',
+    'telegram',
+    'org.telegram',
+    'signal',
+    'org.thoughtcrime.securesms',
+    'com.facebook.orca',
+    'com.facebook.mlite',
+    'viber',
+    'com.viber.voip',
+    'discord',
+    'com.discord',
+    'skype',
+    'com.skype',
+    'line',
+    'jp.naver.line',
+    'wechat',
+    'com.tencent.mm',
+    'com.snapchat.android',
+    'slack',
+    'com.slack',
+  ];
+
+  bool _isFromMessagingApp(String filePath) {
+    final lower = filePath.toLowerCase();
+    return _messagingAppPathPatterns.any((pattern) => lower.contains(pattern));
+  }
+
   MusicRepository(this._ref) {
     _songBox = Hive.box<SongModel>('songs');
     _playlistBox = Hive.box<PlaylistModel>('playlists');
@@ -167,6 +197,8 @@ class MusicRepository {
 
       final minDurationSeconds = await _ref.read(minSongDurationProvider.future);
 
+      final excludeMessaging = await _ref.read(excludeMessagingAppsProvider.future);
+
       final deviceSongs = await _audioQuery.querySongs(
         sortType: aq.SongSortType.TITLE,
         orderType: aq.OrderType.ASC_OR_SMALLER,
@@ -180,6 +212,13 @@ class MusicRepository {
       final mergedSongs = <SongModel>[];
       for (final deviceSong in deviceSongs) {
         if (deviceSong.duration != null && deviceSong.duration! < (minDurationSeconds * 1000)) {
+          continue;
+        }
+
+        if (excludeMessaging && _isFromMessagingApp(deviceSong.data)) {
+          AppLogger.d(
+            'Exclu (messagerie) : ${deviceSong.data}',
+          );
           continue;
         }
 
