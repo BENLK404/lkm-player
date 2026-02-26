@@ -75,7 +75,8 @@ class _EqualizerSheetState extends ConsumerState<EqualizerSheet> {
     );
   }
 
-  Widget _buildBandSlider(BuildContext context, ja.AndroidEqualizerBand band, double minGain, double maxGain) {
+  Widget _buildBandSlider(BuildContext context, ja.AndroidEqualizerBand band,
+      double minGain, double maxGain) {
     return Expanded(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,

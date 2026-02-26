@@ -6,7 +6,9 @@ import 'package:musio/features/home/presentation/screens/home_screen.dart';
 import 'package:musio/features/home/presentation/screens/splash_screen.dart';
 import 'package:musio/features/music/data/models/song_model.dart';
 import 'package:musio/features/online/presentation/screens/online_screen.dart';
+import 'package:musio/features/player/presentation/screens/lyrics_full_screen.dart';
 import 'package:musio/features/player/presentation/screens/now_playing_screen.dart';
+import 'package:musio/features/player/presentation/screens/queue_full_screen.dart';
 import 'package:musio/features/playlist/presentation/screens/playlist_details_screen.dart';
 import 'package:musio/features/search/presentation/screens/search_screen.dart';
 import 'package:musio/features/settings/presentation/screens/about_screen.dart';
@@ -27,6 +29,8 @@ class AppRouter {
   static const String about = '/settings/about';
   static const String stats = '/settings/stats';
   static const String songList = '/song-list';
+  static const String lyrics = '/lyrics';
+  static const String queue = '/queue';
 
   static final GoRouter router = GoRouter(
     initialLocation: splash,
@@ -156,6 +160,32 @@ class AppRouter {
               position: animation.drive(tween),
               child: child,
             );
+          },
+        ),
+      ),
+
+      // Paroles plein écran (style Spotify)
+      GoRoute(
+        path: lyrics,
+        name: 'lyrics',
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          child: const LyricsFullScreen(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return FadeTransition(opacity: animation, child: child);
+          },
+        ),
+      ),
+
+      // File d'attente plein écran (style Spotify)
+      GoRoute(
+        path: queue,
+        name: 'queue',
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          child: const QueueFullScreen(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return FadeTransition(opacity: animation, child: child);
           },
         ),
       ),
