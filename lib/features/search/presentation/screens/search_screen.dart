@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:musio/features/music/presentation/providers/music_provider.dart';
+import 'package:musio/shared/widgets/album_art_image.dart';
 import 'package:musio/shared/widgets/mini_player.dart';
 import 'package:musio/shared/widgets/song_tile.dart';
 
@@ -90,11 +92,13 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                     // Artistes
                     if (filteredArtists.isNotEmpty) ...[
                       _buildSectionHeader(context, 'Artistes', filteredArtists.length),
-                      ...filteredArtists.take(3).map((artist) => ListTile(
+                      ...filteredArtists.map((artist) => ListTile(
                         leading: CircleAvatar(
                           backgroundColor: Theme.of(context).colorScheme.primary,
                           child: Text(
-                            artist.name[0].toUpperCase(),
+                            artist.name.isNotEmpty
+                                ? artist.name[0].toUpperCase()
+                                : '?',
                             style: const TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
@@ -104,17 +108,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                         title: Text(artist.name),
                         subtitle: Text('${artist.albumCount} albums'),
                         trailing: const Icon(Icons.chevron_right),
-                        onTap: () {
-                          // TODO: Naviguer vers l'artiste
-                        },
+                        onTap: () => context.push('/artist/${artist.id}'),
                       )),
-                      if (filteredArtists.length > 3)
-                        TextButton(
-                          onPressed: () {
-                            // TODO: Voir tous les artistes
-                          },
-                          child: Text('Voir tous les ${filteredArtists.length} artistes'),
-                        ),
                       const Divider(),
                     ],
 
@@ -129,39 +124,50 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                           itemCount: filteredAlbums.take(10).length,
                           itemBuilder: (context, index) {
                             final album = filteredAlbums[index];
-                            return Container(
-                              width: 140,
-                              margin: const EdgeInsets.only(right: 16),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Expanded(
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        color: Theme.of(context).colorScheme.surface,
+                            return GestureDetector(
+                              onTap: () => context.push('/album/${album.id}'),
+                              child: Container(
+                                width: 140,
+                                margin: const EdgeInsets.only(right: 16),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Expanded(
+                                      child: ClipRRect(
                                         borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      child: const Center(
-                                        child: Icon(Icons.album, size: 48),
+                                        child: AlbumArtImage(
+                                          albumArtPath: album.albumArtPath,
+                                          songId: album.songIds.isNotEmpty
+                                              ? album.songIds.first
+                                              : '0',
+                                          size: 140,
+                                          placeholderIcon: const Icon(
+                                            Icons.album_rounded,
+                                            size: 48,
+                                          ),
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    album.name,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                  ),
-                                  Text(
-                                    album.artist,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: Theme.of(context).textTheme.bodySmall,
-                                  ),
-                                ],
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      album.name,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodyMedium
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                    ),
+                                    Text(
+                                      album.artist,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: Theme.of(context).textTheme.bodySmall,
+                                    ),
+                                  ],
+                                ),
                               ),
                             );
                           },

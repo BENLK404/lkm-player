@@ -426,48 +426,101 @@ class NowPlayingScreen extends ConsumerWidget {
 
   void _showOptionsMenu(
       BuildContext context, WidgetRef ref, SongModel currentSong) {
+    final sleepRemaining = ref.watch(sleepTimerProvider);
+    const _bgDark = Color(0xFF121212);
+    const _bgGradientTop = Color(0xFF1a1a2e);
+
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
-        decoration: BoxDecoration(
-          color: Theme.of(context).scaffoldBackgroundColor,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        decoration: const BoxDecoration(
+          color: _bgDark,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         ),
         child: SafeArea(
+          top: false,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const _SheetHandle(),
-              ListTile(
-                leading: const Icon(Icons.playlist_add),
-                title: const Text('Ajouter à la playlist'),
+              Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      _bgGradientTop.withOpacity(0.95),
+                      _bgGradientTop.withOpacity(0.0),
+                    ],
+                  ),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                  child: Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.keyboard_arrow_down_rounded),
+                        color: Colors.white,
+                        iconSize: 32,
+                        onPressed: () => Navigator.of(context).pop(),
+                      ),
+                      const SizedBox(width: 8),
+                      const Expanded(
+                        child: Text(
+                          'Options',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Text(
+                  currentSong.title,
+                  style: const TextStyle(
+                    color: Colors.white70,
+                    fontSize: 13,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(height: 8),
+              _OptionTile(
+                icon: Icons.playlist_add_rounded,
+                label: 'Ajouter à la playlist',
                 onTap: () {
                   Navigator.pop(context);
                   _showAddToPlaylistSheet(context, ref, currentSong);
                 },
               ),
               if (currentSong.albumId != null)
-                ListTile(
-                  leading: const Icon(Icons.album),
-                  title: const Text('Aller à l\'album'),
+                _OptionTile(
+                  icon: Icons.album_rounded,
+                  label: 'Aller à l\'album',
                   onTap: () {
                     Navigator.pop(context);
-                    context.push('/album/${currentSong.albumId}');
+                    context.push('/album/${currentSong.albumId!}');
                   },
                 ),
               if (currentSong.artistId != null)
-                ListTile(
-                  leading: const Icon(Icons.person),
-                  title: const Text('Aller à l\'artiste'),
+                _OptionTile(
+                  icon: Icons.person_rounded,
+                  label: 'Aller à l\'artiste',
                   onTap: () {
                     Navigator.pop(context);
-                    context.push('/artist/${currentSong.artistId}');
+                    context.push('/artist/${currentSong.artistId!}');
                   },
                 ),
-              ListTile(
-                leading: const Icon(Icons.share),
-                title: const Text('Partager'),
+              _OptionTile(
+                icon: Icons.share_rounded,
+                label: 'Partager',
                 onTap: () {
                   Navigator.pop(context);
                   Share.share(
@@ -475,12 +528,11 @@ class NowPlayingScreen extends ConsumerWidget {
                   );
                 },
               ),
-              ListTile(
-                leading: const Icon(Icons.timer_outlined),
-                title: const Text('Minuteur de sommeil'),
-                subtitle: ref.watch(sleepTimerProvider) != null
-                    ? Text(
-                        'Arrêt dans ${(ref.watch(sleepTimerProvider)! / 60).ceil()} min')
+              _OptionTile(
+                icon: Icons.timer_outlined,
+                label: 'Minuteur de sommeil',
+                subtitle: sleepRemaining != null && sleepRemaining > 0
+                    ? 'Arrêt dans ${(sleepRemaining / 60).ceil()} min'
                     : null,
                 onTap: () {
                   Navigator.pop(context);
@@ -681,6 +733,66 @@ class NowPlayingScreen extends ConsumerWidget {
   }
 }
 
+class _OptionTile extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String? subtitle;
+  final VoidCallback onTap;
+
+  const _OptionTile({
+    required this.icon,
+    required this.label,
+    this.subtitle,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
+
+    return Material(
+      color: Colors.transparent,
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+        onTap: onTap,
+        leading: SizedBox(
+          width: 48,
+          height: 48,
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white12,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, color: primary, size: 24),
+          ),
+        ),
+        title: Text(
+          label,
+          style: const TextStyle(
+            color: Colors.white70,
+            fontWeight: FontWeight.w500,
+            fontSize: 15,
+          ),
+        ),
+        subtitle: subtitle != null
+            ? Text(
+                subtitle!,
+                style: TextStyle(
+                  color: primary.withOpacity(0.9),
+                  fontSize: 13,
+                ),
+              )
+            : null,
+        trailing: const Icon(
+          Icons.chevron_right_rounded,
+          color: Colors.white38,
+          size: 24,
+        ),
+      ),
+    );
+  }
+}
+
 class _SheetHandle extends StatelessWidget {
   const _SheetHandle();
 
@@ -692,7 +804,7 @@ class _SheetHandle extends StatelessWidget {
         width: 40,
         height: 4,
         decoration: BoxDecoration(
-          color: Colors.grey.withOpacity(0.3),
+          color: Colors.white24,
           borderRadius: BorderRadius.circular(2),
         ),
       ),

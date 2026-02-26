@@ -57,7 +57,8 @@ class _OfflineHomeScreenState extends ConsumerState<OfflineHomeScreen>
   Widget build(BuildContext context) {
     final musicState = ref.watch(musicProvider);
     final isSongList = ref.watch(songDisplayModeProvider);
-    final isOnlineEnabled = ref.watch(onlineFeatureEnabledProvider).valueOrNull ?? false;
+    final isOnlineEnabled =
+        ref.watch(onlineFeatureEnabledProvider).valueOrNull ?? false;
 
     return Scaffold(
       appBar: AppBar(
@@ -203,7 +204,8 @@ class _OfflineHomeScreenState extends ConsumerState<OfflineHomeScreen>
               Text('Erreur: $error'),
               const SizedBox(height: 16),
               ElevatedButton(
-                onPressed: () => ref.read(musicProvider.notifier).rescanLibrary(),
+                onPressed: () =>
+                    ref.read(musicProvider.notifier).rescanLibrary(),
                 child: const Text('Réessayer'),
               ),
             ],
@@ -307,14 +309,16 @@ class _OfflineHomeScreenState extends ConsumerState<OfflineHomeScreen>
               child: ClipOval(
                 child: AlbumArtImage(
                   albumArtPath: artist.imagePath,
-                  songId: artist.songIds.isNotEmpty ? artist.songIds.first : '0',
+                  songId:
+                      artist.songIds.isNotEmpty ? artist.songIds.first : '0',
                   size: 56,
                   placeholderIcon: const Icon(Icons.person, size: 32),
                 ),
               ),
             ),
             title: Text(artist.name),
-            subtitle: Text('${artist.albumCount} albums • ${artist.trackCount} titres'),
+            subtitle: Text(
+                '${artist.albumCount} albums • ${artist.trackCount} titres'),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.push('/artist/${artist.id}'),
           );
@@ -323,7 +327,8 @@ class _OfflineHomeScreenState extends ConsumerState<OfflineHomeScreen>
     );
   }
 
-  Widget _buildPlaylistsTab(List<PlaylistModel> playlists, List<SongModel> songs) {
+  Widget _buildPlaylistsTab(
+      List<PlaylistModel> playlists, List<SongModel> songs) {
     final favoritesCount = songs.where((s) => s.isFavorite).length;
     final recentCount = songs.where((s) => s.lastPlayed != null).length;
     final mostPlayedCount = songs.where((s) => s.playCount > 0).length;
@@ -350,30 +355,36 @@ class _OfflineHomeScreenState extends ConsumerState<OfflineHomeScreen>
           ListTile(
             leading: CircleAvatar(
               backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-              child: Icon(Icons.favorite, color: Theme.of(context).colorScheme.primary),
+              child: Icon(Icons.favorite,
+                  color: Theme.of(context).colorScheme.primary),
             ),
             title: const Text('Favoris'),
-            subtitle: Text('$favoritesCount chanson${favoritesCount != 1 ? 's' : ''}'),
+            subtitle: Text(
+                '$favoritesCount chanson${favoritesCount != 1 ? 's' : ''}'),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.push('/playlist/${SystemPlaylist.favorites}'),
           ),
           ListTile(
             leading: CircleAvatar(
               backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-              child: Icon(Icons.history, color: Theme.of(context).colorScheme.primary),
+              child: Icon(Icons.history,
+                  color: Theme.of(context).colorScheme.primary),
             ),
             title: const Text('Récemment jouées'),
-            subtitle: Text('$recentCount chanson${recentCount != 1 ? 's' : ''}'),
+            subtitle:
+                Text('$recentCount chanson${recentCount != 1 ? 's' : ''}'),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.push('/playlist/${SystemPlaylist.recent}'),
           ),
           ListTile(
             leading: CircleAvatar(
               backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-              child: Icon(Icons.trending_up, color: Theme.of(context).colorScheme.primary),
+              child: Icon(Icons.trending_up,
+                  color: Theme.of(context).colorScheme.primary),
             ),
             title: const Text('Les plus jouées'),
-            subtitle: Text('$mostPlayedCount chanson${mostPlayedCount != 1 ? 's' : ''}'),
+            subtitle: Text(
+                '$mostPlayedCount chanson${mostPlayedCount != 1 ? 's' : ''}'),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.push('/playlist/${SystemPlaylist.mostPlayed}'),
           ),
@@ -403,7 +414,8 @@ class _OfflineHomeScreenState extends ConsumerState<OfflineHomeScreen>
             ...playlists.map((playlist) => ListTile(
                   leading: const Icon(Icons.playlist_play),
                   title: Text(playlist.name),
-                  subtitle: Text('${playlist.songIds.length} chanson${playlist.songIds.length != 1 ? 's' : ''}'),
+                  subtitle: Text(
+                      '${playlist.songIds.length} chanson${playlist.songIds.length != 1 ? 's' : ''}'),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => context.push('/playlist/${playlist.id}'),
                 )),
@@ -460,16 +472,19 @@ class _OfflineHomeScreenState extends ConsumerState<OfflineHomeScreen>
               return Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text('${ref.watch(albumGridColumnsProvider).round()} colonnes'),
+                  Text(
+                      '${ref.watch(albumGridColumnsProvider).round()} colonnes'),
                   Slider(
                     value: ref.watch(albumGridColumnsProvider),
                     min: 2,
                     max: 5,
                     divisions: 3,
-                    label: '${ref.watch(albumGridColumnsProvider).round()} colonnes',
+                    label:
+                        '${ref.watch(albumGridColumnsProvider).round()} colonnes',
                     onChanged: (value) {
                       setState(() {
-                        ref.read(albumGridColumnsProvider.notifier).state = value;
+                        ref.read(albumGridColumnsProvider.notifier).state =
+                            value;
                       });
                     },
                   ),
