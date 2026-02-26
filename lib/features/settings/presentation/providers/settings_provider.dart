@@ -81,7 +81,7 @@ class ExcludeMessagingApps extends _$ExcludeMessagingApps {
   @override
   Future<bool> build() async {
     _prefs = await SharedPreferences.getInstance();
-    return _prefs.getBool(_key) ?? true; // true par défaut
+    return _prefs.getBool(_key) ?? false; // true par défaut
   }
 
   Future<void> setEnabled(bool value) async {

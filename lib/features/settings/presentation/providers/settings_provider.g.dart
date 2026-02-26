@@ -77,7 +77,7 @@ final sleepTimerDefaultMinutesProvider =
 
 typedef _$SleepTimerDefaultMinutes = AutoDisposeAsyncNotifier<int>;
 String _$excludeMessagingAppsHash() =>
-    r'50dcb55e4593dc66bf017b872bc9746eeca3d06c';
+    r'5beaccc9781cfb90edf7c1cb4f25c9d395a4291a';
 
 /// See also [ExcludeMessagingApps].
 @ProviderFor(ExcludeMessagingApps)
