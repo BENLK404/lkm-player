@@ -107,6 +107,36 @@ class SettingsScreen extends ConsumerWidget {
             error: (e, s) => const SizedBox.shrink(),
           ),
           const Divider(),
+          ref.watch(excludeMessagingAppsProvider).when(
+            data: (excluded) => SwitchListTile(
+              title: const Text('Exclure les apps de messagerie'),
+              subtitle: const Text(
+                'Masque les audios WhatsApp, Telegram, Signal… '
+                'lors du scan de la bibliothèque',
+              ),
+              secondary: const Icon(Icons.chat_bubble_outline),
+              value: excluded,
+              onChanged: (value) async {
+                await ref
+                    .read(excludeMessagingAppsProvider.notifier)
+                    .setEnabled(value);
+                ref.read(musicProvider.notifier).rescanLibrary();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      value
+                          ? 'Apps de messagerie exclues. Scan en cours…'
+                          : 'Apps de messagerie incluses. Scan en cours…',
+                    ),
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              },
+            ),
+            loading: () => const SizedBox.shrink(),
+            error: (_, __) => const SizedBox.shrink(),
+          ),
+          const Divider(),
           _buildSectionHeader(context, 'Stockage'),
           ListTile(
             leading: const Icon(Icons.delete_sweep_outlined),

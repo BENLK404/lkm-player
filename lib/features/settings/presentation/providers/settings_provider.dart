@@ -72,3 +72,20 @@ class SleepTimerDefaultMinutes extends _$SleepTimerDefaultMinutes {
     await _prefs.setInt(_key, minutes);
   }
 }
+
+@riverpod
+class ExcludeMessagingApps extends _$ExcludeMessagingApps {
+  late SharedPreferences _prefs;
+  static const _key = 'exclude_messaging_apps';
+
+  @override
+  Future<bool> build() async {
+    _prefs = await SharedPreferences.getInstance();
+    return _prefs.getBool(_key) ?? true; // true par défaut
+  }
+
+  Future<void> setEnabled(bool value) async {
+    state = AsyncValue.data(value);
+    await _prefs.setBool(_key, value);
+  }
+}
