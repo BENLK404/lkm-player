@@ -288,7 +288,8 @@ class MusicRepository {
 
   /// Récupère les paroles : cache → fichier .lrc. Les résultats sont mis en cache.
   /// (Paroles en ligne gérées par lyrics_provider après appel à getLyrics.)
-  Future<String?> getLyrics(String songId) async {
+  /// [songOverride] : si fourni, utilisé pour chercher le .lrc (piste récemment ajoutée ou en queue non encore en cache).
+  Future<String?> getLyrics(String songId, {SongModel? songOverride}) async {
     try {
       // 0) Cache
       String? cached;
@@ -298,7 +299,7 @@ class MusicRepository {
       } catch (_) {}
       if (cached != null) return cached;
 
-      final song = _songBox.get(songId);
+      final song = songOverride ?? _songBox.get(songId);
       if (song == null) return null;
 
       String? result;
