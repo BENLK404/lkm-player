@@ -11,7 +11,7 @@ class MinSongDuration extends _$MinSongDuration {
   @override
   Future<int> build() async {
     _prefs = await SharedPreferences.getInstance();
-    return _prefs.getInt(_key) ?? 10; // Valeur par défaut de 10 secondes
+    return _prefs.getInt(_key) ?? 10;
   }
 
   Future<void> setDuration(int seconds) async {
@@ -28,7 +28,7 @@ class OnlineFeatureEnabled extends _$OnlineFeatureEnabled {
   @override
   Future<bool> build() async {
     _prefs = await SharedPreferences.getInstance();
-    return _prefs.getBool(_key) ?? true; // Activé par défaut
+    return _prefs.getBool(_key) ?? true;
   }
 
   Future<void> setEnabled(bool enabled) async {
@@ -46,7 +46,7 @@ class ThemeModeSetting extends _$ThemeModeSetting {
   @override
   Future<int> build() async {
     _prefs = await SharedPreferences.getInstance();
-    return _prefs.getInt(_key) ?? 1; // 1 = dark par défaut
+    return _prefs.getInt(_key) ?? 1;
   }
 
   Future<void> setMode(int value) async {
@@ -55,7 +55,6 @@ class ThemeModeSetting extends _$ThemeModeSetting {
   }
 }
 
-/// Durée par défaut du minuteur de sommeil en minutes (0 = désactivé).
 @riverpod
 class SleepTimerDefaultMinutes extends _$SleepTimerDefaultMinutes {
   late SharedPreferences _prefs;
@@ -73,6 +72,9 @@ class SleepTimerDefaultMinutes extends _$SleepTimerDefaultMinutes {
   }
 }
 
+// ─── Filtres apps de messagerie
+
+/// Toggle global : active/désactive tous les filtres messagerie d'un coup.
 @riverpod
 class ExcludeMessagingApps extends _$ExcludeMessagingApps {
   late SharedPreferences _prefs;
@@ -81,7 +83,115 @@ class ExcludeMessagingApps extends _$ExcludeMessagingApps {
   @override
   Future<bool> build() async {
     _prefs = await SharedPreferences.getInstance();
-    return _prefs.getBool(_key) ?? false; // true par défaut
+    return _prefs.getBool(_key) ?? false;
+  }
+
+  Future<void> setEnabled(bool value) async {
+    state = AsyncValue.data(value);
+    await _prefs.setBool(_key, value);
+  }
+}
+
+/// WhatsApp — exclu par défaut
+@riverpod
+class ExcludeWhatsApp extends _$ExcludeWhatsApp {
+  late SharedPreferences _prefs;
+  static const _key = 'exclude_whatsapp';
+
+  @override
+  Future<bool> build() async {
+    _prefs = await SharedPreferences.getInstance();
+    return _prefs.getBool(_key) ?? true;
+  }
+
+  Future<void> setEnabled(bool value) async {
+    state = AsyncValue.data(value);
+    await _prefs.setBool(_key, value);
+  }
+}
+
+/// Telegram — inclus par défaut (bots musicaux)
+@riverpod
+class ExcludeTelegram extends _$ExcludeTelegram {
+  late SharedPreferences _prefs;
+  static const _key = 'exclude_telegram';
+
+  @override
+  Future<bool> build() async {
+    _prefs = await SharedPreferences.getInstance();
+    return _prefs.getBool(_key) ?? false;
+  }
+
+  Future<void> setEnabled(bool value) async {
+    state = AsyncValue.data(value);
+    await _prefs.setBool(_key, value);
+  }
+}
+
+/// Signal — exclu par défaut
+@riverpod
+class ExcludeSignal extends _$ExcludeSignal {
+  late SharedPreferences _prefs;
+  static const _key = 'exclude_signal';
+
+  @override
+  Future<bool> build() async {
+    _prefs = await SharedPreferences.getInstance();
+    return _prefs.getBool(_key) ?? true;
+  }
+
+  Future<void> setEnabled(bool value) async {
+    state = AsyncValue.data(value);
+    await _prefs.setBool(_key, value);
+  }
+}
+
+/// Viber — exclu par défaut
+@riverpod
+class ExcludeViber extends _$ExcludeViber {
+  late SharedPreferences _prefs;
+  static const _key = 'exclude_viber';
+
+  @override
+  Future<bool> build() async {
+    _prefs = await SharedPreferences.getInstance();
+    return _prefs.getBool(_key) ?? true;
+  }
+
+  Future<void> setEnabled(bool value) async {
+    state = AsyncValue.data(value);
+    await _prefs.setBool(_key, value);
+  }
+}
+
+/// Discord — exclu par défaut
+@riverpod
+class ExcludeDiscord extends _$ExcludeDiscord {
+  late SharedPreferences _prefs;
+  static const _key = 'exclude_discord';
+
+  @override
+  Future<bool> build() async {
+    _prefs = await SharedPreferences.getInstance();
+    return _prefs.getBool(_key) ?? true;
+  }
+
+  Future<void> setEnabled(bool value) async {
+    state = AsyncValue.data(value);
+    await _prefs.setBool(_key, value);
+  }
+}
+
+/// Autres apps (Skype, Line, WeChat, Snapchat, Slack…) — exclu par défaut
+@riverpod
+class ExcludeOtherMessaging extends _$ExcludeOtherMessaging {
+  late SharedPreferences _prefs;
+  static const _key = 'exclude_other_messaging';
+
+  @override
+  Future<bool> build() async {
+    _prefs = await SharedPreferences.getInstance();
+    return _prefs.getBool(_key) ?? true;
   }
 
   Future<void> setEnabled(bool value) async {
