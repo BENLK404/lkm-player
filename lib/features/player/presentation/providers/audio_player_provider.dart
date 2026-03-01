@@ -30,6 +30,10 @@ class AudioPlayer extends _$AudioPlayer {
     _audioPlayerService.pause();
   }
 
+  Future<void> stop() async {
+    await _audioPlayerService.stop();
+  }
+
   void resume() {
     _audioPlayerService.resume();
   }

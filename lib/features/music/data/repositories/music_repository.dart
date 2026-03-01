@@ -111,29 +111,47 @@ class MusicRepository {
     return _songBox.values.toList();
   }
 
+  /// Clé d'album effective : albumId si présent, sinon clé générée à partir de (album, artist)
+  /// pour que les morceaux sans albumId (ex. anciens téléchargements) soient quand même regroupés.
+  static String? effectiveAlbumKey(SongModel s) {
+    if (s.albumId != null && s.albumId!.isNotEmpty) return s.albumId;
+    final a = s.album.replaceAll(RegExp(r'[<>:"/\\|?*]'), '_').trim();
+    final ar = s.artist.replaceAll(RegExp(r'[<>:"/\\|?*]'), '_').trim();
+    if (a.isEmpty && ar.isEmpty) return null;
+    return 'gen_${a.isEmpty ? 'unknown' : a}_${ar.isEmpty ? 'unknown' : ar}';
+  }
+
+  /// Clé artiste effective : artistId si présent, sinon clé générée à partir du nom d'artiste.
+  static String? effectiveArtistKey(SongModel s) {
+    if (s.artistId != null && s.artistId!.isNotEmpty) return s.artistId;
+    final ar = s.artist.replaceAll(RegExp(r'[<>:"/\\|?*]'), '_').trim();
+    if (ar.isEmpty) return null;
+    return 'gen_artist_$ar';
+  }
+
   Future<List<AlbumModel>> getAlbumsFromCache() async {
     final songs = _songBox.values.toList();
     final albumMap = <String, AlbumModel>{};
 
     for (var song in songs) {
-      if (song.albumId != null) {
-        if (!albumMap.containsKey(song.albumId)) {
-          albumMap[song.albumId!] = AlbumModel(
-            id: song.albumId!,
-            name: song.album,
-            artist: song.artist,
-            albumArtPath: song.albumArtPath,
-            year: song.year,
-            songIds: [],
-            trackCount: 0,
-          );
-        }
-        final album = albumMap[song.albumId!]!;
-        albumMap[song.albumId!] = album.copyWith(
-          songIds: [...album.songIds, song.id],
-          trackCount: album.trackCount + 1,
+      final key = effectiveAlbumKey(song);
+      if (key == null) continue;
+      if (!albumMap.containsKey(key)) {
+        albumMap[key] = AlbumModel(
+          id: key,
+          name: song.album,
+          artist: song.artist,
+          albumArtPath: song.albumArtPath,
+          year: song.year,
+          songIds: [],
+          trackCount: 0,
         );
       }
+      final album = albumMap[key]!;
+      albumMap[key] = album.copyWith(
+        songIds: [...album.songIds, song.id],
+        trackCount: album.trackCount + 1,
+      );
     }
     return albumMap.values.toList();
   }
@@ -143,38 +161,39 @@ class MusicRepository {
     final artistMap = <String, ArtistModel>{};
 
     for (var song in songs) {
-      if (song.artistId != null) {
-        if (!artistMap.containsKey(song.artistId)) {
-          final artwork = songs
-              .firstWhere(
-                (s) => s.artistId == song.artistId && s.albumArtPath != null,
-                orElse: () => song,
-              )
-              .albumArtPath;
+      final key = effectiveArtistKey(song);
+      if (key == null) continue;
+      if (!artistMap.containsKey(key)) {
+        final artwork = songs
+            .firstWhere(
+              (s) => effectiveArtistKey(s) == key && s.albumArtPath != null,
+              orElse: () => song,
+            )
+            .albumArtPath;
 
-          artistMap[song.artistId!] = ArtistModel(
-            id: song.artistId!,
-            name: song.artist,
-            imagePath: artwork,
-            songIds: [],
-            trackCount: 0,
-            albumIds: [],
-          );
-        }
-        final artist = artistMap[song.artistId!]!;
-        
-        final albumIds = List<String>.from(artist.albumIds);
-        if (song.albumId != null && !albumIds.contains(song.albumId!)) {
-          albumIds.add(song.albumId!);
-        }
-
-        artistMap[song.artistId!] = artist.copyWith(
-          songIds: [...artist.songIds, song.id],
-          trackCount: artist.trackCount + 1,
-          albumIds: albumIds,
-          albumCount: albumIds.length,
+        artistMap[key] = ArtistModel(
+          id: key,
+          name: song.artist,
+          imagePath: artwork,
+          songIds: [],
+          trackCount: 0,
+          albumIds: [],
         );
       }
+      final artist = artistMap[key]!;
+
+      final albumIds = List<String>.from(artist.albumIds);
+      final albumKey = effectiveAlbumKey(song);
+      if (albumKey != null && !albumIds.contains(albumKey)) {
+        albumIds.add(albumKey);
+      }
+
+      artistMap[key] = artist.copyWith(
+        songIds: [...artist.songIds, song.id],
+        trackCount: artist.trackCount + 1,
+        albumIds: albumIds,
+        albumCount: albumIds.length,
+      );
     }
     return artistMap.values.toList();
   }
@@ -241,6 +260,18 @@ class MusicRepository {
         }
       }
 
+      // Conserver les pistes téléchargées (Deezer) dont le fichier existe encore
+      final mergedPaths = {for (var s in mergedSongs) s.path};
+      for (final song in cachedSongs) {
+        if (song.id.startsWith('deezer_') && !mergedPaths.contains(song.path)) {
+          final file = File(song.path);
+          if (await file.exists()) {
+            mergedSongs.add(song);
+            mergedPaths.add(song.path);
+          }
+        }
+      }
+
       await _songBox.clear();
       await _songBox.putAll({for (var s in mergedSongs) s.id: s});
 
@@ -255,6 +286,38 @@ class MusicRepository {
 
   Future<void> updateSong(SongModel song) async {
     await _songBox.put(song.id, song);
+  }
+
+  /// Ajoute une chanson téléchargée (ex. via API) à la bibliothèque sans scan.
+  Future<void> addDownloadedSong(SongModel song) async {
+    await _songBox.put(song.id, song);
+  }
+
+  /// Supprime un morceau de la bibliothèque et optionnellement le fichier du disque.
+  Future<void> removeSong(String songId, {bool deleteFile = true}) async {
+    final song = _songBox.get(songId);
+    if (song == null) return;
+    await _songBox.delete(songId);
+    if (deleteFile) {
+      try {
+        final file = File(song.path);
+        if (await file.exists()) await file.delete();
+      } catch (_) {}
+    }
+  }
+
+  /// Supprime un album de la bibliothèque (toutes les pistes) et optionnellement les fichiers.
+  Future<void> removeAlbum(String albumId, {bool deleteFiles = true}) async {
+    final songs = _songBox.values.where((s) => effectiveAlbumKey(s) == albumId).toList();
+    for (final song in songs) {
+      await _songBox.delete(song.id);
+      if (deleteFiles) {
+        try {
+          final file = File(song.path);
+          if (await file.exists()) await file.delete();
+        } catch (_) {}
+      }
+    }
   }
 
   Future<void> createPlaylist(PlaylistModel playlist) async {
@@ -441,12 +504,12 @@ class MusicRepository {
 
   Future<List<SongModel>> getSongsByAlbum(String albumId) async {
     final songs = await getSongsFromCache();
-    return songs.where((s) => s.albumId == albumId).toList();
+    return songs.where((s) => effectiveAlbumKey(s) == albumId).toList();
   }
 
   Future<List<SongModel>> getSongsByArtist(String artistId) async {
     final songs = await getSongsFromCache();
-    return songs.where((s) => s.artistId == artistId).toList();
+    return songs.where((s) => effectiveArtistKey(s) == artistId).toList();
   }
 
   Future<List<SongModel>> searchSongs(String query) async {

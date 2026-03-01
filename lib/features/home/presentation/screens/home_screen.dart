@@ -22,6 +22,11 @@ final albumGridColumnsProvider = StateProvider<double>((ref) => 2.0);
 // Provider pour le mode d'affichage des chansons (true = liste, false = grille)
 final songDisplayModeProvider = StateProvider<bool>((ref) => true);
 
+/// Mode de sélection multiple : null = inactif, 'songs' = pistes, 'albums' = albums.
+final selectionModeProvider = StateProvider<String?>((ref) => null);
+final selectedSongIdsProvider = StateProvider<Set<String>>((ref) => {});
+final selectedAlbumIdsProvider = StateProvider<Set<String>>((ref) => {});
+
 class OfflineHomeScreen extends ConsumerStatefulWidget {
   const OfflineHomeScreen({super.key});
 
@@ -53,15 +58,142 @@ class _OfflineHomeScreenState extends ConsumerState<OfflineHomeScreen>
     super.dispose();
   }
 
+  void _clearSelection() {
+    ref.read(selectionModeProvider.notifier).state = null;
+    ref.read(selectedSongIdsProvider.notifier).state = {};
+    ref.read(selectedAlbumIdsProvider.notifier).state = {};
+  }
+
+  void _confirmDeleteSelectedSongs(BuildContext context, Set<String> ids) async {
+    if (ids.isEmpty) return;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Supprimer les morceaux ?'),
+        content: Text(
+          '${ids.length} morceau(x) seront supprimés de la bibliothèque. Les fichiers seront supprimés du téléphone.',
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Annuler')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: TextButton.styleFrom(foregroundColor: Theme.of(ctx).colorScheme.error),
+            child: const Text('Supprimer'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) {
+      final notifier = ref.read(musicProvider.notifier);
+      for (final id in ids) await notifier.removeSong(id);
+      _clearSelection();
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${ids.length} morceau(x) supprimé(s)')),
+        );
+      }
+    }
+  }
+
+  void _confirmDeleteSelectedAlbums(BuildContext context, Set<String> ids) async {
+    if (ids.isEmpty) return;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Supprimer les albums ?'),
+        content: Text(
+          'Les ${ids.length} album(s) et toutes leurs pistes seront supprimés de la bibliothèque. Les fichiers seront supprimés du téléphone.',
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Annuler')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: TextButton.styleFrom(foregroundColor: Theme.of(ctx).colorScheme.error),
+            child: const Text('Supprimer'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) {
+      final notifier = ref.read(musicProvider.notifier);
+      final playerNotifier = ref.read(audioPlayerProvider.notifier);
+      final currentQueueIds = ref.read(audioPlayerProvider).queue.map((s) => s.id).toSet();
+      for (final albumId in ids) {
+        final songIds = ref.read(albumSongsProvider(albumId)).map((s) => s.id).toSet();
+        if (songIds.any((id) => currentQueueIds.contains(id))) {
+          await playerNotifier.stop();
+          break;
+        }
+      }
+      for (final albumId in ids) await notifier.removeAlbum(albumId);
+      _clearSelection();
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${ids.length} album(s) supprimé(s)')),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final musicState = ref.watch(musicProvider);
     final isSongList = ref.watch(songDisplayModeProvider);
     final isOnlineEnabled =
         ref.watch(onlineFeatureEnabledProvider).valueOrNull ?? false;
+    final selectionMode = ref.watch(selectionModeProvider);
+    final selectedSongIds = ref.watch(selectedSongIdsProvider);
+    final selectedAlbumIds = ref.watch(selectedAlbumIdsProvider);
+
+    final isSelectionActive = selectionMode != null;
+    final selectionCount = selectionMode == 'songs'
+        ? selectedSongIds.length
+        : selectionMode == 'albums'
+            ? selectedAlbumIds.length
+            : 0;
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: isSelectionActive
+          ? AppBar(
+              title: Text('$selectionCount sélectionné(s)'),
+              centerTitle: false,
+              leading: IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: _clearSelection,
+                tooltip: 'Annuler',
+              ),
+              actions: [
+                if (selectionCount > 0)
+                  IconButton(
+                    icon: Icon(Icons.delete_outline, color: Theme.of(context).colorScheme.error),
+                    tooltip: 'Supprimer',
+                    onPressed: () {
+                      if (selectionMode == 'songs') {
+                        _confirmDeleteSelectedSongs(context, selectedSongIds);
+                      } else {
+                        _confirmDeleteSelectedAlbums(context, selectedAlbumIds);
+                      }
+                    },
+                  ),
+              ],
+              bottom: TabBar(
+                controller: _tabController,
+                tabAlignment: TabAlignment.start,
+                indicatorColor: Theme.of(context).colorScheme.primary,
+                dividerColor: Theme.of(context).colorScheme.surface,
+                labelColor: Theme.of(context).colorScheme.primary,
+                unselectedLabelColor: Colors.grey,
+                isScrollable: true,
+                tabs: const [
+                  Tab(text: 'Pour Moi'),
+                  Tab(text: 'Chansons'),
+                  Tab(text: 'Albums'),
+                  Tab(text: 'Artistes'),
+                  Tab(text: 'Playlists'),
+                ],
+              ),
+            )
+          : AppBar(
         title: const Text('LKM Player'),
         centerTitle: false,
         actions: [
@@ -217,6 +349,9 @@ class _OfflineHomeScreenState extends ConsumerState<OfflineHomeScreen>
 
   Widget _buildSongsTab(List<SongModel> songs) {
     final isList = ref.watch(songDisplayModeProvider);
+    final selectionMode = ref.watch(selectionModeProvider);
+    final selectedIds = ref.watch(selectedSongIdsProvider);
+    final isSongSelection = selectionMode == 'songs';
 
     if (songs.isEmpty) {
       return _buildEmptyState();
@@ -232,10 +367,45 @@ class _OfflineHomeScreenState extends ConsumerState<OfflineHomeScreen>
               separatorBuilder: (context, index) => const Divider(height: 1),
               itemBuilder: (context, index) {
                 final song = songs[index];
+                final isSelected = selectedIds.contains(song.id);
+                if (isSongSelection) {
+                  return InkWell(
+                    onTap: () {
+                      final next = Set<String>.from(selectedIds);
+                      if (isSelected) next.remove(song.id); else next.add(song.id);
+                      ref.read(selectedSongIdsProvider.notifier).state = next;
+                    },
+                    child: Row(
+                      children: [
+                        Checkbox(
+                          value: isSelected,
+                          onChanged: (_) {
+                            final next = Set<String>.from(selectedIds);
+                            if (isSelected) next.remove(song.id); else next.add(song.id);
+                            ref.read(selectedSongIdsProvider.notifier).state = next;
+                          },
+                        ),
+                        Expanded(
+                          child: SongTile(
+                            song: song,
+                            playlist: songs,
+                            songIndex: index,
+                            showTrailingMenu: false,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }
                 return SongTile(
                   song: song,
                   playlist: songs,
                   songIndex: index,
+                  onLongPress: () {
+                    ref.read(selectionModeProvider.notifier).state = 'songs';
+                    ref.read(selectedAlbumIdsProvider.notifier).state = {};
+                    ref.read(selectedSongIdsProvider.notifier).state = {song.id};
+                  },
                 );
               },
             )
@@ -250,11 +420,48 @@ class _OfflineHomeScreenState extends ConsumerState<OfflineHomeScreen>
               itemCount: songs.length,
               itemBuilder: (context, index) {
                 final song = songs[index];
-                return AlbumCard(
-                  album: song.toAlbumModel(),
-                  onTap: () {
-                    ref.read(audioPlayerProvider.notifier).play(songs, index);
+                final isSelected = selectedIds.contains(song.id);
+                if (isSongSelection) {
+                  return InkWell(
+                    onTap: () {
+                      final next = Set<String>.from(selectedIds);
+                      if (isSelected) next.remove(song.id); else next.add(song.id);
+                      ref.read(selectedSongIdsProvider.notifier).state = next;
+                    },
+                    child: Stack(
+                      children: [
+                        AlbumCard(
+                          album: song.toAlbumModel(),
+                          onTap: () {},
+                        ),
+                        Positioned(
+                          top: 8,
+                          left: 8,
+                          child: Checkbox(
+                            value: isSelected,
+                            onChanged: (_) {
+                              final next = Set<String>.from(selectedIds);
+                              if (isSelected) next.remove(song.id); else next.add(song.id);
+                              ref.read(selectedSongIdsProvider.notifier).state = next;
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+                return GestureDetector(
+                  onLongPress: () {
+                    ref.read(selectionModeProvider.notifier).state = 'songs';
+                    ref.read(selectedAlbumIdsProvider.notifier).state = {};
+                    ref.read(selectedSongIdsProvider.notifier).state = {song.id};
                   },
+                  child: AlbumCard(
+                    album: song.toAlbumModel(),
+                    onTap: () {
+                      ref.read(audioPlayerProvider.notifier).play(songs, index);
+                    },
+                  ),
                 );
               },
             ),
@@ -263,6 +470,9 @@ class _OfflineHomeScreenState extends ConsumerState<OfflineHomeScreen>
 
   Widget _buildAlbumsTab(List<AlbumModel> albums) {
     final columns = ref.watch(albumGridColumnsProvider);
+    final selectionMode = ref.watch(selectionModeProvider);
+    final selectedIds = ref.watch(selectedAlbumIdsProvider);
+    final isAlbumSelection = selectionMode == 'albums';
 
     if (albums.isEmpty) {
       return _buildEmptyState();
@@ -283,7 +493,41 @@ class _OfflineHomeScreenState extends ConsumerState<OfflineHomeScreen>
         itemCount: albums.length,
         itemBuilder: (context, index) {
           final album = albums[index];
-          return AlbumCard(album: album);
+          final isSelected = selectedIds.contains(album.id);
+          if (isAlbumSelection) {
+            return InkWell(
+              onTap: () {
+                final next = Set<String>.from(selectedIds);
+                if (isSelected) next.remove(album.id); else next.add(album.id);
+                ref.read(selectedAlbumIdsProvider.notifier).state = next;
+              },
+              child: Stack(
+                children: [
+                  AlbumCard(album: album, onTap: () {}),
+                  Positioned(
+                    top: 8,
+                    left: 8,
+                    child: Checkbox(
+                      value: isSelected,
+                      onChanged: (_) {
+                        final next = Set<String>.from(selectedIds);
+                        if (isSelected) next.remove(album.id); else next.add(album.id);
+                        ref.read(selectedAlbumIdsProvider.notifier).state = next;
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }
+          return GestureDetector(
+            onLongPress: () {
+              ref.read(selectionModeProvider.notifier).state = 'albums';
+              ref.read(selectedSongIdsProvider.notifier).state = {};
+              ref.read(selectedAlbumIdsProvider.notifier).state = {album.id};
+            },
+            child: AlbumCard(album: album),
+          );
         },
       ),
     );

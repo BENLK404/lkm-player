@@ -93,5 +93,24 @@ final excludeMessagingAppsProvider =
 );
 
 typedef _$ExcludeMessagingApps = AutoDisposeAsyncNotifier<bool>;
+String _$downloadApiBaseUrlHash() =>
+    r'd24f65cc8eb89c6df7eb25c838eac8acf9f66a72';
+
+/// URL de base de l'API Telegramusic (ex: http://192.168.1.10:8000)
+///
+/// Copied from [DownloadApiBaseUrl].
+@ProviderFor(DownloadApiBaseUrl)
+final downloadApiBaseUrlProvider =
+    AutoDisposeAsyncNotifierProvider<DownloadApiBaseUrl, String>.internal(
+  DownloadApiBaseUrl.new,
+  name: r'downloadApiBaseUrlProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$downloadApiBaseUrlHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef _$DownloadApiBaseUrl = AutoDisposeAsyncNotifier<String>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member

@@ -162,6 +162,20 @@ class Music extends _$Music {
     }
   }
 
+  /// Supprime un morceau de la bibliothèque (et le fichier du disque).
+  Future<void> removeSong(String songId, {bool deleteFile = true}) async {
+    final repository = ref.read(musicRepositoryProvider);
+    await repository.removeSong(songId, deleteFile: deleteFile);
+    await loadFromCache();
+  }
+
+  /// Supprime un album de la bibliothèque (toutes les pistes et leurs fichiers).
+  Future<void> removeAlbum(String albumId, {bool deleteFiles = true}) async {
+    final repository = ref.read(musicRepositoryProvider);
+    await repository.removeAlbum(albumId, deleteFiles: deleteFiles);
+    await loadFromCache();
+  }
+
   Future<void> clearArtworkCache() async {
     final repository = ref.read(musicRepositoryProvider);
     await repository.clearArtworkCache();
@@ -199,14 +213,16 @@ List<ArtistModel> allArtists(AllArtistsRef ref) {
 @riverpod
 List<SongModel> albumSongs(AlbumSongsRef ref, String albumId) {
   final musicState = ref.watch(musicProvider);
-  return musicState.valueOrNull?.songs.where((s) => s.albumId == albumId).toList() ?? [];
+  final songs = musicState.valueOrNull?.songs ?? [];
+  return songs.where((s) => MusicRepository.effectiveAlbumKey(s) == albumId).toList();
 }
 
 /// Provider pour les chansons d'un artiste spécifique (Synchrone)
 @riverpod
 List<SongModel> artistSongs(ArtistSongsRef ref, String artistId) {
   final musicState = ref.watch(musicProvider);
-  return musicState.valueOrNull?.songs.where((s) => s.artistId == artistId).toList() ?? [];
+  final songs = musicState.valueOrNull?.songs ?? [];
+  return songs.where((s) => MusicRepository.effectiveArtistKey(s) == artistId).toList();
 }
 
 /// Provider pour rechercher des chansons (Synchrone)

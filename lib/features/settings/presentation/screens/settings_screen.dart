@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:musio/core/routing/app_router.dart';
+import 'package:musio/features/download/presentation/providers/download_provider.dart';
 import 'package:musio/features/music/presentation/providers/music_provider.dart';
 import 'package:musio/features/settings/presentation/providers/settings_provider.dart';
 
@@ -56,6 +58,52 @@ class SettingsScreen extends ConsumerWidget {
             ),
             loading: () => const SizedBox.shrink(),
             error: (e, s) => const SizedBox.shrink(),
+          ),
+          ref.watch(downloadApiBaseUrlProvider).when(
+            data: (baseUrl) => ListTile(
+              leading: const Icon(Icons.cloud_download_outlined),
+              title: const Text('Serveur de téléchargement'),
+              subtitle: Text(
+                baseUrl.isEmpty
+                    ? 'Non configuré (ex: http://192.168.1.10:8000)'
+                    : baseUrl,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              onTap: () => _showDownloadApiUrlDialog(context, ref, baseUrl),
+            ),
+            loading: () => const SizedBox.shrink(),
+            error: (_, __) => const SizedBox.shrink(),
+          ),
+          ref.watch(downloadDirectoryPathProvider).when(
+            data: (dirPath) => ListTile(
+              leading: const Icon(Icons.folder_outlined),
+              title: const Text('Dossier des téléchargements'),
+              subtitle: Text(
+                dirPath,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+              trailing: IconButton(
+                icon: const Icon(Icons.copy),
+                onPressed: () {
+                  Clipboard.setData(ClipboardData(text: dirPath));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Chemin copié. Collez-le dans votre gestionnaire de fichiers pour ouvrir le dossier.'),
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                },
+              ),
+            ),
+            loading: () => const ListTile(
+              leading: Icon(Icons.folder_outlined),
+              title: Text('Dossier des téléchargements'),
+              subtitle: Text('Chargement…'),
+            ),
+            error: (_, __) => const SizedBox.shrink(),
           ),
           const Divider(),
           _buildSectionHeader(context, 'Bibliothèque'),
@@ -221,6 +269,38 @@ class SettingsScreen extends ConsumerWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _showDownloadApiUrlDialog(BuildContext context, WidgetRef ref, String currentUrl) {
+    final controller = TextEditingController(text: currentUrl);
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Serveur de téléchargement'),
+        content: TextField(
+          controller: controller,
+          decoration: const InputDecoration(
+            hintText: 'http://192.168.1.10:8000',
+            labelText: 'URL de l\'API Telegramusic',
+          ),
+          keyboardType: TextInputType.url,
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Annuler'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              await ref.read(downloadApiBaseUrlProvider.notifier).setBaseUrl(controller.text);
+              if (context.mounted) Navigator.pop(context);
+            },
+            child: const Text('Enregistrer'),
+          ),
+        ],
       ),
     );
   }

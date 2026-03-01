@@ -89,3 +89,25 @@ class ExcludeMessagingApps extends _$ExcludeMessagingApps {
     await _prefs.setBool(_key, value);
   }
 }
+
+/// URL de base de l'API Telegramusic.
+/// Défaut utilisé si l'utilisateur n'a rien configuré dans Paramètres.
+const String kDownloadApiBaseUrlDefault = 'http://192.168.1.68:8000';
+
+@riverpod
+class DownloadApiBaseUrl extends _$DownloadApiBaseUrl {
+  late SharedPreferences _prefs;
+  static const _key = 'download_api_base_url';
+
+  @override
+  Future<String> build() async {
+    _prefs = await SharedPreferences.getInstance();
+    return _prefs.getString(_key) ?? kDownloadApiBaseUrlDefault;
+  }
+
+  Future<void> setBaseUrl(String url) async {
+    final trimmed = url.trim();
+    state = AsyncValue.data(trimmed);
+    await _prefs.setString(_key, trimmed);
+  }
+}

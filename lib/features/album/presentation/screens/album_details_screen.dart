@@ -3,6 +3,8 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:musio/features/music/data/models/album_model.dart';
 import 'package:musio/features/music/presentation/providers/music_provider.dart';
 import 'package:musio/features/player/presentation/providers/audio_player_provider.dart';
 import 'package:musio/shared/widgets/album_art_image.dart';
@@ -17,6 +19,61 @@ class AlbumDetailsScreen extends ConsumerWidget {
     required this.albumId,
   });
 
+  Future<void> _confirmDeleteAlbum(
+    BuildContext context,
+    WidgetRef ref,
+    AlbumModel album,
+  ) async {
+    final playerState = ref.read(audioPlayerProvider);
+    final currentIds = playerState.queue.map((s) => s.id).toSet();
+    final albumSongIds = ref.read(albumSongsProvider(album.id)).map((s) => s.id).toSet();
+    final isCurrentAlbumPlaying = albumSongIds.any((id) => currentIds.contains(id));
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Supprimer l\'album ?'),
+        content: Text(
+          '« ${album.name} » et ses ${album.trackCount} titre(s) seront supprimés de la bibliothèque. Les fichiers seront supprimés du téléphone.'
+          '${isCurrentAlbumPlaying ? '\n\nLa lecture en cours sera arrêtée.' : ''}',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Annuler'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: TextButton.styleFrom(foregroundColor: Theme.of(ctx).colorScheme.error),
+            child: const Text('Supprimer'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !context.mounted) return;
+    final albumName = album.name;
+    final albumIdToRemove = album.id;
+    final navigator = Navigator.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    navigator.pop();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      try {
+        if (isCurrentAlbumPlaying) {
+          await ref.read(audioPlayerProvider.notifier).stop();
+        }
+        await ref.read(musicProvider.notifier).removeAlbum(albumIdToRemove);
+        messenger.showSnackBar(
+          SnackBar(content: Text('Album « $albumName » supprimé')),
+        );
+      } catch (e) {
+        messenger.showSnackBar(
+          SnackBar(content: Text('Erreur lors de la suppression: $e')),
+        );
+        await ref.read(musicProvider.notifier).loadFromCache();
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final albums = ref.watch(allAlbumsProvider);
@@ -28,10 +85,14 @@ class AlbumDetailsScreen extends ConsumerWidget {
       );
     }
 
-    final album = albums.firstWhere(
-      (a) => a.id == albumId,
-      orElse: () => throw Exception('Album non trouvé'),
-    );
+    final albumIndex = albums.indexWhere((a) => a.id == albumId);
+    if (albumIndex == -1) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (context.mounted) context.pop();
+      });
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+    final album = albums[albumIndex];
 
     return Scaffold(
       body: CustomScrollView(
@@ -42,6 +103,13 @@ class AlbumDetailsScreen extends ConsumerWidget {
             pinned: true,
             stretch: true,
             backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+            actions: [
+              IconButton(
+                icon: Icon(Icons.delete_outline, color: Theme.of(context).colorScheme.error),
+                onPressed: () => _confirmDeleteAlbum(context, ref, album),
+                tooltip: 'Supprimer l\'album',
+              ),
+            ],
             flexibleSpace: FlexibleSpaceBar(
               background: Stack(
                 fit: StackFit.expand,
