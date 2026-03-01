@@ -8,8 +8,9 @@ import 'package:musio/features/player/presentation/providers/audio_player_provid
 import 'package:musio/shared/widgets/album_art_image.dart';
 import 'package:musio/shared/widgets/mini_player.dart';
 import 'package:musio/shared/widgets/song_tile.dart';
+import 'package:palette_generator/palette_generator.dart';
 
-class AlbumDetailsScreen extends ConsumerWidget {
+class AlbumDetailsScreen extends ConsumerStatefulWidget {
   final String albumId;
 
   const AlbumDetailsScreen({
@@ -18,9 +19,48 @@ class AlbumDetailsScreen extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<AlbumDetailsScreen> createState() => _AlbumDetailsScreenState();
+}
+
+class _AlbumDetailsScreenState extends ConsumerState<AlbumDetailsScreen> {
+  Color? dominantColor;
+
+  @override
+  void initState() {
+    super.initState();
+    // We'll load the color after the build once we have the album
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadDominantColor();
+    });
+  }
+
+  Future<void> _loadDominantColor() async {
+    final albums = ref.read(allAlbumsProvider);
+    try {
+      final album = albums.firstWhere((a) => a.id == widget.albumId);
+      if (album.albumArtPath != null) {
+        final imageProvider = FileImage(File(album.albumArtPath!));
+        final palette = await PaletteGenerator.fromImageProvider(
+          imageProvider,
+          maximumColorCount: 10,
+        );
+        if (mounted) {
+          setState(() {
+            dominantColor = palette.dominantColor?.color ??
+                palette.vibrantColor?.color ??
+                palette.mutedColor?.color;
+          });
+        }
+      }
+    } catch (_) {
+      // Ignore if album not found yet
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final albums = ref.watch(allAlbumsProvider);
-    final songs = ref.watch(albumSongsProvider(albumId));
+    final songs = ref.watch(albumSongsProvider(widget.albumId));
 
     if (albums.isEmpty) {
       return const Scaffold(
@@ -29,11 +69,18 @@ class AlbumDetailsScreen extends ConsumerWidget {
     }
 
     final album = albums.firstWhere(
-      (a) => a.id == albumId,
+      (a) => a.id == widget.albumId,
       orElse: () => throw Exception('Album non trouvé'),
     );
 
+    // Apply the diluted solid color background
+    final backgroundColor = dominantColor != null
+        ? Color.lerp(
+            Theme.of(context).scaffoldBackgroundColor, dominantColor!, 0.15)
+        : Theme.of(context).scaffoldBackgroundColor;
+
     return Scaffold(
+      backgroundColor: backgroundColor,
       body: CustomScrollView(
         slivers: [
           // En-tête immersif
@@ -41,27 +88,14 @@ class AlbumDetailsScreen extends ConsumerWidget {
             expandedHeight: 340,
             pinned: true,
             stretch: true,
-            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+            backgroundColor: backgroundColor,
+            iconTheme: const IconThemeData(color: Colors.white),
             flexibleSpace: FlexibleSpaceBar(
               background: Stack(
                 fit: StackFit.expand,
                 children: [
-                  // Image de fond floutée
-                  if (album.albumArtPath != null)
-                    Image.file(
-                      File(album.albumArtPath!),
-                      fit: BoxFit.cover,
-                    )
-                  else
-                    Container(color: Theme.of(context).colorScheme.primaryContainer),
-                  
-                  // Flou
-                  BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-                    child: Container(
-                      color: Theme.of(context).scaffoldBackgroundColor.withOpacity(0.6),
-                    ),
-                  ),
+                  // Fond uni basé sur la couleur dominante
+                  Container(color: backgroundColor),
 
                   // Contenu de l'en-tête
                   Center(
@@ -87,7 +121,9 @@ class AlbumDetailsScreen extends ConsumerWidget {
                             borderRadius: BorderRadius.circular(12),
                             child: AlbumArtImage(
                               albumArtPath: album.albumArtPath,
-                              songId: album.songIds.isNotEmpty ? album.songIds.first : '0',
+                              songId: album.songIds.isNotEmpty
+                                  ? album.songIds.first
+                                  : '0',
                               size: 180,
                               fit: BoxFit.cover,
                             ),
@@ -102,8 +138,12 @@ class AlbumDetailsScreen extends ConsumerWidget {
                             textAlign: TextAlign.center,
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                            style: Theme.of(context)
+                                .textTheme
+                                .headlineSmall
+                                ?.copyWith(
                                   fontWeight: FontWeight.bold,
+                                  color: Colors.white,
                                 ),
                           ),
                         ),
@@ -111,9 +151,10 @@ class AlbumDetailsScreen extends ConsumerWidget {
                         // Artiste
                         Text(
                           album.artist,
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                color: Theme.of(context).colorScheme.primary,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    color: Colors.white70,
+                                  ),
                         ),
                       ],
                     ),
@@ -129,23 +170,29 @@ class AlbumDetailsScreen extends ConsumerWidget {
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
-                  // Métadonnées (Année • Nb titres) — année depuis le premier titre
+                  // Métadonnées (Année • Nb titres)
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       if (songs.isNotEmpty && songs.first.year != null)
                         Text(
                           '${songs.first.year} • ',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey),
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyMedium
+                              ?.copyWith(color: Colors.white60),
                         ),
                       Text(
                         '${album.trackCount} titres',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey),
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodyMedium
+                            ?.copyWith(color: Colors.white60),
                       ),
                     ],
                   ),
                   const SizedBox(height: 24),
-                  
+
                   // Boutons d'action
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -155,11 +202,14 @@ class AlbumDetailsScreen extends ConsumerWidget {
                         child: ElevatedButton(
                           onPressed: () {
                             if (songs.isNotEmpty) {
-                              ref.read(audioPlayerProvider.notifier).play(songs, 0);
+                              ref
+                                  .read(audioPlayerProvider.notifier)
+                                  .play(songs, 0);
                             }
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Theme.of(context).colorScheme.primary,
+                            backgroundColor:
+                                Theme.of(context).colorScheme.primary,
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             shape: RoundedRectangleBorder(
@@ -172,7 +222,10 @@ class AlbumDetailsScreen extends ConsumerWidget {
                             children: [
                               Icon(Icons.play_arrow_rounded),
                               SizedBox(width: 8),
-                              Text('Lecture', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                              Text('Lecture',
+                                  style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold)),
                             ],
                           ),
                         ),
@@ -183,8 +236,12 @@ class AlbumDetailsScreen extends ConsumerWidget {
                         child: OutlinedButton(
                           onPressed: () {
                             if (songs.isNotEmpty) {
-                              ref.read(audioPlayerProvider.notifier).play(songs, 0);
-                              ref.read(audioPlayerProvider.notifier).toggleShuffle();
+                              ref
+                                  .read(audioPlayerProvider.notifier)
+                                  .play(songs, 0);
+                              ref
+                                  .read(audioPlayerProvider.notifier)
+                                  .toggleShuffle();
                             }
                           },
                           style: OutlinedButton.styleFrom(
@@ -192,14 +249,18 @@ class AlbumDetailsScreen extends ConsumerWidget {
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(30),
                             ),
-                            side: BorderSide(color: Theme.of(context).colorScheme.outline),
+                            side: BorderSide(color: Colors.white24),
+                            foregroundColor: Colors.white,
                           ),
                           child: const Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Icon(Icons.shuffle_rounded),
                               SizedBox(width: 8),
-                              Text('Aléatoire', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                              Text('Aléatoire',
+                                  style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold)),
                             ],
                           ),
                         ),
@@ -216,11 +277,21 @@ class AlbumDetailsScreen extends ConsumerWidget {
             delegate: SliverChildBuilderDelegate(
               (context, index) {
                 final song = songs[index];
-                return SongTile(
-                  song: song,
-                  playlist: songs,
-                  songIndex: index,
-                  showIndex: true, // Afficher le numéro de piste
+                return Theme(
+                  data: Theme.of(context).copyWith(
+                    // Ensure text contrasts well with potentially dark background
+                    textTheme: Theme.of(context).textTheme.apply(
+                          bodyColor: Colors.white,
+                          displayColor: Colors.white,
+                        ),
+                    iconTheme: const IconThemeData(color: Colors.white),
+                  ),
+                  child: SongTile(
+                    song: song,
+                    playlist: songs,
+                    songIndex: index,
+                    showIndex: true, // Afficher le numéro de piste
+                  ),
                 );
               },
               childCount: songs.length,

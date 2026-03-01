@@ -17,11 +17,18 @@ class SettingsScreen extends ConsumerWidget {
     final sleepTimerDefault = ref.watch(sleepTimerDefaultMinutesProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Paramètres'),
-      ),
-      body: ListView(
+        body: SafeArea(
+      child: ListView(
         children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+            child: Text(
+              'Paramètres',
+              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+            ),
+          ),
           _buildSectionHeader(context, 'Apparence'),
           themeMode.when(
             data: (modeIndex) => ListTile(
@@ -48,10 +55,13 @@ class SettingsScreen extends ConsumerWidget {
           isOnlineEnabled.when(
             data: (enabled) => SwitchListTile(
               title: const Text('Fonctionnalités en ligne'),
-              subtitle: const Text('Afficher le bouton pour découvrir de la musique en ligne'),
+              subtitle: const Text(
+                  'Afficher le bouton pour découvrir de la musique en ligne'),
               value: enabled,
               onChanged: (value) {
-                ref.read(onlineFeatureEnabledProvider.notifier).setEnabled(value);
+                ref
+                    .read(onlineFeatureEnabledProvider.notifier)
+                    .setEnabled(value);
               },
             ),
             loading: () => const SizedBox.shrink(),
@@ -98,7 +108,9 @@ class SettingsScreen extends ConsumerWidget {
                   divisions: 12,
                   label: '${duration.round()}s',
                   onChanged: (value) {
-                    ref.read(minSongDurationProvider.notifier).setDuration(value.round());
+                    ref
+                        .read(minSongDurationProvider.notifier)
+                        .setDuration(value.round());
                   },
                 ),
               ],
@@ -108,34 +120,34 @@ class SettingsScreen extends ConsumerWidget {
           ),
           const Divider(),
           ref.watch(excludeMessagingAppsProvider).when(
-            data: (excluded) => SwitchListTile(
-              title: const Text('Exclure les apps de messagerie'),
-              subtitle: const Text(
-                'Masque les audios WhatsApp, Telegram, Signal… '
-                'lors du scan de la bibliothèque',
-              ),
-              secondary: const Icon(Icons.chat_bubble_outline),
-              value: excluded,
-              onChanged: (value) async {
-                await ref
-                    .read(excludeMessagingAppsProvider.notifier)
-                    .setEnabled(value);
-                ref.read(musicProvider.notifier).rescanLibrary();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      value
-                          ? 'Apps de messagerie exclues. Scan en cours…'
-                          : 'Apps de messagerie incluses. Scan en cours…',
-                    ),
-                    behavior: SnackBarBehavior.floating,
+                data: (excluded) => SwitchListTile(
+                  title: const Text('Exclure les apps de messagerie'),
+                  subtitle: const Text(
+                    'Masque les audios WhatsApp, Telegram, Signal… '
+                    'lors du scan de la bibliothèque',
                   ),
-                );
-              },
-            ),
-            loading: () => const SizedBox.shrink(),
-            error: (_, __) => const SizedBox.shrink(),
-          ),
+                  secondary: const Icon(Icons.chat_bubble_outline),
+                  value: excluded,
+                  onChanged: (value) async {
+                    await ref
+                        .read(excludeMessagingAppsProvider.notifier)
+                        .setEnabled(value);
+                    ref.read(musicProvider.notifier).rescanLibrary();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          value
+                              ? 'Apps de messagerie exclues. Scan en cours…'
+                              : 'Apps de messagerie incluses. Scan en cours…',
+                        ),
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  },
+                ),
+                loading: () => const SizedBox.shrink(),
+                error: (_, __) => const SizedBox.shrink(),
+              ),
           const Divider(),
           _buildSectionHeader(context, 'Stockage'),
           ListTile(
@@ -169,7 +181,7 @@ class SettingsScreen extends ConsumerWidget {
           ),
         ],
       ),
-    );
+    ));
   }
 
   String _themeModeLabel(int index) {
@@ -197,7 +209,8 @@ class SettingsScreen extends ConsumerWidget {
               value: 0,
               groupValue: current,
               onChanged: (v) {
-                if (v != null) ref.read(themeModeSettingProvider.notifier).setMode(v);
+                if (v != null)
+                  ref.read(themeModeSettingProvider.notifier).setMode(v);
                 Navigator.pop(context);
               },
             ),
@@ -206,7 +219,8 @@ class SettingsScreen extends ConsumerWidget {
               value: 1,
               groupValue: current,
               onChanged: (v) {
-                if (v != null) ref.read(themeModeSettingProvider.notifier).setMode(v);
+                if (v != null)
+                  ref.read(themeModeSettingProvider.notifier).setMode(v);
                 Navigator.pop(context);
               },
             ),
@@ -215,7 +229,8 @@ class SettingsScreen extends ConsumerWidget {
               value: 2,
               groupValue: current,
               onChanged: (v) {
-                if (v != null) ref.read(themeModeSettingProvider.notifier).setMode(v);
+                if (v != null)
+                  ref.read(themeModeSettingProvider.notifier).setMode(v);
                 Navigator.pop(context);
               },
             ),
@@ -241,7 +256,10 @@ class SettingsScreen extends ConsumerWidget {
                       value: m,
                       groupValue: current,
                       onChanged: (v) {
-                        if (v != null) ref.read(sleepTimerDefaultMinutesProvider.notifier).setDefaultMinutes(v);
+                        if (v != null)
+                          ref
+                              .read(sleepTimerDefaultMinutesProvider.notifier)
+                              .setDefaultMinutes(v);
                         Navigator.pop(context);
                       },
                     ))
