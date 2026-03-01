@@ -13,15 +13,51 @@ import 'package:musio/features/player/presentation/providers/sleep_timer_provide
 import 'package:musio/features/player/presentation/widgets/equalizer_sheet.dart';
 import 'package:musio/features/settings/presentation/providers/settings_provider.dart';
 import 'package:musio/shared/widgets/album_art_image.dart';
+import 'package:palette_generator/palette_generator.dart';
 import 'package:share_plus/share_plus.dart';
 
-class NowPlayingScreen extends ConsumerWidget {
+class NowPlayingScreen extends ConsumerStatefulWidget {
   const NowPlayingScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<NowPlayingScreen> createState() => _NowPlayingScreenState();
+}
+
+class _NowPlayingScreenState extends ConsumerState<NowPlayingScreen> {
+  Color? dominantColor;
+  String? lastSongId;
+
+  Future<void> _extractDominantColor(String albumArtPath) async {
+    try {
+      final imageProvider = FileImage(File(albumArtPath));
+      final palette = await PaletteGenerator.fromImageProvider(
+        imageProvider,
+        maximumColorCount: 10,
+      );
+      if (mounted) {
+        setState(() {
+          dominantColor = palette.dominantColor?.color ??
+              palette.vibrantColor?.color ??
+              palette.mutedColor?.color ??
+              Colors.black;
+        });
+      }
+    } catch (_) {}
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final playerState = ref.watch(audioPlayerProvider);
     final currentSong = playerState.currentSong;
+
+    if (currentSong != null && currentSong.id != lastSongId) {
+      lastSongId = currentSong.id;
+      if (currentSong.albumArtPath != null) {
+        _extractDominantColor(currentSong.albumArtPath!);
+      } else {
+        dominantColor = Colors.black;
+      }
+    }
 
     if (currentSong == null) {
       return Scaffold(
@@ -46,8 +82,15 @@ class NowPlayingScreen extends ConsumerWidget {
       orElse: () => currentSong.isFavorite,
     );
 
+    final isLight =
+        dominantColor != null && dominantColor!.computeLuminance() > 0.5;
+    final textColor = isLight ? Colors.black : Colors.white;
+    final iconColor = isLight ? Colors.black : Colors.white;
+    final iconColorDim = isLight ? Colors.black54 : Colors.white54;
+    final bgColor = dominantColor ?? Colors.black;
+
     return Scaffold(
-      backgroundColor: Colors.black, // Dark background base
+      backgroundColor: bgColor,
       body: Stack(
         children: [
           // Background Image (Full Screen)
@@ -60,43 +103,12 @@ class NowPlayingScreen extends ConsumerWidget {
               ),
             ),
 
-          // Gradient Blur Overlay (Clear at top, blurred at bottom)
+          // Full Blur with Dominant Color Overlay
           Positioned.fill(
-            child: ShaderMask(
-              shaderCallback: (rect) {
-                return const LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.black, // Opaque for blur
-                    Colors.transparent, // Transparent for clear image
-                  ],
-                  stops: [0.4, 0.8], // Adjust blur transition
-                ).createShader(rect);
-              },
-              blendMode: BlendMode.dstOut,
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 50, sigmaY: 50),
-                child: Container(
-                  color:
-                      Colors.black.withOpacity(0.3), // Darken the blur slightly
-                ),
-              ),
-            ),
-          ),
-
-          // Secondary Dark Gradient from bottom for text readability
-          Positioned.fill(
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.bottomCenter,
-                  end: Alignment.center,
-                  colors: [
-                    Colors.black.withOpacity(0.8),
-                    Colors.transparent,
-                  ],
-                ),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 80, sigmaY: 80),
+              child: Container(
+                color: bgColor.withOpacity(0.6),
               ),
             ),
           ),
@@ -110,33 +122,33 @@ class NowPlayingScreen extends ConsumerWidget {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      IconButton(
-                        icon: const Icon(Icons.keyboard_arrow_down_rounded,
-                            size: 36, color: Colors.white),
-                        onPressed: () => Navigator.pop(context),
-                      ),
-                      Column(
-                        children: [
-                          Text(
-                            currentSong.album,
-                            style: const TextStyle(
-                              color: Colors.white70,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              letterSpacing: 1.2,
-                            ),
-                            overflow: TextOverflow.ellipsis,
+                      InkWell(
+                        onTap: () => Navigator.pop(context),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(100),
+                            color: Colors.grey.withOpacity(0.5),
                           ),
-                        ],
+                          height: 10,
+                          width: 60,
+                        ),
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.more_horiz_rounded,
-                            color: Colors.white),
-                        onPressed: () =>
-                            _showOptionsMenu(context, ref, currentSong),
-                      ),
+                      // Column(
+                      //   children: [
+                      //     Text(
+                      //       currentSong.album,
+                      //       style: const TextStyle(
+                      //         color: Colors.white70,
+                      //         fontSize: 12,
+                      //         fontWeight: FontWeight.w600,
+                      //         letterSpacing: 1.2,
+                      //       ),
+                      //       overflow: TextOverflow.ellipsis,
+                      //     ),
+                      //   ],
+                      // ),
                     ],
                   ),
                 ),
@@ -148,23 +160,31 @@ class NowPlayingScreen extends ConsumerWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 32),
                   child: AspectRatio(
                     aspectRatio: 1,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.4),
-                            blurRadius: 20,
-                            offset: const Offset(0, 10),
+                    child: AnimatedScale(
+                      scale: playerState.isPlaying ? 1.0 : 0.75,
+                      duration: Duration(
+                          milliseconds: playerState.isPlaying ? 600 : 300),
+                      curve: playerState.isPlaying
+                          ? Curves.elasticOut
+                          : Curves.elasticIn,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.4),
+                              blurRadius: 20,
+                              offset: const Offset(0, 10),
+                            ),
+                          ],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: AlbumArtImageLarge(
+                            songId: currentSong.id,
+                            albumArtPath: currentSong.albumArtPath,
+                            heroTag: 'album-art-${currentSong.id}',
                           ),
-                        ],
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: AlbumArtImageLarge(
-                          songId: currentSong.id,
-                          albumArtPath: currentSong.albumArtPath,
-                          heroTag: 'album-art-${currentSong.id}',
                         ),
                       ),
                     ),
@@ -177,6 +197,7 @@ class NowPlayingScreen extends ConsumerWidget {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 32),
                   child: Row(
+                    spacing: 10,
                     crossAxisAlignment: CrossAxisAlignment.end,
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -186,8 +207,8 @@ class NowPlayingScreen extends ConsumerWidget {
                           children: [
                             Text(
                               currentSong.title,
-                              style: const TextStyle(
-                                color: Colors.white,
+                              style: TextStyle(
+                                color: textColor,
                                 fontSize: 24,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -198,7 +219,7 @@ class NowPlayingScreen extends ConsumerWidget {
                             Text(
                               currentSong.artist,
                               style: TextStyle(
-                                color: Colors.white.withOpacity(0.7),
+                                color: textColor.withOpacity(0.7),
                                 fontSize: 18,
                               ),
                               maxLines: 1,
@@ -206,6 +227,32 @@ class NowPlayingScreen extends ConsumerWidget {
                             ),
                           ],
                         ),
+                      ),
+                      IconButton(
+                        style: ButtonStyle(
+                          backgroundColor: WidgetStatePropertyAll(
+                              textColor.withValues(alpha: 0.1)),
+                        ),
+                        icon: Icon(
+                          isFavorite
+                              ? Icons.favorite
+                              : Icons.favorite_border_rounded,
+                          color: isFavorite ? Colors.red : iconColorDim,
+                        ),
+                        onPressed: () {
+                          ref
+                              .read(musicProvider.notifier)
+                              .toggleFavoriteStatus(currentSong);
+                        },
+                      ),
+                      IconButton(
+                        style: ButtonStyle(
+                          backgroundColor: WidgetStatePropertyAll(
+                              textColor.withValues(alpha: 0.1)),
+                        ),
+                        icon: Icon(Icons.more_horiz_rounded, color: iconColor),
+                        onPressed: () =>
+                            _showOptionsMenu(context, ref, currentSong),
                       ),
                     ],
                   ),
@@ -238,9 +285,8 @@ class NowPlayingScreen extends ConsumerWidget {
                           playerState.isShuffled
                               ? Icons.shuffle_on_rounded
                               : Icons.shuffle_rounded,
-                          color: playerState.isShuffled
-                              ? Colors.white
-                              : Colors.white54,
+                          color:
+                              playerState.isShuffled ? iconColor : iconColorDim,
                         ),
                         iconSize: 24,
                         onPressed: () {
@@ -250,8 +296,8 @@ class NowPlayingScreen extends ConsumerWidget {
                         },
                       ),
                       IconButton(
-                        icon: const Icon(Icons.skip_previous_rounded,
-                            color: Colors.white),
+                        icon:
+                            Icon(Icons.skip_previous_rounded, color: iconColor),
                         iconSize: 48,
                         onPressed: () {
                           ref.read(audioPlayerProvider.notifier).previous();
@@ -262,7 +308,7 @@ class NowPlayingScreen extends ConsumerWidget {
                           playerState.isPlaying
                               ? Icons.pause_circle_filled_rounded
                               : Icons.play_circle_filled_rounded,
-                          color: Colors.white,
+                          color: iconColor,
                         ),
                         iconSize: 72,
                         padding: EdgeInsets.zero,
@@ -275,8 +321,7 @@ class NowPlayingScreen extends ConsumerWidget {
                         },
                       ),
                       IconButton(
-                        icon: const Icon(Icons.skip_next_rounded,
-                            color: Colors.white),
+                        icon: Icon(Icons.skip_next_rounded, color: iconColor),
                         iconSize: 48,
                         onPressed: () {
                           ref.read(audioPlayerProvider.notifier).next();
@@ -290,8 +335,8 @@ class NowPlayingScreen extends ConsumerWidget {
                             icon: Icon(
                               _getRepeatIcon(repeatMode),
                               color: repeatMode != RepeatMode.off
-                                  ? Colors.white
-                                  : Colors.white54,
+                                  ? iconColor
+                                  : iconColorDim,
                             ),
                             iconSize: 24,
                             onPressed: () {
@@ -312,19 +357,13 @@ class NowPlayingScreen extends ConsumerWidget {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 32),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    spacing: 30,
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       IconButton(
-                        icon: Icon(
-                          isFavorite
-                              ? Icons.favorite
-                              : Icons.favorite_border_rounded,
-                          color: isFavorite ? Colors.red : Colors.white54,
-                        ),
+                        icon: Icon(Icons.lyrics_outlined, color: iconColor),
                         onPressed: () {
-                          ref
-                              .read(musicProvider.notifier)
-                              .toggleFavoriteStatus(currentSong);
+                          context.push(AppRouter.lyrics);
                         },
                       ),
                       InkWell(
@@ -339,13 +378,12 @@ class NowPlayingScreen extends ConsumerWidget {
                         child: Padding(
                           padding: const EdgeInsets.symmetric(
                               horizontal: 12, vertical: 8),
-                          child:
-                              Icon(Icons.speed_rounded, color: Colors.white54),
+                          child: Icon(Icons.speed_rounded, color: iconColorDim),
                         ),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.equalizer_rounded,
-                            color: Colors.white54),
+                        icon:
+                            Icon(Icons.equalizer_rounded, color: iconColorDim),
                         onPressed: () {
                           showModalBottomSheet(
                             context: context,
@@ -354,13 +392,13 @@ class NowPlayingScreen extends ConsumerWidget {
                           );
                         },
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.menu_rounded,
-                            color: Colors.white54),
-                        onPressed: () {
-                          context.push(AppRouter.queue);
-                        },
-                      ),
+                      // IconButton(
+                      //   icon: const Icon(Icons.menu_rounded,
+                      //       color: Colors.white54),
+                      //   onPressed: () {
+                      //     context.push(AppRouter.queue);
+                      //   },
+                      // ),
                     ],
                   ),
                 ),
@@ -416,7 +454,7 @@ class NowPlayingScreen extends ConsumerWidget {
                     end: Alignment.bottomCenter,
                     colors: [
                       _bgGradientTop.withOpacity(0.95),
-                      _bgGradientTop.withOpacity(0.0),
+                      _bgGradientTop.withOpacity(0.95),
                     ],
                   ),
                 ),
