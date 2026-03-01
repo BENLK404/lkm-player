@@ -50,10 +50,13 @@ class SettingsScreen extends ConsumerWidget {
           isOnlineEnabled.when(
             data: (enabled) => SwitchListTile(
               title: const Text('Fonctionnalités en ligne'),
-              subtitle: const Text('Afficher le bouton pour découvrir de la musique en ligne'),
+              subtitle: const Text(
+                  'Afficher le bouton pour découvrir de la musique en ligne'),
               value: enabled,
               onChanged: (value) {
-                ref.read(onlineFeatureEnabledProvider.notifier).setEnabled(value);
+                ref
+                    .read(onlineFeatureEnabledProvider.notifier)
+                    .setEnabled(value);
               },
             ),
             loading: () => const SizedBox.shrink(),
@@ -146,7 +149,9 @@ class SettingsScreen extends ConsumerWidget {
                   divisions: 12,
                   label: '${duration.round()}s',
                   onChanged: (value) {
-                    ref.read(minSongDurationProvider.notifier).setDuration(value.round());
+                    ref
+                        .read(minSongDurationProvider.notifier)
+                        .setDuration(value.round());
                   },
                 ),
               ],
@@ -155,35 +160,121 @@ class SettingsScreen extends ConsumerWidget {
             error: (e, s) => const SizedBox.shrink(),
           ),
           const Divider(),
+          // Toggle global
           ref.watch(excludeMessagingAppsProvider).when(
-            data: (excluded) => SwitchListTile(
-              title: const Text('Exclure les apps de messagerie'),
-              subtitle: const Text(
-                'Masque les audios WhatsApp, Telegram, Signal… '
-                'lors du scan de la bibliothèque',
-              ),
-              secondary: const Icon(Icons.chat_bubble_outline),
-              value: excluded,
-              onChanged: (value) async {
-                await ref
-                    .read(excludeMessagingAppsProvider.notifier)
-                    .setEnabled(value);
-                ref.read(musicProvider.notifier).rescanLibrary();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      value
-                          ? 'Apps de messagerie exclues. Scan en cours…'
-                          : 'Apps de messagerie incluses. Scan en cours…',
-                    ),
-                    behavior: SnackBarBehavior.floating,
+                data: (excluded) => SwitchListTile(
+                  title: const Text('Filtrer les apps de messagerie'),
+                  subtitle: const Text(
+                    'Active le filtrage des fichiers audio provenant des apps de chat',
                   ),
-                );
-              },
-            ),
-            loading: () => const SizedBox.shrink(),
-            error: (_, __) => const SizedBox.shrink(),
-          ),
+                  secondary: const Icon(Icons.chat_bubble_outline),
+                  value: excluded,
+                  onChanged: (value) async {
+                    await ref
+                        .read(excludeMessagingAppsProvider.notifier)
+                        .setEnabled(value);
+                    ref.read(musicProvider.notifier).rescanLibrary();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(value
+                            ? 'Filtrage activé. Scan en cours…'
+                            : 'Filtrage désactivé. Scan en cours…'),
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  },
+                ),
+                loading: () => const SizedBox.shrink(),
+                error: (_, __) => const SizedBox.shrink(),
+              ),
+
+          // Toggles par app — visibles uniquement si le filtre global est actif
+          ref.watch(excludeMessagingAppsProvider).maybeWhen(
+                data: (excluded) => excluded
+                    ? Column(
+                        children: [
+                          const Padding(
+                            padding: EdgeInsets.fromLTRB(16, 8, 16, 4),
+                            child: Text(
+                              'Configurer par application',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ),
+                          _buildAppToggle(
+                            context,
+                            ref,
+                            icon: Icons.message,
+                            label: 'WhatsApp',
+                            subtitle: 'Exclure les audios WhatsApp',
+                            value: ref.watch(excludeWhatsAppProvider),
+                            onChanged: (v) => ref
+                                .read(excludeWhatsAppProvider.notifier)
+                                .setEnabled(v),
+                          ),
+                          _buildAppToggle(
+                            context,
+                            ref,
+                            icon: Icons.send,
+                            label: 'Telegram',
+                            subtitle:
+                                'Exclure les audios Telegram (bots inclus)',
+                            value: ref.watch(excludeTelegramProvider),
+                            onChanged: (v) => ref
+                                .read(excludeTelegramProvider.notifier)
+                                .setEnabled(v),
+                          ),
+                          _buildAppToggle(
+                            context,
+                            ref,
+                            icon: Icons.lock_outline,
+                            label: 'Signal',
+                            subtitle: 'Exclure les audios Signal',
+                            value: ref.watch(excludeSignalProvider),
+                            onChanged: (v) => ref
+                                .read(excludeSignalProvider.notifier)
+                                .setEnabled(v),
+                          ),
+                          _buildAppToggle(
+                            context,
+                            ref,
+                            icon: Icons.phone_in_talk_outlined,
+                            label: 'Viber',
+                            subtitle: 'Exclure les audios Viber',
+                            value: ref.watch(excludeViberProvider),
+                            onChanged: (v) => ref
+                                .read(excludeViberProvider.notifier)
+                                .setEnabled(v),
+                          ),
+                          _buildAppToggle(
+                            context,
+                            ref,
+                            icon: Icons.headset_mic_outlined,
+                            label: 'Discord',
+                            subtitle: 'Exclure les audios Discord',
+                            value: ref.watch(excludeDiscordProvider),
+                            onChanged: (v) => ref
+                                .read(excludeDiscordProvider.notifier)
+                                .setEnabled(v),
+                          ),
+                          _buildAppToggle(
+                            context,
+                            ref,
+                            icon: Icons.more_horiz,
+                            label: 'Autres',
+                            subtitle: 'Skype, Line, WeChat, Snapchat, Slack…',
+                            value: ref.watch(excludeOtherMessagingProvider),
+                            onChanged: (v) => ref
+                                .read(excludeOtherMessagingProvider.notifier)
+                                .setEnabled(v),
+                          ),
+                        ],
+                      )
+                    : const SizedBox.shrink(),
+                orElse: () => const SizedBox.shrink(),
+              ),
           const Divider(),
           _buildSectionHeader(context, 'Stockage'),
           ListTile(
@@ -245,7 +336,8 @@ class SettingsScreen extends ConsumerWidget {
               value: 0,
               groupValue: current,
               onChanged: (v) {
-                if (v != null) ref.read(themeModeSettingProvider.notifier).setMode(v);
+                if (v != null)
+                  ref.read(themeModeSettingProvider.notifier).setMode(v);
                 Navigator.pop(context);
               },
             ),
@@ -254,7 +346,8 @@ class SettingsScreen extends ConsumerWidget {
               value: 1,
               groupValue: current,
               onChanged: (v) {
-                if (v != null) ref.read(themeModeSettingProvider.notifier).setMode(v);
+                if (v != null)
+                  ref.read(themeModeSettingProvider.notifier).setMode(v);
                 Navigator.pop(context);
               },
             ),
@@ -263,7 +356,8 @@ class SettingsScreen extends ConsumerWidget {
               value: 2,
               groupValue: current,
               onChanged: (v) {
-                if (v != null) ref.read(themeModeSettingProvider.notifier).setMode(v);
+                if (v != null)
+                  ref.read(themeModeSettingProvider.notifier).setMode(v);
                 Navigator.pop(context);
               },
             ),
@@ -321,7 +415,10 @@ class SettingsScreen extends ConsumerWidget {
                       value: m,
                       groupValue: current,
                       onChanged: (v) {
-                        if (v != null) ref.read(sleepTimerDefaultMinutesProvider.notifier).setDefaultMinutes(v);
+                        if (v != null)
+                          ref
+                              .read(sleepTimerDefaultMinutesProvider.notifier)
+                              .setDefaultMinutes(v);
                         Navigator.pop(context);
                       },
                     ))
@@ -342,6 +439,32 @@ class SettingsScreen extends ConsumerWidget {
               fontWeight: FontWeight.bold,
             ),
       ),
+    );
+  }
+
+  Widget _buildAppToggle(
+    BuildContext context,
+    WidgetRef ref, {
+    required IconData icon,
+    required String label,
+    required String subtitle,
+    required AsyncValue<bool> value,
+    required Future<void> Function(bool) onChanged,
+  }) {
+    return value.maybeWhen(
+      data: (excluded) => SwitchListTile(
+        dense: true,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 32),
+        secondary: Icon(icon, size: 20),
+        title: Text(label),
+        subtitle: Text(subtitle, style: const TextStyle(fontSize: 11)),
+        value: excluded,
+        onChanged: (val) async {
+          await onChanged(val);
+          ref.read(musicProvider.notifier).rescanLibrary();
+        },
+      ),
+      orElse: () => const SizedBox.shrink(),
     );
   }
 }

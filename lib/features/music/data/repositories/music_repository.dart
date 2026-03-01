@@ -27,20 +27,15 @@ class MusicRepository {
   Directory? _artworkCacheDir;
   final Ref _ref;
 
-  /// Patterns de chemins associés aux applications de messagerie.
-  static const List<String> _messagingAppPathPatterns = [
-    'whatsapp',
-    'com.whatsapp',
-    'telegram',
-    'org.telegram',
-    'signal',
-    'org.thoughtcrime.securesms',
+  // ─── Patterns par app ────────────────────────────────────────────────────────
+  static const _whatsappPatterns = ['whatsapp', 'com.whatsapp'];
+  static const _telegramPatterns = ['telegram', 'org.telegram'];
+  static const _signalPatterns = ['signal', 'org.thoughtcrime.securesms'];
+  static const _viberPatterns = ['viber', 'com.viber.voip'];
+  static const _discordPatterns = ['discord', 'com.discord'];
+  static const _otherPatterns = [
     'com.facebook.orca',
     'com.facebook.mlite',
-    'viber',
-    'com.viber.voip',
-    'discord',
-    'com.discord',
     'skype',
     'com.skype',
     'line',
@@ -52,9 +47,9 @@ class MusicRepository {
     'com.slack',
   ];
 
-  bool _isFromMessagingApp(String filePath) {
+  bool _matchesPatterns(String filePath, List<String> patterns) {
     final lower = filePath.toLowerCase();
-    return _messagingAppPathPatterns.any((pattern) => lower.contains(pattern));
+    return patterns.any((p) => lower.contains(p));
   }
 
   MusicRepository(this._ref) {
@@ -86,7 +81,7 @@ class MusicRepository {
       if (await Permission.notification.status.isDenied) {
         await Permission.notification.request();
       }
-      
+
       if (await Permission.storage.status.isDenied) {
         final storageStatus = await Permission.storage.request();
         if (!storageStatus.isGranted) {
@@ -94,13 +89,14 @@ class MusicRepository {
           return false;
         }
       }
-      
+
       return true;
     } on PlatformException catch (e) {
       AppLogger.e('Erreur lors de la demande de permissions', error: e);
       return false;
     } catch (e) {
-      AppLogger.e('Erreur inattendue lors de la demande de permissions', error: e);
+      AppLogger.e('Erreur inattendue lors de la demande de permissions',
+          error: e);
       return false;
     }
   }
@@ -214,9 +210,19 @@ class MusicRepository {
 
       await _initArtworkCache();
 
-      final minDurationSeconds = await _ref.read(minSongDurationProvider.future);
+      final minDurationSeconds =
+          await _ref.read(minSongDurationProvider.future);
 
-      final excludeMessaging = await _ref.read(excludeMessagingAppsProvider.future);
+      // Lire les préférences de filtrage par app
+      final excludeGlobal =
+          await _ref.read(excludeMessagingAppsProvider.future);
+      final excludeWhatsApp = await _ref.read(excludeWhatsAppProvider.future);
+      final excludeTelegram = await _ref.read(excludeTelegramProvider.future);
+      final excludeSignal = await _ref.read(excludeSignalProvider.future);
+      final excludeViber = await _ref.read(excludeViberProvider.future);
+      final excludeDiscord = await _ref.read(excludeDiscordProvider.future);
+      final excludeOther =
+          await _ref.read(excludeOtherMessagingProvider.future);
 
       final deviceSongs = await _audioQuery.querySongs(
         sortType: aq.SongSortType.TITLE,
@@ -230,19 +236,42 @@ class MusicRepository {
 
       final mergedSongs = <SongModel>[];
       for (final deviceSong in deviceSongs) {
-        if (deviceSong.duration != null && deviceSong.duration! < (minDurationSeconds * 1000)) {
+        // Filtre durée minimale
+        if (deviceSong.duration != null &&
+            deviceSong.duration! < (minDurationSeconds * 1000)) {
           continue;
         }
 
-        if (excludeMessaging && _isFromMessagingApp(deviceSong.data)) {
-          AppLogger.d(
-            'Exclu (messagerie) : ${deviceSong.data}',
-          );
-          continue;
+        // Filtre messagerie granulaire
+        if (excludeGlobal) {
+          final p = deviceSong.data;
+          if (excludeWhatsApp && _matchesPatterns(p, _whatsappPatterns)) {
+            AppLogger.d('Exclu (WhatsApp) : $p');
+            continue;
+          }
+          if (excludeTelegram && _matchesPatterns(p, _telegramPatterns)) {
+            AppLogger.d('Exclu (Telegram) : $p');
+            continue;
+          }
+          if (excludeSignal && _matchesPatterns(p, _signalPatterns)) {
+            AppLogger.d('Exclu (Signal) : $p');
+            continue;
+          }
+          if (excludeViber && _matchesPatterns(p, _viberPatterns)) {
+            AppLogger.d('Exclu (Viber) : $p');
+            continue;
+          }
+          if (excludeDiscord && _matchesPatterns(p, _discordPatterns)) {
+            AppLogger.d('Exclu (Discord) : $p');
+            continue;
+          }
+          if (excludeOther && _matchesPatterns(p, _otherPatterns)) {
+            AppLogger.d('Exclu (Autre messagerie) : $p');
+            continue;
+          }
         }
 
         final cachedSong = cachedSongsMap[deviceSong.id.toString()];
-
         if (cachedSong != null) {
           mergedSongs.add(cachedSong.copyWith(
             title: deviceSong.title,
@@ -252,7 +281,6 @@ class MusicRepository {
             duration: deviceSong.duration ?? 0,
             albumArtPath: await _getAndCacheArtwork(
                 deviceSong.id, 'song_${deviceSong.id}'),
-            // Mettre à jour dateAdded si disponible
             dateAdded: deviceSong.dateAdded,
           ));
         } else {
@@ -404,11 +432,14 @@ class MusicRepository {
   /// Récupère les paroles en ligne : LRCLib (direct + search) puis Lyrics.ovh.
   /// Préfère les paroles synchronisées (LRC), sinon le texte brut.
   /// Un retry est fait en cas de connexion fermée / handshake (réseau instable).
-  Future<String?> getLyricsFromWeb(String artist, String title, {int? durationMs, String? album}) async {
-    var lyrics = await _getWithRetry(() => _getLyricsFromLrclib(artist, title, durationMs: durationMs, album: album));
+  Future<String?> getLyricsFromWeb(String artist, String title,
+      {int? durationMs, String? album}) async {
+    var lyrics = await _getWithRetry(() => _getLyricsFromLrclib(artist, title,
+        durationMs: durationMs, album: album));
     if (lyrics != null && lyrics.trim().isNotEmpty) return lyrics.trim();
 
-    lyrics = await _getWithRetry(() => _getLyricsFromLrclibSearch(artist, title));
+    lyrics =
+        await _getWithRetry(() => _getLyricsFromLrclibSearch(artist, title));
     if (lyrics != null && lyrics.trim().isNotEmpty) return lyrics.trim();
 
     lyrics = await _getWithRetry(() => _getLyricsFromLyricsOvh(artist, title));
@@ -424,17 +455,22 @@ class MusicRepository {
     return fn();
   }
 
-  Future<String?> _getLyricsFromLrclib(String artist, String title, {int? durationMs, String? album}) async {
+  Future<String?> _getLyricsFromLrclib(String artist, String title,
+      {int? durationMs, String? album}) async {
     try {
-      final durationSec = durationMs != null ? (durationMs / 1000).round() : null;
+      final durationSec =
+          durationMs != null ? (durationMs / 1000).round() : null;
       final query = <String, String>{
         'artist_name': artist,
         'track_name': title,
         if (album != null && album.isNotEmpty) 'album_name': album,
-        if (durationSec != null && durationSec > 0) 'duration': durationSec.toString(),
+        if (durationSec != null && durationSec > 0)
+          'duration': durationSec.toString(),
       };
       final uri = Uri.https('lrclib.net', 'api/get', query);
-      final response = await http.get(uri, headers: {'User-Agent': _userAgent}).timeout(_timeout, onTimeout: () => http.Response('', 408));
+      final response = await http
+          .get(uri, headers: {'User-Agent': _userAgent}).timeout(_timeout,
+              onTimeout: () => http.Response('', 408));
       if (response.statusCode != 200) return null;
       final json = jsonDecode(response.body) as Map<String, dynamic>?;
       if (json == null) return null;
@@ -449,12 +485,15 @@ class MusicRepository {
     }
   }
 
-  Future<String?> _getLyricsFromLrclibSearch(String artist, String title) async {
+  Future<String?> _getLyricsFromLrclibSearch(
+      String artist, String title) async {
     try {
       final q = '$artist $title'.trim();
       if (q.isEmpty) return null;
       final uri = Uri.https('lrclib.net', 'api/search', {'q': q, 'limit': '5'});
-      final response = await http.get(uri, headers: {'User-Agent': _userAgent}).timeout(_timeout, onTimeout: () => http.Response('', 408));
+      final response = await http
+          .get(uri, headers: {'User-Agent': _userAgent}).timeout(_timeout,
+              onTimeout: () => http.Response('', 408));
       if (response.statusCode != 200) return null;
       final list = jsonDecode(response.body) as List<dynamic>?;
       if (list == null || list.isEmpty) return null;
@@ -463,7 +502,9 @@ class MusicRepository {
       final id = first['id'];
       if (id == null) return null;
       final byIdUri = Uri.https('lrclib.net', 'api/get', {'id': id.toString()});
-      final byIdResponse = await http.get(byIdUri, headers: {'User-Agent': _userAgent}).timeout(_timeout, onTimeout: () => http.Response('', 408));
+      final byIdResponse = await http
+          .get(byIdUri, headers: {'User-Agent': _userAgent}).timeout(_timeout,
+              onTimeout: () => http.Response('', 408));
       if (byIdResponse.statusCode != 200) return null;
       final json = jsonDecode(byIdResponse.body) as Map<String, dynamic>?;
       if (json == null) return null;
@@ -473,29 +514,34 @@ class MusicRepository {
       if (plain != null && plain.trim().isNotEmpty) return plain.trim();
       return null;
     } catch (e) {
-      AppLogger.w('_getLyricsFromLrclibSearch failed for $artist / $title', error: e);
+      AppLogger.w('_getLyricsFromLrclibSearch failed for $artist / $title',
+          error: e);
       return null;
     }
   }
 
   Future<String?> _getLyricsFromLyricsOvh(String artist, String title) async {
     try {
-      final path = 'v1/${Uri.encodeComponent(artist)}/${Uri.encodeComponent(title)}';
+      final path =
+          'v1/${Uri.encodeComponent(artist)}/${Uri.encodeComponent(title)}';
       final uri = Uri.https('api.lyrics.ovh', path);
-      final response = await http.get(uri, headers: {'User-Agent': _userAgent}).timeout(_timeout, onTimeout: () => http.Response('', 408));
+      final response = await http
+          .get(uri, headers: {'User-Agent': _userAgent}).timeout(_timeout,
+              onTimeout: () => http.Response('', 408));
       if (response.statusCode != 200) return null;
       final json = jsonDecode(response.body) as Map<String, dynamic>?;
       if (json == null) return null;
       final lyrics = json['lyrics'] as String?;
       return lyrics?.trim();
     } catch (e) {
-      AppLogger.w('_getLyricsFromLyricsOvh failed for $artist / $title', error: e);
+      AppLogger.w('_getLyricsFromLyricsOvh failed for $artist / $title',
+          error: e);
       return null;
     }
   }
 
   Future<List<AlbumModel>> getAllAlbums() async {
-     return getAlbumsFromCache();
+    return getAlbumsFromCache();
   }
 
   Future<List<ArtistModel>> getAllArtists() async {
