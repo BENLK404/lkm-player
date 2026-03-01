@@ -86,7 +86,8 @@ class AppRouter {
             pageBuilder: (context, state) => CustomTransitionPage(
               key: state.pageKey,
               child: const StatsScreen(),
-              transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              transitionsBuilder:
+                  (context, animation, secondaryAnimation, child) {
                 return FadeTransition(opacity: animation, child: child);
               },
             ),
@@ -97,7 +98,8 @@ class AppRouter {
             pageBuilder: (context, state) => CustomTransitionPage(
               key: state.pageKey,
               child: const AboutScreen(),
-              transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              transitionsBuilder:
+                  (context, animation, secondaryAnimation, child) {
                 return FadeTransition(opacity: animation, child: child);
               },
             ),
@@ -119,7 +121,8 @@ class AppRouter {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.error_outline, size: 48, color: Colors.red),
+                    const Icon(Icons.error_outline,
+                        size: 48, color: Colors.red),
                     const SizedBox(height: 16),
                     Text(
                       'Paramètres invalides',
@@ -152,7 +155,7 @@ class AppRouter {
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             const begin = Offset(0.0, 1.0);
             const end = Offset.zero;
-            const curve = Curves.easeInOut;
+            const curve = Curves.easeOutQuart; // Smoother Apple-like curve
             var tween = Tween(begin: begin, end: end).chain(
               CurveTween(curve: curve),
             );

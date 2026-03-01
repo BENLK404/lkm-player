@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:musio/features/music/presentation/providers/music_provider.dart';
@@ -6,8 +8,9 @@ import 'package:musio/shared/widgets/album_art_image.dart';
 import 'package:musio/shared/widgets/album_card.dart';
 import 'package:musio/shared/widgets/mini_player.dart';
 import 'package:musio/shared/widgets/song_tile.dart';
+import 'package:palette_generator/palette_generator.dart';
 
-class ArtistDetailsScreen extends ConsumerWidget {
+class ArtistDetailsScreen extends ConsumerStatefulWidget {
   final String artistId;
 
   const ArtistDetailsScreen({
@@ -16,9 +19,49 @@ class ArtistDetailsScreen extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ArtistDetailsScreen> createState() =>
+      _ArtistDetailsScreenState();
+}
+
+class _ArtistDetailsScreenState extends ConsumerState<ArtistDetailsScreen> {
+  Color? dominantColor;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadDominantColor();
+    });
+  }
+
+  Future<void> _loadDominantColor() async {
+    final artists = ref.read(allArtistsProvider);
+    try {
+      final artist = artists.firstWhere((a) => a.id == widget.artistId);
+      if (artist.imagePath != null) {
+        // Here we ideally want to load the image from file, but artist image logic in MusicService
+        // uses album art path of its first song.
+        // The UI uses AlbumArtImageLarge to resolve this.
+        final imageProvider = FileImage(File(artist.imagePath!));
+        final palette = await PaletteGenerator.fromImageProvider(
+          imageProvider,
+          maximumColorCount: 10,
+        );
+        if (mounted) {
+          setState(() {
+            dominantColor = palette.dominantColor?.color ??
+                palette.vibrantColor?.color ??
+                palette.mutedColor?.color;
+          });
+        }
+      }
+    } catch (_) {}
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final artists = ref.watch(allArtistsProvider);
-    final songs = ref.watch(artistSongsProvider(artistId));
+    final songs = ref.watch(artistSongsProvider(widget.artistId));
     final albums = ref.watch(allAlbumsProvider);
 
     if (artists.isEmpty) {
@@ -27,39 +70,65 @@ class ArtistDetailsScreen extends ConsumerWidget {
       );
     }
 
-    final artist = artists.firstWhere((a) => a.id == artistId);
-    
+    final artist = artists.firstWhere((a) => a.id == widget.artistId);
+
     // Gestion intelligente du chargement pour éviter le clignotement
     // On utilise directement la liste retournée par le provider synchrone
     if (songs.isEmpty) {
-       // Si la liste est vide, on peut afficher un message ou un loader si on sait que ça charge
-       // Mais comme le provider est synchrone, s'il est vide c'est qu'il n'y a pas de chansons
+      // Si la liste est vide, on peut afficher un message ou un loader si on sait que ça charge
+      // Mais comme le provider est synchrone, s'il est vide c'est qu'il n'y a pas de chansons
     }
 
-    final artistAlbums = albums
-        .where((album) => album.artist == artist.name)
-        .toList();
+    final artistAlbums =
+        albums.where((album) => album.artist == artist.name).toList();
+
+    // Apply the diluted solid color background
+    final backgroundColor = dominantColor != null
+        ? Color.lerp(
+            Theme.of(context).scaffoldBackgroundColor, dominantColor!, 0.15)
+        : Theme.of(context).scaffoldBackgroundColor;
 
     return Scaffold(
+      backgroundColor: backgroundColor,
       body: CustomScrollView(
         slivers: [
           // App Bar avec photo artiste
           SliverAppBar(
             expandedHeight: 300,
             pinned: true,
+            backgroundColor: backgroundColor,
+            iconTheme: const IconThemeData(color: Colors.white),
             flexibleSpace: FlexibleSpaceBar(
               title: Text(
                 artist.name,
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
+                  color: Colors.white,
                 ),
               ),
-              background: AlbumArtImageLarge(
-                songId: artist.songIds.isNotEmpty ? artist.songIds.first : '0',
-                albumArtPath: artist.imagePath,
-                heroTag: 'artist-art-${artist.id}',
-                // placeholderIcon: const Icon(Icons.person, size: 100),
+              background: Stack(
+                fit: StackFit.expand,
+                children: [
+                  Container(color: backgroundColor),
+                  AlbumArtImageLarge(
+                    songId:
+                        artist.songIds.isNotEmpty ? artist.songIds.first : '0',
+                    albumArtPath: artist.imagePath,
+                    heroTag: 'artist-art-${artist.id}',
+                    // placeholderIcon: const Icon(Icons.person, size: 100),
+                  ),
+                  // Slight gradient to make text readable
+                  const DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [Colors.transparent, Colors.black54],
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -71,10 +140,8 @@ class ArtistDetailsScreen extends ConsumerWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  _buildStat(
-                      context, artist.albumCount.toString(), 'Albums'),
-                  _buildStat(
-                      context, artist.trackCount.toString(), 'Chansons'),
+                  _buildStat(context, artist.albumCount.toString(), 'Albums'),
+                  _buildStat(context, artist.trackCount.toString(), 'Chansons'),
                 ],
               ),
             ),
@@ -89,15 +156,14 @@ class ArtistDetailsScreen extends ConsumerWidget {
                   Expanded(
                     child: ElevatedButton.icon(
                       onPressed: () {
-                        ref
-                            .read(audioPlayerProvider.notifier)
-                            .play(songs, 0);
+                        ref.read(audioPlayerProvider.notifier).play(songs, 0);
                       },
                       icon: const Icon(Icons.play_arrow),
                       label: const Text('Lire tout'),
                       style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 12),
+                        backgroundColor: Theme.of(context).colorScheme.primary,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
                       ),
                     ),
                   ),
@@ -105,18 +171,15 @@ class ArtistDetailsScreen extends ConsumerWidget {
                   Expanded(
                     child: OutlinedButton.icon(
                       onPressed: () {
-                        ref
-                            .read(audioPlayerProvider.notifier)
-                            .play(songs, 0);
-                        ref
-                            .read(audioPlayerProvider.notifier)
-                            .toggleShuffle();
+                        ref.read(audioPlayerProvider.notifier).play(songs, 0);
+                        ref.read(audioPlayerProvider.notifier).toggleShuffle();
                       },
                       icon: const Icon(Icons.shuffle),
                       label: const Text('Mélanger'),
                       style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 12),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        side: const BorderSide(color: Colors.white24),
+                        foregroundColor: Colors.white,
                       ),
                     ),
                   ),
@@ -131,10 +194,10 @@ class ArtistDetailsScreen extends ConsumerWidget {
               padding: const EdgeInsets.all(16),
               child: Text(
                 'Top chansons',
-                style:
-                    Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
               ),
             ),
           ),
@@ -143,11 +206,21 @@ class ArtistDetailsScreen extends ConsumerWidget {
             delegate: SliverChildBuilderDelegate(
               (context, index) {
                 final song = songs[index];
-                return SongTile(
-                  song: song,
-                  playlist: songs,
-                  songIndex: index,
-                  showIndex: true, // Afficher le numéro de piste
+                return Theme(
+                  data: Theme.of(context).copyWith(
+                    // Ensure text contrasts well with potentially dark background
+                    textTheme: Theme.of(context).textTheme.apply(
+                          bodyColor: Colors.white,
+                          displayColor: Colors.white,
+                        ),
+                    iconTheme: const IconThemeData(color: Colors.white),
+                  ),
+                  child: SongTile(
+                    song: song,
+                    playlist: songs,
+                    songIndex: index,
+                    showIndex: true, // Afficher le numéro de piste
+                  ),
                 );
               },
               childCount: songs.length,
@@ -160,10 +233,10 @@ class ArtistDetailsScreen extends ConsumerWidget {
               padding: const EdgeInsets.all(16),
               child: Text(
                 'Albums',
-                style:
-                    Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
               ),
             ),
           ),
@@ -171,8 +244,7 @@ class ArtistDetailsScreen extends ConsumerWidget {
           SliverPadding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             sliver: SliverGrid(
-              gridDelegate:
-                  const SliverGridDelegateWithFixedCrossAxisCount(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
                 crossAxisSpacing: 16,
                 mainAxisSpacing: 16,
@@ -181,7 +253,15 @@ class ArtistDetailsScreen extends ConsumerWidget {
               delegate: SliverChildBuilderDelegate(
                 (context, index) {
                   final album = artistAlbums[index];
-                  return AlbumCard(album: album);
+                  // Temporarily ignore text coloring for album card inside
+                  return Theme(
+                      data: Theme.of(context).copyWith(
+                        textTheme: Theme.of(context).textTheme.apply(
+                              bodyColor: Colors.white,
+                              displayColor: Colors.white,
+                            ),
+                      ),
+                      child: AlbumCard(album: album));
                 },
                 childCount: artistAlbums.length,
               ),
@@ -205,13 +285,17 @@ class ArtistDetailsScreen extends ConsumerWidget {
           value,
           style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                 fontWeight: FontWeight.bold,
-                color: Theme.of(context).colorScheme.primary,
+                color:
+                    Theme.of(context).colorScheme.primary, // Apple music pink
               ),
         ),
         const SizedBox(height: 4),
         Text(
           label,
-          style: Theme.of(context).textTheme.bodySmall,
+          style: Theme.of(context)
+              .textTheme
+              .bodySmall
+              ?.copyWith(color: Colors.white70),
         ),
       ],
     );

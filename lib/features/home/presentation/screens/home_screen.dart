@@ -4,13 +4,13 @@ import 'package:go_router/go_router.dart';
 import 'package:musio/core/routing/app_router.dart';
 import 'package:musio/features/for_you/presentation/screens/for_you_screen.dart';
 import 'package:musio/features/music/data/models/album_model.dart';
-import 'package:musio/features/music/data/models/artist_model.dart';
 import 'package:musio/features/music/data/models/playlist_model.dart';
 import 'package:musio/features/music/data/models/song_model.dart';
+import 'package:musio/features/music/data/repositories/music_repository.dart';
 import 'package:musio/features/music/presentation/providers/music_provider.dart';
-import 'package:musio/features/settings/presentation/providers/settings_provider.dart';
 import 'package:musio/features/playlist/data/system_playlist.dart';
-import 'package:musio/shared/widgets/album_art_image.dart';
+import 'package:musio/features/settings/presentation/providers/settings_provider.dart';
+import 'package:musio/features/settings/presentation/screens/settings_screen.dart';
 import 'package:musio/shared/widgets/album_card.dart';
 import 'package:musio/shared/widgets/mini_player.dart';
 import 'package:musio/shared/widgets/song_tile.dart';
@@ -42,7 +42,7 @@ class _OfflineHomeScreenState extends ConsumerState<OfflineHomeScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 5, vsync: this);
-    // Reconstruit l'AppBar lorsque l'onglet change pour afficher le bon menu
+    // Reconstruit lorsque l'onglet change pour l'affichage de l'AppBar
     _tabController.addListener(() => setState(() {}));
 
     // Demander les permissions au démarrage
@@ -53,7 +53,6 @@ class _OfflineHomeScreenState extends ConsumerState<OfflineHomeScreen>
 
   @override
   void dispose() {
-    _tabController.removeListener(() {});
     _tabController.dispose();
     super.dispose();
   }
@@ -196,98 +195,7 @@ class _OfflineHomeScreenState extends ConsumerState<OfflineHomeScreen>
           : AppBar(
         title: const Text('LKM Player'),
         centerTitle: false,
-        actions: [
-          if (isOnlineEnabled)
-            IconButton(
-              icon: const Icon(Icons.public),
-              tooltip: 'Découvrir en ligne',
-              onPressed: () => context.push(AppRouter.online),
-            ),
-          IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: () => context.push(AppRouter.search),
-          ),
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert),
-            onSelected: _handleMenuAction,
-            itemBuilder: (context) {
-              final menuItems = <PopupMenuEntry<String>>[
-                const PopupMenuItem(
-                  value: 'scan',
-                  child: Row(
-                    children: [
-                      Icon(Icons.refresh),
-                      SizedBox(width: 12),
-                      Text('Rescanner la bibliothèque'),
-                    ],
-                  ),
-                ),
-                const PopupMenuItem(
-                  value: 'settings',
-                  child: Row(
-                    children: [
-                      Icon(Icons.settings),
-                      SizedBox(width: 12),
-                      Text('Paramètres'),
-                    ],
-                  ),
-                ),
-              ];
-
-              // Ajoute l'option de bascule pour l'onglet "Chansons"
-              if (_tabController.index == 1) {
-                menuItems.addAll([
-                  const PopupMenuDivider(),
-                  PopupMenuItem(
-                    value: 'toggle_song_view',
-                    child: Row(
-                      children: [
-                        Icon(isSongList ? Icons.grid_view : Icons.list),
-                        const SizedBox(width: 12),
-                        Text(isSongList ? 'Vue grille' : 'Vue liste'),
-                      ],
-                    ),
-                  ),
-                ]);
-              }
-
-              // Ajoute l'option de réglage pour l'onglet "Albums"
-              if (_tabController.index == 2) {
-                menuItems.addAll([
-                  const PopupMenuDivider(),
-                  const PopupMenuItem(
-                    value: 'album_grid_size',
-                    child: Row(
-                      children: [
-                        Icon(Icons.grid_view),
-                        SizedBox(width: 12),
-                        Text('Taille de la grille'),
-                      ],
-                    ),
-                  ),
-                ]);
-              }
-
-              return menuItems;
-            },
-          ),
-        ],
-        bottom: TabBar(
-          controller: _tabController,
-          tabAlignment: TabAlignment.start,
-          indicatorColor: Theme.of(context).colorScheme.primary,
-          dividerColor: Theme.of(context).colorScheme.surface,
-          labelColor: Theme.of(context).colorScheme.primary,
-          unselectedLabelColor: Colors.grey,
-          isScrollable: true,
-          tabs: const [
-            Tab(text: 'Pour Moi'),
-            Tab(text: 'Chansons'),
-            Tab(text: 'Albums'),
-            Tab(text: 'Artistes'),
-            Tab(text: 'Playlists'),
-          ],
-        ),
+        actions: _buildAppBarActions(context, ref),
       ),
       body: musicState.when(
         data: (state) {
@@ -304,7 +212,7 @@ class _OfflineHomeScreenState extends ConsumerState<OfflineHomeScreen>
             );
           }
 
-          if (state.songs.isEmpty) {
+          if (state.songs.isEmpty && _tabController.index != 4) {
             return _buildEmptyState();
           }
 
@@ -313,12 +221,14 @@ class _OfflineHomeScreenState extends ConsumerState<OfflineHomeScreen>
               Expanded(
                 child: TabBarView(
                   controller: _tabController,
+                  physics:
+                      const NeverScrollableScrollPhysics(), // Prevent swipe to align with standard BottomNav behavior
                   children: [
                     const ForYouScreen(),
-                    _buildSongsTab(state.songs),
                     _buildAlbumsTab(state.albums),
-                    _buildArtistsTab(state.artists),
+                    _buildSongsTab(state.songs),
                     _buildPlaylistsTab(state.playlists, state.songs),
+                    const SettingsScreen(), // Embed SettingsScreen directly as a tab
                   ],
                 ),
               ),
@@ -344,7 +254,111 @@ class _OfflineHomeScreenState extends ConsumerState<OfflineHomeScreen>
           ),
         ),
       ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _tabController.index,
+        onTap: (index) {
+          _tabController.animateTo(index);
+        },
+        type: BottomNavigationBarType.fixed,
+        selectedItemColor: Theme.of(context).colorScheme.primary,
+        unselectedItemColor: Colors.grey,
+        items: const [
+          BottomNavigationBarItem(
+              icon: Icon(Icons.home_filled), label: 'Accueil'),
+          BottomNavigationBarItem(icon: Icon(Icons.album), label: 'Albums'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.music_note), label: 'Titres'),
+          BottomNavigationBarItem(icon: Icon(Icons.favorite), label: 'Favoris'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.settings), label: 'Paramètres'),
+        ],
+      ),
     );
+  }
+
+  List<Widget> _buildAppBarActions(BuildContext context, WidgetRef ref) {
+    final isOnlineEnabled =
+        ref.watch(onlineFeatureEnabledProvider).valueOrNull ?? false;
+    final isSongList = ref.watch(songDisplayModeProvider);
+
+    List<Widget> actions = [];
+
+    if (_tabController.index != 4) {
+      // Don't show these if in Settings
+      if (isOnlineEnabled) {
+        actions.add(
+          IconButton(
+            icon: const Icon(Icons.public),
+            tooltip: 'Découvrir en ligne',
+            onPressed: () => context.push(AppRouter.online),
+          ),
+        );
+      }
+      actions.add(
+        IconButton(
+          icon: const Icon(Icons.search),
+          onPressed: () => context.push(AppRouter.search),
+        ),
+      );
+
+      actions.add(
+        PopupMenuButton<String>(
+          icon: const Icon(Icons.more_vert),
+          onSelected: _handleMenuAction,
+          itemBuilder: (context) {
+            final menuItems = <PopupMenuEntry<String>>[
+              const PopupMenuItem(
+                value: 'scan',
+                child: Row(
+                  children: [
+                    Icon(Icons.refresh),
+                    SizedBox(width: 12),
+                    Text('Rescanner la bibliothèque'),
+                  ],
+                ),
+              ),
+            ];
+
+            // Option pour l'onglet "Albums" (avant "Chansons" donc index 1)
+            if (_tabController.index == 1) {
+              menuItems.addAll([
+                const PopupMenuDivider(),
+                const PopupMenuItem(
+                  value: 'album_grid_size',
+                  child: Row(
+                    children: [
+                      Icon(Icons.grid_view),
+                      SizedBox(width: 12),
+                      Text('Taille de la grille'),
+                    ],
+                  ),
+                ),
+              ]);
+            }
+
+            // Option de bascule pour l'onglet "Chansons" (maintenant index 2)
+            if (_tabController.index == 2) {
+              menuItems.addAll([
+                const PopupMenuDivider(),
+                PopupMenuItem(
+                  value: 'toggle_song_view',
+                  child: Row(
+                    children: [
+                      Icon(isSongList ? Icons.grid_view : Icons.list),
+                      const SizedBox(width: 12),
+                      Text(isSongList ? 'Vue grille' : 'Vue liste'),
+                    ],
+                  ),
+                ),
+              ]);
+            }
+
+            return menuItems;
+          },
+        ),
+      );
+    }
+    return actions;
   }
 
   Widget _buildSongsTab(List<SongModel> songs) {
@@ -527,44 +541,6 @@ class _OfflineHomeScreenState extends ConsumerState<OfflineHomeScreen>
               ref.read(selectedAlbumIdsProvider.notifier).state = {album.id};
             },
             child: AlbumCard(album: album),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildArtistsTab(List<ArtistModel> artists) {
-    if (artists.isEmpty) {
-      return _buildEmptyState();
-    }
-
-    return RefreshIndicator(
-      onRefresh: () async {
-        await ref.read(musicProvider.notifier).rescanLibrary();
-      },
-      child: ListView.separated(
-        itemCount: artists.length,
-        separatorBuilder: (context, index) => const Divider(height: 1),
-        itemBuilder: (context, index) {
-          final artist = artists[index];
-          return ListTile(
-            leading: CircleAvatar(
-              radius: 28,
-              child: ClipOval(
-                child: AlbumArtImage(
-                  albumArtPath: artist.imagePath,
-                  songId:
-                      artist.songIds.isNotEmpty ? artist.songIds.first : '0',
-                  size: 56,
-                  placeholderIcon: const Icon(Icons.person, size: 32),
-                ),
-              ),
-            ),
-            title: Text(artist.name),
-            subtitle: Text(
-                '${artist.albumCount} albums • ${artist.trackCount} titres'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => context.push('/artist/${artist.id}'),
           );
         },
       ),

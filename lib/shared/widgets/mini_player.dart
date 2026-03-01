@@ -20,49 +20,51 @@ class MiniPlayer extends ConsumerWidget {
     return GestureDetector(
       onTap: () => context.push(AppRouter.nowPlaying),
       child: Container(
-        height: 72,
+        height: 64, // Slightly shorter for Apple Music style
+        margin: const EdgeInsets.only(
+            bottom: 2, left: 8, right: 8), // Floating effect above bottom bar
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.2),
+              color: Colors.black.withOpacity(0.1),
               blurRadius: 8,
-              offset: const Offset(0, -2),
+              offset: const Offset(0, 2),
             ),
           ],
         ),
         child: Column(
           children: [
-            // Progress bar
-            LinearProgressIndicator(
-              value: playerState.duration.inMilliseconds > 0
-                  ? playerState.position.inMilliseconds /
-                  playerState.duration.inMilliseconds
-                  : 0,
-              backgroundColor: Colors.grey.withOpacity(0.2),
-              valueColor: AlwaysStoppedAnimation<Color>(
-                Theme.of(context).colorScheme.primary,
-              ),
-              minHeight: 2,
-            ),
-            // Player content
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 12),
                 child: Row(
                   children: [
-                    // ✅ Album art avec Hero animation et nouveau widget
+                    // Album Art
                     Hero(
                       tag: 'album-art-${currentSong.id}',
-                      child: AlbumArtImage(
-                        albumArtPath: currentSong.albumArtPath,
-                        songId: currentSong.id,
-                        size: 48,
-                        borderRadius: BorderRadius.circular(8),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(6),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.2),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: AlbumArtImage(
+                          albumArtPath: currentSong.albumArtPath,
+                          songId: currentSong.id,
+                          size: 40,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
                       ),
                     ),
                     const SizedBox(width: 12),
-                    // Song info
+                    // Song Info
                     Expanded(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -72,16 +74,23 @@ class MiniPlayer extends ConsumerWidget {
                             currentSong.title,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.w600,
-                            ),
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                ),
                           ),
-                          const SizedBox(height: 2),
                           Text(
                             currentSong.artist,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context).textTheme.bodySmall,
+                            style:
+                                Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurfaceVariant,
+                                    ),
                           ),
                         ],
                       ),
@@ -91,19 +100,13 @@ class MiniPlayer extends ConsumerWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         IconButton(
-                          icon: const Icon(Icons.skip_previous),
-                          onPressed: () {
-                            ref.read(audioPlayerProvider.notifier).previous();
-                          },
-                        ),
-                        IconButton(
                           icon: Icon(
                             playerState.isPlaying
-                                ? Icons.pause_circle_filled
-                                : Icons.play_circle_filled,
-                            size: 40,
+                                ? Icons.pause_rounded
+                                : Icons.play_arrow_rounded,
+                            size: 32,
+                            color: Theme.of(context).colorScheme.onSurface,
                           ),
-                          color: Theme.of(context).colorScheme.primary,
                           onPressed: () {
                             if (playerState.isPlaying) {
                               ref.read(audioPlayerProvider.notifier).pause();
@@ -113,7 +116,11 @@ class MiniPlayer extends ConsumerWidget {
                           },
                         ),
                         IconButton(
-                          icon: const Icon(Icons.skip_next),
+                          icon: Icon(
+                            Icons.skip_next_rounded,
+                            size: 32,
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
                           onPressed: () {
                             ref.read(audioPlayerProvider.notifier).next();
                           },
@@ -123,6 +130,18 @@ class MiniPlayer extends ConsumerWidget {
                   ],
                 ),
               ),
+            ),
+            // Progress bar at the bottom
+            LinearProgressIndicator(
+              value: playerState.duration.inMilliseconds > 0
+                  ? playerState.position.inMilliseconds /
+                      playerState.duration.inMilliseconds
+                  : 0,
+              backgroundColor: Colors.transparent,
+              valueColor: AlwaysStoppedAnimation<Color>(
+                Theme.of(context).colorScheme.primary.withOpacity(0.8),
+              ),
+              minHeight: 2,
             ),
           ],
         ),

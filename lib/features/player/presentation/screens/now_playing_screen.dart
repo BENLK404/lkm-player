@@ -10,19 +10,54 @@ import 'package:musio/features/music/presentation/providers/music_provider.dart'
 import 'package:musio/features/player/data/models/player_state.dart';
 import 'package:musio/features/player/presentation/providers/audio_player_provider.dart';
 import 'package:musio/features/player/presentation/providers/sleep_timer_provider.dart';
-import 'package:musio/features/player/presentation/widgets/audio_visualizer.dart';
 import 'package:musio/features/player/presentation/widgets/equalizer_sheet.dart';
 import 'package:musio/features/settings/presentation/providers/settings_provider.dart';
 import 'package:musio/shared/widgets/album_art_image.dart';
+import 'package:palette_generator/palette_generator.dart';
 import 'package:share_plus/share_plus.dart';
 
-class NowPlayingScreen extends ConsumerWidget {
+class NowPlayingScreen extends ConsumerStatefulWidget {
   const NowPlayingScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<NowPlayingScreen> createState() => _NowPlayingScreenState();
+}
+
+class _NowPlayingScreenState extends ConsumerState<NowPlayingScreen> {
+  Color? dominantColor;
+  String? lastSongId;
+
+  Future<void> _extractDominantColor(String albumArtPath) async {
+    try {
+      final imageProvider = FileImage(File(albumArtPath));
+      final palette = await PaletteGenerator.fromImageProvider(
+        imageProvider,
+        maximumColorCount: 10,
+      );
+      if (mounted) {
+        setState(() {
+          dominantColor = palette.dominantColor?.color ??
+              palette.vibrantColor?.color ??
+              palette.mutedColor?.color ??
+              Colors.black;
+        });
+      }
+    } catch (_) {}
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final playerState = ref.watch(audioPlayerProvider);
     final currentSong = playerState.currentSong;
+
+    if (currentSong != null && currentSong.id != lastSongId) {
+      lastSongId = currentSong.id;
+      if (currentSong.albumArtPath != null) {
+        _extractDominantColor(currentSong.albumArtPath!);
+      } else {
+        dominantColor = Colors.black;
+      }
+    }
 
     if (currentSong == null) {
       return Scaffold(
@@ -47,123 +82,123 @@ class NowPlayingScreen extends ConsumerWidget {
       orElse: () => currentSong.isFavorite,
     );
 
+    final isLight =
+        dominantColor != null && dominantColor!.computeLuminance() > 0.5;
+    final textColor = isLight ? Colors.black : Colors.white;
+    final iconColor = isLight ? Colors.black : Colors.white;
+    final iconColorDim = isLight ? Colors.black54 : Colors.white54;
+    final bgColor = dominantColor ?? Colors.black;
+
     return Scaffold(
+      backgroundColor: bgColor,
       body: Stack(
         children: [
-          // Fond flouté
+          // Background Image (Full Screen)
           if (currentSong.albumArtPath != null)
             Positioned.fill(
               child: Image.file(
                 File(currentSong.albumArtPath!),
                 fit: BoxFit.cover,
+                alignment: Alignment.topCenter,
               ),
-            )
-          else
-            Container(color: Theme.of(context).colorScheme.surface),
+            ),
 
+          // Full Blur with Dominant Color Overlay
           Positioned.fill(
             child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
+              filter: ImageFilter.blur(sigmaX: 80, sigmaY: 80),
               child: Container(
-                color:
-                    Theme.of(context).scaffoldBackgroundColor.withOpacity(0.7),
+                color: bgColor.withOpacity(0.6),
               ),
             ),
           ),
 
-          // Contenu
+          // Content
           SafeArea(
             child: Column(
               children: [
-                // AppBar personnalisée
+                // Top Bar
                 Padding(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      IconButton(
-                        icon: const Icon(Icons.keyboard_arrow_down, size: 32),
-                        onPressed: () => Navigator.pop(context),
-                      ),
-                      Column(
-                        children: [
-                          Text(
-                            'EN LECTURE',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 1.5,
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurface
-                                  .withOpacity(0.7),
-                            ),
+                      InkWell(
+                        onTap: () => Navigator.pop(context),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(100),
+                            color: Colors.grey.withOpacity(0.5),
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            currentSong.album,
-                            style:
-                                Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
+                          height: 10,
+                          width: 60,
+                        ),
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.more_vert),
-                        onPressed: () =>
-                            _showOptionsMenu(context, ref, currentSong),
-                      ),
+                      // Column(
+                      //   children: [
+                      //     Text(
+                      //       currentSong.album,
+                      //       style: const TextStyle(
+                      //         color: Colors.white70,
+                      //         fontSize: 12,
+                      //         fontWeight: FontWeight.w600,
+                      //         letterSpacing: 1.2,
+                      //       ),
+                      //       overflow: TextOverflow.ellipsis,
+                      //     ),
+                      //   ],
+                      // ),
                     ],
                   ),
                 ),
 
-                const Spacer(),
+                const Spacer(flex: 2),
 
-                // Album art (plus grand et avec ombre)
+                // Album Art (Prominent)
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 48),
+                  padding: const EdgeInsets.symmetric(horizontal: 32),
                   child: AspectRatio(
                     aspectRatio: 1,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.4),
-                            blurRadius: 30,
-                            offset: const Offset(0, 15),
+                    child: AnimatedScale(
+                      scale: playerState.isPlaying ? 1.0 : 0.75,
+                      duration: Duration(
+                          milliseconds: playerState.isPlaying ? 600 : 300),
+                      curve: playerState.isPlaying
+                          ? Curves.elasticOut
+                          : Curves.elasticIn,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.4),
+                              blurRadius: 20,
+                              offset: const Offset(0, 10),
+                            ),
+                          ],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: AlbumArtImageLarge(
+                            songId: currentSong.id,
+                            albumArtPath: currentSong.albumArtPath,
+                            heroTag: 'album-art-${currentSong.id}',
                           ),
-                        ],
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(20),
-                        child: AlbumArtImageLarge(
-                          songId: currentSong.id,
-                          albumArtPath: currentSong.albumArtPath,
-                          heroTag: 'album-art-${currentSong.id}',
                         ),
                       ),
                     ),
                   ),
                 ),
 
-                const SizedBox(height: 20),
-                AudioVisualizer(
-                  isPlaying: playerState.isPlaying,
-                  barCount: 28,
-                  barWidth: 3,
-                  minHeight: 6,
-                  maxHeight: 28,
-                ),
-                const SizedBox(height: 16),
+                const Spacer(flex: 3),
 
-                // Song info & Favorite
+                // Song Info
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 32),
                   child: Row(
+                    spacing: 10,
+                    crossAxisAlignment: CrossAxisAlignment.end,
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Expanded(
@@ -172,27 +207,21 @@ class NowPlayingScreen extends ConsumerWidget {
                           children: [
                             Text(
                               currentSong.title,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .headlineSmall
-                                  ?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                              style: TextStyle(
+                                color: textColor,
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                              ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
-                            const SizedBox(height: 8),
+                            const SizedBox(height: 4),
                             Text(
                               currentSong.artist,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleMedium
-                                  ?.copyWith(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onSurface
-                                        .withOpacity(0.7),
-                                  ),
+                              style: TextStyle(
+                                color: textColor.withOpacity(0.7),
+                                fontSize: 18,
+                              ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -200,28 +229,40 @@ class NowPlayingScreen extends ConsumerWidget {
                         ),
                       ),
                       IconButton(
-                        icon: Icon(
-                          isFavorite ? Icons.favorite : Icons.favorite_border,
+                        style: ButtonStyle(
+                          backgroundColor: WidgetStatePropertyAll(
+                              textColor.withValues(alpha: 0.1)),
                         ),
-                        iconSize: 32,
-                        color: isFavorite
-                            ? Theme.of(context).colorScheme.primary
-                            : null,
+                        icon: Icon(
+                          isFavorite
+                              ? Icons.favorite
+                              : Icons.favorite_border_rounded,
+                          color: isFavorite ? Colors.red : iconColorDim,
+                        ),
                         onPressed: () {
                           ref
                               .read(musicProvider.notifier)
                               .toggleFavoriteStatus(currentSong);
                         },
                       ),
+                      IconButton(
+                        style: ButtonStyle(
+                          backgroundColor: WidgetStatePropertyAll(
+                              textColor.withValues(alpha: 0.1)),
+                        ),
+                        icon: Icon(Icons.more_horiz_rounded, color: iconColor),
+                        onPressed: () =>
+                            _showOptionsMenu(context, ref, currentSong),
+                      ),
                     ],
                   ),
                 ),
 
-                const SizedBox(height: 32),
+                const SizedBox(height: 24),
 
-                // Progress bar (seek uniquement à la fin du glissement pour éviter la lenteur)
+                // Progress Bar
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: _SeekBar(
                     position: playerState.position,
                     duration: playerState.duration,
@@ -233,22 +274,21 @@ class NowPlayingScreen extends ConsumerWidget {
 
                 const SizedBox(height: 16),
 
-                // Controls
+                // Main Controls
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: const EdgeInsets.symmetric(horizontal: 32),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       IconButton(
                         icon: Icon(
                           playerState.isShuffled
-                              ? Icons.shuffle_on_outlined
-                              : Icons.shuffle,
-                          color: playerState.isShuffled
-                              ? Theme.of(context).colorScheme.primary
-                              : null,
+                              ? Icons.shuffle_on_rounded
+                              : Icons.shuffle_rounded,
+                          color:
+                              playerState.isShuffled ? iconColor : iconColorDim,
                         ),
-                        iconSize: 28,
+                        iconSize: 24,
                         onPressed: () {
                           ref
                               .read(audioPlayerProvider.notifier)
@@ -256,48 +296,32 @@ class NowPlayingScreen extends ConsumerWidget {
                         },
                       ),
                       IconButton(
-                        icon: const Icon(Icons.skip_previous_rounded),
+                        icon:
+                            Icon(Icons.skip_previous_rounded, color: iconColor),
                         iconSize: 48,
                         onPressed: () {
                           ref.read(audioPlayerProvider.notifier).previous();
                         },
                       ),
-                      Container(
-                        width: 72,
-                        height: 72,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Theme.of(context).colorScheme.primary,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .primary
-                                  .withOpacity(0.4),
-                              blurRadius: 20,
-                              offset: const Offset(0, 8),
-                            ),
-                          ],
+                      IconButton(
+                        icon: Icon(
+                          playerState.isPlaying
+                              ? Icons.pause_circle_filled_rounded
+                              : Icons.play_circle_filled_rounded,
+                          color: iconColor,
                         ),
-                        child: IconButton(
-                          icon: Icon(
-                            playerState.isPlaying
-                                ? Icons.pause_rounded
-                                : Icons.play_arrow_rounded,
-                            color: Colors.white,
-                          ),
-                          iconSize: 40,
-                          onPressed: () {
-                            if (playerState.isPlaying) {
-                              ref.read(audioPlayerProvider.notifier).pause();
-                            } else {
-                              ref.read(audioPlayerProvider.notifier).resume();
-                            }
-                          },
-                        ),
+                        iconSize: 72,
+                        padding: EdgeInsets.zero,
+                        onPressed: () {
+                          if (playerState.isPlaying) {
+                            ref.read(audioPlayerProvider.notifier).pause();
+                          } else {
+                            ref.read(audioPlayerProvider.notifier).resume();
+                          }
+                        },
                       ),
                       IconButton(
-                        icon: const Icon(Icons.skip_next_rounded),
+                        icon: Icon(Icons.skip_next_rounded, color: iconColor),
                         iconSize: 48,
                         onPressed: () {
                           ref.read(audioPlayerProvider.notifier).next();
@@ -311,10 +335,10 @@ class NowPlayingScreen extends ConsumerWidget {
                             icon: Icon(
                               _getRepeatIcon(repeatMode),
                               color: repeatMode != RepeatMode.off
-                                  ? Theme.of(context).colorScheme.primary
-                                  : null,
+                                  ? iconColor
+                                  : iconColorDim,
                             ),
-                            iconSize: 28,
+                            iconSize: 24,
                             onPressed: () {
                               ref
                                   .read(audioPlayerProvider.notifier)
@@ -327,15 +351,21 @@ class NowPlayingScreen extends ConsumerWidget {
                   ),
                 ),
 
-                const Spacer(),
+                const SizedBox(height: 24),
 
-                // Bottom actions
+                // Bottom Actions (Volume, Lyrics, Quote, More)
                 Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                  padding: const EdgeInsets.symmetric(horizontal: 32),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    spacing: 30,
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
+                      IconButton(
+                        icon: Icon(Icons.lyrics_outlined, color: iconColor),
+                        onPressed: () {
+                          context.push(AppRouter.lyrics);
+                        },
+                      ),
                       InkWell(
                         onTap: () {
                           final current = playerState.playbackSpeed;
@@ -348,40 +378,12 @@ class NowPlayingScreen extends ConsumerWidget {
                         child: Padding(
                           padding: const EdgeInsets.symmetric(
                               horizontal: 12, vertical: 8),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.speed,
-                                  color:
-                                      Theme.of(context).colorScheme.onSurface),
-                              const SizedBox(width: 6),
-                              Text(
-                                _speedLabel(playerState.playbackSpeed),
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .labelLarge
-                                    ?.copyWith(
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                              ),
-                            ],
-                          ),
+                          child: Icon(Icons.speed_rounded, color: iconColorDim),
                         ),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.lyrics_outlined),
-                        onPressed: () {
-                          context.push(AppRouter.lyrics);
-                        },
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.queue_music),
-                        onPressed: () {
-                          context.push(AppRouter.queue);
-                        },
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.equalizer),
+                        icon:
+                            Icon(Icons.equalizer_rounded, color: iconColorDim),
                         onPressed: () {
                           showModalBottomSheet(
                             context: context,
@@ -390,21 +392,23 @@ class NowPlayingScreen extends ConsumerWidget {
                           );
                         },
                       ),
+                      // IconButton(
+                      //   icon: const Icon(Icons.menu_rounded,
+                      //       color: Colors.white54),
+                      //   onPressed: () {
+                      //     context.push(AppRouter.queue);
+                      //   },
+                      // ),
                     ],
                   ),
                 ),
+                const SizedBox(height: 16),
               ],
             ),
           ),
         ],
       ),
     );
-  }
-
-  String _speedLabel(double speed) {
-    if (speed <= 1.0) return '1x';
-    if (speed < 2.0) return '1.5x';
-    return '2x';
   }
 
   IconData _getRepeatIcon(RepeatMode repeatMode) {
@@ -450,12 +454,13 @@ class NowPlayingScreen extends ConsumerWidget {
                     end: Alignment.bottomCenter,
                     colors: [
                       _bgGradientTop.withOpacity(0.95),
-                      _bgGradientTop.withOpacity(0.0),
+                      _bgGradientTop.withOpacity(0.95),
                     ],
                   ),
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                   child: Row(
                     children: [
                       IconButton(

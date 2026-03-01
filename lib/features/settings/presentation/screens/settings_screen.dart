@@ -19,11 +19,18 @@ class SettingsScreen extends ConsumerWidget {
     final sleepTimerDefault = ref.watch(sleepTimerDefaultMinutesProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Paramètres'),
-      ),
-      body: ListView(
+        body: SafeArea(
+      child: ListView(
         children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+            child: Text(
+              'Paramètres',
+              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+            ),
+          ),
           _buildSectionHeader(context, 'Apparence'),
           themeMode.when(
             data: (modeIndex) => ListTile(
@@ -308,7 +315,7 @@ class SettingsScreen extends ConsumerWidget {
           ),
         ],
       ),
-    );
+    ));
   }
 
   String _themeModeLabel(int index) {
