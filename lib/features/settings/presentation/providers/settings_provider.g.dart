@@ -60,9 +60,7 @@ typedef _$ThemeModeSetting = AutoDisposeAsyncNotifier<int>;
 String _$sleepTimerDefaultMinutesHash() =>
     r'4280b96b648ba958bf8b4540ade147dae730b7dd';
 
-/// Durée par défaut du minuteur de sommeil en minutes (0 = désactivé).
-///
-/// Copied from [SleepTimerDefaultMinutes].
+/// See also [SleepTimerDefaultMinutes].
 @ProviderFor(SleepTimerDefaultMinutes)
 final sleepTimerDefaultMinutesProvider =
     AutoDisposeAsyncNotifierProvider<SleepTimerDefaultMinutes, int>.internal(
@@ -79,7 +77,9 @@ typedef _$SleepTimerDefaultMinutes = AutoDisposeAsyncNotifier<int>;
 String _$excludeMessagingAppsHash() =>
     r'5beaccc9781cfb90edf7c1cb4f25c9d395a4291a';
 
-/// See also [ExcludeMessagingApps].
+/// Toggle global : active/désactive tous les filtres messagerie d'un coup.
+///
+/// Copied from [ExcludeMessagingApps].
 @ProviderFor(ExcludeMessagingApps)
 final excludeMessagingAppsProvider =
     AutoDisposeAsyncNotifierProvider<ExcludeMessagingApps, bool>.internal(
@@ -93,5 +93,113 @@ final excludeMessagingAppsProvider =
 );
 
 typedef _$ExcludeMessagingApps = AutoDisposeAsyncNotifier<bool>;
+String _$excludeWhatsAppHash() => r'93079ea0550bcc1f15c387cbbeac7622f591d5b4';
+
+/// WhatsApp — exclu par défaut
+///
+/// Copied from [ExcludeWhatsApp].
+@ProviderFor(ExcludeWhatsApp)
+final excludeWhatsAppProvider =
+    AutoDisposeAsyncNotifierProvider<ExcludeWhatsApp, bool>.internal(
+  ExcludeWhatsApp.new,
+  name: r'excludeWhatsAppProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$excludeWhatsAppHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef _$ExcludeWhatsApp = AutoDisposeAsyncNotifier<bool>;
+String _$excludeTelegramHash() => r'bccfa0b1d53ffdf692f43fdc2b76aa7a290f5eb0';
+
+/// Telegram — inclus par défaut (bots musicaux)
+///
+/// Copied from [ExcludeTelegram].
+@ProviderFor(ExcludeTelegram)
+final excludeTelegramProvider =
+    AutoDisposeAsyncNotifierProvider<ExcludeTelegram, bool>.internal(
+  ExcludeTelegram.new,
+  name: r'excludeTelegramProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$excludeTelegramHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef _$ExcludeTelegram = AutoDisposeAsyncNotifier<bool>;
+String _$excludeSignalHash() => r'2ed5ced4ed340888720efd53ae599f47d6d8436b';
+
+/// Signal — exclu par défaut
+///
+/// Copied from [ExcludeSignal].
+@ProviderFor(ExcludeSignal)
+final excludeSignalProvider =
+    AutoDisposeAsyncNotifierProvider<ExcludeSignal, bool>.internal(
+  ExcludeSignal.new,
+  name: r'excludeSignalProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$excludeSignalHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef _$ExcludeSignal = AutoDisposeAsyncNotifier<bool>;
+String _$excludeViberHash() => r'4f44a546a54b558057a332e1c0d4d688bd39004c';
+
+/// Viber — exclu par défaut
+///
+/// Copied from [ExcludeViber].
+@ProviderFor(ExcludeViber)
+final excludeViberProvider =
+    AutoDisposeAsyncNotifierProvider<ExcludeViber, bool>.internal(
+  ExcludeViber.new,
+  name: r'excludeViberProvider',
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product') ? null : _$excludeViberHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef _$ExcludeViber = AutoDisposeAsyncNotifier<bool>;
+String _$excludeDiscordHash() => r'4313b8e8f66c59ecf1fe60766ebf003d541a6ac1';
+
+/// Discord — exclu par défaut
+///
+/// Copied from [ExcludeDiscord].
+@ProviderFor(ExcludeDiscord)
+final excludeDiscordProvider =
+    AutoDisposeAsyncNotifierProvider<ExcludeDiscord, bool>.internal(
+  ExcludeDiscord.new,
+  name: r'excludeDiscordProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$excludeDiscordHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef _$ExcludeDiscord = AutoDisposeAsyncNotifier<bool>;
+String _$excludeOtherMessagingHash() =>
+    r'c472e9ced16b85382d9933b5538b7e11013e0abe';
+
+/// Autres apps (Skype, Line, WeChat, Snapchat, Slack…) — exclu par défaut
+///
+/// Copied from [ExcludeOtherMessaging].
+@ProviderFor(ExcludeOtherMessaging)
+final excludeOtherMessagingProvider =
+    AutoDisposeAsyncNotifierProvider<ExcludeOtherMessaging, bool>.internal(
+  ExcludeOtherMessaging.new,
+  name: r'excludeOtherMessagingProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$excludeOtherMessagingHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef _$ExcludeOtherMessaging = AutoDisposeAsyncNotifier<bool>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member
