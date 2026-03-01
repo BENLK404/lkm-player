@@ -20,6 +20,22 @@ class AlbumDetailsScreen extends ConsumerStatefulWidget {
     required this.albumId,
   });
 
+  @override
+  ConsumerState<AlbumDetailsScreen> createState() => _AlbumDetailsScreenState();
+}
+
+class _AlbumDetailsScreenState extends ConsumerState<AlbumDetailsScreen> {
+  Color? dominantColor;
+
+  @override
+  void initState() {
+    super.initState();
+    // We'll load the color after the build once we have the album
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadDominantColor();
+    });
+  }
+
   Future<void> _confirmDeleteAlbum(
     BuildContext context,
     WidgetRef ref,
@@ -27,8 +43,10 @@ class AlbumDetailsScreen extends ConsumerStatefulWidget {
   ) async {
     final playerState = ref.read(audioPlayerProvider);
     final currentIds = playerState.queue.map((s) => s.id).toSet();
-    final albumSongIds = ref.read(albumSongsProvider(album.id)).map((s) => s.id).toSet();
-    final isCurrentAlbumPlaying = albumSongIds.any((id) => currentIds.contains(id));
+    final albumSongIds =
+        ref.read(albumSongsProvider(album.id)).map((s) => s.id).toSet();
+    final isCurrentAlbumPlaying =
+        albumSongIds.any((id) => currentIds.contains(id));
 
     final confirmed = await showDialog<bool>(
       context: context,
@@ -45,7 +63,8 @@ class AlbumDetailsScreen extends ConsumerStatefulWidget {
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            style: TextButton.styleFrom(foregroundColor: Theme.of(ctx).colorScheme.error),
+            style: TextButton.styleFrom(
+                foregroundColor: Theme.of(ctx).colorScheme.error),
             child: const Text('Supprimer'),
           ),
         ],
@@ -72,22 +91,6 @@ class AlbumDetailsScreen extends ConsumerStatefulWidget {
         );
         await ref.read(musicProvider.notifier).loadFromCache();
       }
-    });
-  }
-
-  @override
-  ConsumerState<AlbumDetailsScreen> createState() => _AlbumDetailsScreenState();
-}
-
-class _AlbumDetailsScreenState extends ConsumerState<AlbumDetailsScreen> {
-  Color? dominantColor;
-
-  @override
-  void initState() {
-    super.initState();
-    // We'll load the color after the build once we have the album
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadDominantColor();
     });
   }
 
@@ -125,7 +128,7 @@ class _AlbumDetailsScreenState extends ConsumerState<AlbumDetailsScreen> {
       );
     }
 
-    final albumIndex = albums.indexWhere((a) => a.id == albumId);
+    final albumIndex = albums.indexWhere((a) => a.id == widget.albumId);
     if (albumIndex == -1) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (context.mounted) context.pop();
@@ -152,7 +155,8 @@ class _AlbumDetailsScreenState extends ConsumerState<AlbumDetailsScreen> {
             backgroundColor: Theme.of(context).scaffoldBackgroundColor,
             actions: [
               IconButton(
-                icon: Icon(Icons.delete_outline, color: Theme.of(context).colorScheme.error),
+                icon: Icon(Icons.delete_outline,
+                    color: Theme.of(context).colorScheme.error),
                 onPressed: () => _confirmDeleteAlbum(context, ref, album),
                 tooltip: 'Supprimer l\'album',
               ),
