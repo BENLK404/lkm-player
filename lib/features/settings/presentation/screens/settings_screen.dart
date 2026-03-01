@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:musio/core/routing/app_router.dart';
+import 'package:musio/features/download/presentation/providers/download_provider.dart';
 import 'package:musio/features/music/presentation/providers/music_provider.dart';
 import 'package:musio/features/settings/presentation/providers/settings_provider.dart';
 
@@ -67,6 +69,52 @@ class SettingsScreen extends ConsumerWidget {
             loading: () => const SizedBox.shrink(),
             error: (e, s) => const SizedBox.shrink(),
           ),
+          ref.watch(downloadApiBaseUrlProvider).when(
+            data: (baseUrl) => ListTile(
+              leading: const Icon(Icons.cloud_download_outlined),
+              title: const Text('Serveur de téléchargement'),
+              subtitle: Text(
+                baseUrl.isEmpty
+                    ? 'Non configuré (ex: http://192.168.1.10:8000)'
+                    : baseUrl,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              onTap: () => _showDownloadApiUrlDialog(context, ref, baseUrl),
+            ),
+            loading: () => const SizedBox.shrink(),
+            error: (_, __) => const SizedBox.shrink(),
+          ),
+          ref.watch(downloadDirectoryPathProvider).when(
+            data: (dirPath) => ListTile(
+              leading: const Icon(Icons.folder_outlined),
+              title: const Text('Dossier des téléchargements'),
+              subtitle: Text(
+                dirPath,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+              trailing: IconButton(
+                icon: const Icon(Icons.copy),
+                onPressed: () {
+                  Clipboard.setData(ClipboardData(text: dirPath));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Chemin copié. Collez-le dans votre gestionnaire de fichiers pour ouvrir le dossier.'),
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                },
+              ),
+            ),
+            loading: () => const ListTile(
+              leading: Icon(Icons.folder_outlined),
+              title: Text('Dossier des téléchargements'),
+              subtitle: Text('Chargement…'),
+            ),
+            error: (_, __) => const SizedBox.shrink(),
+          ),
           const Divider(),
           _buildSectionHeader(context, 'Bibliothèque'),
           ListTile(
@@ -119,12 +167,12 @@ class SettingsScreen extends ConsumerWidget {
             error: (e, s) => const SizedBox.shrink(),
           ),
           const Divider(),
+          // Toggle global
           ref.watch(excludeMessagingAppsProvider).when(
                 data: (excluded) => SwitchListTile(
-                  title: const Text('Exclure les apps de messagerie'),
+                  title: const Text('Filtrer les apps de messagerie'),
                   subtitle: const Text(
-                    'Masque les audios WhatsApp, Telegram, Signal… '
-                    'lors du scan de la bibliothèque',
+                    'Active le filtrage des fichiers audio provenant des apps de chat',
                   ),
                   secondary: const Icon(Icons.chat_bubble_outline),
                   value: excluded,
@@ -135,11 +183,9 @@ class SettingsScreen extends ConsumerWidget {
                     ref.read(musicProvider.notifier).rescanLibrary();
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text(
-                          value
-                              ? 'Apps de messagerie exclues. Scan en cours…'
-                              : 'Apps de messagerie incluses. Scan en cours…',
-                        ),
+                        content: Text(value
+                            ? 'Filtrage activé. Scan en cours…'
+                            : 'Filtrage désactivé. Scan en cours…'),
                         behavior: SnackBarBehavior.floating,
                       ),
                     );
@@ -147,6 +193,94 @@ class SettingsScreen extends ConsumerWidget {
                 ),
                 loading: () => const SizedBox.shrink(),
                 error: (_, __) => const SizedBox.shrink(),
+              ),
+
+          // Toggles par app — visibles uniquement si le filtre global est actif
+          ref.watch(excludeMessagingAppsProvider).maybeWhen(
+                data: (excluded) => excluded
+                    ? Column(
+                        children: [
+                          const Padding(
+                            padding: EdgeInsets.fromLTRB(16, 8, 16, 4),
+                            child: Text(
+                              'Configurer par application',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ),
+                          _buildAppToggle(
+                            context,
+                            ref,
+                            icon: Icons.message,
+                            label: 'WhatsApp',
+                            subtitle: 'Exclure les audios WhatsApp',
+                            value: ref.watch(excludeWhatsAppProvider),
+                            onChanged: (v) => ref
+                                .read(excludeWhatsAppProvider.notifier)
+                                .setEnabled(v),
+                          ),
+                          _buildAppToggle(
+                            context,
+                            ref,
+                            icon: Icons.send,
+                            label: 'Telegram',
+                            subtitle:
+                                'Exclure les audios Telegram (bots inclus)',
+                            value: ref.watch(excludeTelegramProvider),
+                            onChanged: (v) => ref
+                                .read(excludeTelegramProvider.notifier)
+                                .setEnabled(v),
+                          ),
+                          _buildAppToggle(
+                            context,
+                            ref,
+                            icon: Icons.lock_outline,
+                            label: 'Signal',
+                            subtitle: 'Exclure les audios Signal',
+                            value: ref.watch(excludeSignalProvider),
+                            onChanged: (v) => ref
+                                .read(excludeSignalProvider.notifier)
+                                .setEnabled(v),
+                          ),
+                          _buildAppToggle(
+                            context,
+                            ref,
+                            icon: Icons.phone_in_talk_outlined,
+                            label: 'Viber',
+                            subtitle: 'Exclure les audios Viber',
+                            value: ref.watch(excludeViberProvider),
+                            onChanged: (v) => ref
+                                .read(excludeViberProvider.notifier)
+                                .setEnabled(v),
+                          ),
+                          _buildAppToggle(
+                            context,
+                            ref,
+                            icon: Icons.headset_mic_outlined,
+                            label: 'Discord',
+                            subtitle: 'Exclure les audios Discord',
+                            value: ref.watch(excludeDiscordProvider),
+                            onChanged: (v) => ref
+                                .read(excludeDiscordProvider.notifier)
+                                .setEnabled(v),
+                          ),
+                          _buildAppToggle(
+                            context,
+                            ref,
+                            icon: Icons.more_horiz,
+                            label: 'Autres',
+                            subtitle: 'Skype, Line, WeChat, Snapchat, Slack…',
+                            value: ref.watch(excludeOtherMessagingProvider),
+                            onChanged: (v) => ref
+                                .read(excludeOtherMessagingProvider.notifier)
+                                .setEnabled(v),
+                          ),
+                        ],
+                      )
+                    : const SizedBox.shrink(),
+                orElse: () => const SizedBox.shrink(),
               ),
           const Divider(),
           _buildSectionHeader(context, 'Stockage'),
@@ -240,6 +374,38 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
+  void _showDownloadApiUrlDialog(BuildContext context, WidgetRef ref, String currentUrl) {
+    final controller = TextEditingController(text: currentUrl);
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Serveur de téléchargement'),
+        content: TextField(
+          controller: controller,
+          decoration: const InputDecoration(
+            hintText: 'http://192.168.1.10:8000',
+            labelText: 'URL de l\'API Telegramusic',
+          ),
+          keyboardType: TextInputType.url,
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Annuler'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              await ref.read(downloadApiBaseUrlProvider.notifier).setBaseUrl(controller.text);
+              if (context.mounted) Navigator.pop(context);
+            },
+            child: const Text('Enregistrer'),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _showSleepTimerDefaultDialog(BuildContext context, WidgetRef ref) {
     final current = ref.read(sleepTimerDefaultMinutesProvider).valueOrNull ?? 0;
     const options = [0, 15, 30, 45, 60];
@@ -280,6 +446,32 @@ class SettingsScreen extends ConsumerWidget {
               fontWeight: FontWeight.bold,
             ),
       ),
+    );
+  }
+
+  Widget _buildAppToggle(
+    BuildContext context,
+    WidgetRef ref, {
+    required IconData icon,
+    required String label,
+    required String subtitle,
+    required AsyncValue<bool> value,
+    required Future<void> Function(bool) onChanged,
+  }) {
+    return value.maybeWhen(
+      data: (excluded) => SwitchListTile(
+        dense: true,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 32),
+        secondary: Icon(icon, size: 20),
+        title: Text(label),
+        subtitle: Text(subtitle, style: const TextStyle(fontSize: 11)),
+        value: excluded,
+        onChanged: (val) async {
+          await onChanged(val);
+          ref.read(musicProvider.notifier).rescanLibrary();
+        },
+      ),
+      orElse: () => const SizedBox.shrink(),
     );
   }
 }

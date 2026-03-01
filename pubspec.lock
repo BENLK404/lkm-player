@@ -26,7 +26,7 @@ packages:
     source: hosted
     version: "0.11.3"
   archive:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: archive
       sha256: "2fde1607386ab523f7a36bb3e7edb43bd58e6edaf2ffb29d8a6d578b297fdbbd"
@@ -326,6 +326,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.4+6"
+  flutter_media_metadata:
+    dependency: "direct main"
+    description:
+      name: flutter_media_metadata
+      sha256: "69cfc76ffd6cd5d546dcc4880584b3844c5e879e435aa54f57f1096c15bd04db"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.0+1"
   flutter_riverpod:
     dependency: "direct main"
     description:
@@ -696,6 +704,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.3.3+7"
+  patch_package:
+    dependency: "direct dev"
+    description:
+      name: patch_package
+      sha256: ade4baf6e726395435e1d74cfe035978cf089024663e479e80fbe6c9d94b90a3
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.8"
   path:
     dependency: "direct main"
     description:

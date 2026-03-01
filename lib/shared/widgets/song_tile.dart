@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:musio/features/music/data/models/playlist_model.dart';
 import 'package:musio/features/music/data/models/song_model.dart';
+import 'package:musio/features/music/data/repositories/music_repository.dart';
 import 'package:musio/features/music/presentation/providers/music_provider.dart';
 import 'package:musio/features/player/presentation/providers/audio_player_provider.dart';
 
@@ -138,7 +138,7 @@ class SongTile extends ConsumerWidget {
                       ),
                     ),
                     const PopupMenuDivider(),
-                    if (song.albumId != null)
+                    if (MusicRepository.effectiveAlbumKey(song) != null)
                       PopupMenuItem(
                         value: 'go_to_album',
                         child: Row(
@@ -149,7 +149,7 @@ class SongTile extends ConsumerWidget {
                           ],
                         ),
                       ),
-                    if (song.artistId != null)
+                    if (MusicRepository.effectiveArtistKey(song) != null)
                       PopupMenuItem(
                         value: 'go_to_artist',
                         child: Row(
@@ -160,6 +160,18 @@ class SongTile extends ConsumerWidget {
                           ],
                         ),
                       ),
+                    const PopupMenuDivider(),
+                    PopupMenuItem(
+                      value: 'delete_song',
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.delete_outline, color: Theme.of(context).colorScheme.error),
+                          const SizedBox(width: 12),
+                          Text('Supprimer de la bibliothèque', style: TextStyle(color: Theme.of(context).colorScheme.error)),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ],
@@ -209,17 +221,57 @@ class SongTile extends ConsumerWidget {
       case 'add_to_playlist':
         _showAddToPlaylistDialog(context, ref, song);
         break;
-      case 'go_to_album':
-        if (song.albumId != null) {
-          context.push('/album/${song.albumId}');
-        }
+      case 'go_to_album': {
+        final albumId = MusicRepository.effectiveAlbumKey(song);
+        if (albumId != null) context.push('/album/$albumId');
         break;
-      case 'go_to_artist':
-        if (song.artistId != null) {
-          context.push('/artist/${song.artistId}');
-        }
+      }
+      case 'go_to_artist': {
+        final artistId = MusicRepository.effectiveArtistKey(song);
+        if (artistId != null) context.push('/artist/$artistId');
+        break;
+      }
+      case 'delete_song':
+        _confirmDeleteSong(context, ref);
         break;
     }
+  }
+
+  void _confirmDeleteSong(BuildContext context, WidgetRef ref) {
+    final playerState = ref.read(audioPlayerProvider);
+    final isCurrent = playerState.currentSong?.id == song.id;
+
+    showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Supprimer le morceau ?'),
+        content: Text(
+          '« ${song.title} » sera supprimé de la bibliothèque${isCurrent ? ' et retiré de la lecture' : ''}. Le fichier sera supprimé du téléphone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Annuler'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Supprimer'),
+          ),
+        ],
+      ),
+    ).then((confirmed) async {
+      if (confirmed != true || !context.mounted) return;
+      if (isCurrent) {
+        await ref.read(audioPlayerProvider.notifier).stop();
+      }
+      await ref.read(musicProvider.notifier).removeSong(song.id);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('« ${song.title} » supprimé')),
+        );
+      }
+    });
   }
 
   void _showAddToPlaylistDialog(

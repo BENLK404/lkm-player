@@ -12,7 +12,7 @@ android {
     defaultConfig {
         applicationId = "com.example.musio"
         minSdk = flutter.minSdkVersion
-        targetSdk = 36
+        targetSdk = 34
         versionCode = 1
         versionName = "1.0.0"
     }

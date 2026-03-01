@@ -1,3 +1,6 @@
+// Force compileSdk 34+ for Android library plugins (fixes android:attr/lStar not found) - must run before subprojects are evaluated
+apply(from = file("subprojects.gradle"))
+
 allprojects {
     repositories {
         google()

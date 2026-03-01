@@ -180,6 +180,13 @@ class AudioPlayerService {
     await _audioHandler.play();
   }
 
+  /// Arrête la lecture et vide la file d'attente
+  Future<void> stop() async {
+    _localQueue = [];
+    _updateState(const PlayerState());
+    await _audioHandler.stop();
+  }
+
   /// Pause (mise à jour immédiate, appel natif en arrière-plan)
   void pause() {
     _updateState(currentState.copyWith(isPlaying: false));

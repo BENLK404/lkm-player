@@ -91,6 +91,18 @@ class AppTheme {
       color: Colors.white12,
       thickness: 1,
     ),
+
+    // Toast / SnackBar discret et moderne (aligné sur le thème sombre)
+    snackBarTheme: SnackBarThemeData(
+      behavior: SnackBarBehavior.floating,
+      backgroundColor: darkCard,
+      contentTextStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.white),
+      actionTextColor: primaryColor,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      elevation: 2,
+      showCloseIcon: true,
+      closeIconColor: Colors.white70,
+    ),
   );
 
   // Thème clair
@@ -166,6 +178,18 @@ class AppTheme {
     dividerTheme: const DividerThemeData(
       color: Colors.black12,
       thickness: 1,
+    ),
+
+    // Toast / SnackBar discret et moderne (aligné sur le thème clair)
+    snackBarTheme: SnackBarThemeData(
+      behavior: SnackBarBehavior.floating,
+      backgroundColor: const Color(0xFFE8E8E8),
+      contentTextStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.black87),
+      actionTextColor: primaryColor,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      elevation: 2,
+      showCloseIcon: true,
+      closeIconColor: Colors.black54,
     ),
   );
 }
