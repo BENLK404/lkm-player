@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:musio/core/routing/app_router.dart';
@@ -161,12 +162,12 @@ class _NowPlayingScreenState extends ConsumerState<NowPlayingScreen> {
                   child: AspectRatio(
                     aspectRatio: 1,
                     child: AnimatedScale(
-                      scale: playerState.isPlaying ? 1.0 : 0.75,
+                      scale: playerState.isPlaying ? 1.0 : 0.85,
                       duration: Duration(
-                          milliseconds: playerState.isPlaying ? 600 : 300),
+                          milliseconds: playerState.isPlaying ? 1500 : 900),
                       curve: playerState.isPlaying
                           ? Curves.elasticOut
-                          : Curves.elasticIn,
+                          : Curves.easeInOutCirc,
                       child: Container(
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(12),
@@ -231,19 +232,34 @@ class _NowPlayingScreenState extends ConsumerState<NowPlayingScreen> {
                       IconButton(
                         style: ButtonStyle(
                           backgroundColor: WidgetStatePropertyAll(
-                              textColor.withValues(alpha: 0.1)),
-                        ),
-                        icon: Icon(
-                          isFavorite
-                              ? Icons.favorite
-                              : Icons.favorite_border_rounded,
-                          color: isFavorite ? Colors.red : iconColorDim,
+                            textColor.withValues(alpha: 0.1),
+                          ),
                         ),
                         onPressed: () {
+                          HapticFeedback.lightImpact();
                           ref
                               .read(musicProvider.notifier)
                               .toggleFavoriteStatus(currentSong);
                         },
+                        icon: AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 300),
+                          transitionBuilder: (child, animation) {
+                            return ScaleTransition(
+                              scale: CurvedAnimation(
+                                parent: animation,
+                                curve: Curves.easeOutBack,
+                              ),
+                              child: child,
+                            );
+                          },
+                          child: Icon(
+                            isFavorite
+                                ? Icons.favorite
+                                : Icons.favorite_border_rounded,
+                            key: ValueKey<bool>(isFavorite), // IMPORTANT
+                            color: isFavorite ? Colors.red : iconColorDim,
+                          ),
+                        ),
                       ),
                       IconButton(
                         style: ButtonStyle(
