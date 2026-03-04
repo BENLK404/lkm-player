@@ -81,6 +81,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.1.25"
+  audiotags:
+    dependency: "direct main"
+    description:
+      name: audiotags
+      sha256: b09ab98c9b7d516470763d33fe974cab710bea1de24b5811339ac1b9e68268de
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.4.5"
   boolean_selector:
     dependency: transitive
     description:
@@ -97,6 +105,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.4.1"
+  build_cli_annotations:
+    dependency: transitive
+    description:
+      name: build_cli_annotations
+      sha256: e563c2e01de8974566a1998410d3f6f03521788160a02503b0b1f1a46c7b3d95
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.1.1"
   build_config:
     dependency: transitive
     description:
@@ -326,14 +342,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.4+6"
-  flutter_media_metadata:
-    dependency: "direct main"
-    description:
-      name: flutter_media_metadata
-      sha256: "69cfc76ffd6cd5d546dcc4880584b3844c5e879e435aa54f57f1096c15bd04db"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.0.0+1"
   flutter_riverpod:
     dependency: "direct main"
     description:
@@ -342,6 +350,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.6.1"
+  flutter_rust_bridge:
+    dependency: transitive
+    description:
+      name: flutter_rust_bridge
+      sha256: "35c257fc7f98e34c1314d6c145e5ed54e7c94e8a9f469947e31c9298177d546f"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.7.0"
   flutter_shaders:
     dependency: transitive
     description:
@@ -632,22 +648,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "9.3.0"
-  on_audio_query:
-    dependency: "direct main"
-    description:
-      name: on_audio_query
-      sha256: "28d7a247f8a0580b5d1befba15c8d8fd7e1cf3cd8e0449d54a66fc2ef27adf10"
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.9.0"
-  on_audio_query_android:
-    dependency: transitive
-    description:
-      name: on_audio_query_android
-      sha256: c0b946011ee7aa8ec76b21837f0cb0007120ac291202ed6c6fb4c498ba2ff6fe
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.1.0"
   on_audio_query_ios:
     dependency: transitive
     description:
@@ -664,6 +664,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.7.0"
+  on_audio_query_plus_android:
+    dependency: transitive
+    description:
+      name: on_audio_query_plus_android
+      sha256: "30ff80db9d8cbd5c3b4869bc36ff2e60ce2724d4ee19a90fa7e47ade2ab34224"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.2.2"
+  on_audio_query_pluse:
+    dependency: "direct main"
+    description:
+      name: on_audio_query_pluse
+      sha256: d09428040e9028d1add221bfc3e53e66872c0a00117161c90f182ed6aacf731c
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.0.6"
   on_audio_query_web:
     dependency: transitive
     description:

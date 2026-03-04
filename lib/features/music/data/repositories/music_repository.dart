@@ -7,7 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive/hive.dart';
 import 'package:musio/core/utils/app_logger.dart';
 import 'package:musio/features/settings/presentation/providers/settings_provider.dart';
-import 'package:on_audio_query/on_audio_query.dart' as aq;
+import 'package:on_audio_query_pluse/on_audio_query.dart' as aq;
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -336,7 +336,8 @@ class MusicRepository {
 
   /// Supprime un album de la bibliothèque (toutes les pistes) et optionnellement les fichiers.
   Future<void> removeAlbum(String albumId, {bool deleteFiles = true}) async {
-    final songs = _songBox.values.where((s) => effectiveAlbumKey(s) == albumId).toList();
+    final songs =
+        _songBox.values.where((s) => effectiveAlbumKey(s) == albumId).toList();
     for (final song in songs) {
       await _songBox.delete(song.id);
       if (deleteFiles) {
@@ -609,29 +610,25 @@ class MusicRepository {
   }
 
   Future<SongModel> _mapToSongModelWithArtwork(aq.SongModel song) async {
-    final artworkPath = await _getAndCacheArtwork(
-      song.id,
-      'song_${song.id}',
-    );
-    int? year;
-    final dynamic yearFromMap = song.getMap['year'];
-    if (yearFromMap != null) {
-      year = int.tryParse(yearFromMap.toString());
-    }
+    // Construire l'URI MediaStore directement — pas de queryArtwork
+    final albumArtUri = song.albumId != null
+        ? 'content://media/external/audio/albumart/${song.albumId}'
+        : null;
+
     return SongModel(
       id: song.id.toString(),
       title: song.title,
       artist: song.artist ?? 'Artiste inconnu',
-      album: song.album ?? 'Album inconnu',
-      path: song.data,
+      album: song.album ?? '',
+      path: song.data ?? '',
       duration: song.duration ?? 0,
-      albumArtPath: artworkPath,
+      albumArtPath: albumArtUri, // URI content:// au lieu d'un path fichier
       genre: song.genre,
-      year: year,
+      year: song.dateModified,
       trackNumber: song.track,
       albumId: song.albumId?.toString(),
       artistId: song.artistId?.toString(),
-      dateAdded: song.dateAdded, // Récupérer la date d'ajout
+      dateAdded: song.dateAdded,
     );
   }
 
