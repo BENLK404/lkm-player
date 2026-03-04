@@ -17,7 +17,7 @@ dependencies:
   # Audio
   just_audio: ^0.9.36
   audio_service: ^0.18.12
-  on_audio_query: ^2.9.0
+  on_audio_query_pluse: ^3.0.6
   rxdart: ^0.27.7
   
   # Data Models
@@ -48,7 +48,7 @@ dependencies:
   package_info_plus: ^8.0.0
   url_launcher: ^6.3.0
   # Métadonnées audio (titre, artiste, pochette, durée)
-  flutter_media_metadata: ^1.0.0
+  audiotags: ^1.4.5
   # Extraction ZIP (téléchargement d'albums)
   archive: ^4.0.2
 

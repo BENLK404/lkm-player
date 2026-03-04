@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:on_audio_query/on_audio_query.dart';
+import 'package:on_audio_query_pluse/on_audio_query.dart';
 
 /// Widget réutilisable pour afficher les images d'albums
 /// Utilise le chemin du fichier en priorité, puis QueryArtworkWidget en fallback
@@ -26,7 +26,21 @@ class AlbumArtImage extends StatelessWidget {
   Widget build(BuildContext context) {
     final radius = borderRadius ?? BorderRadius.circular(8);
 
-    // Si on a un chemin et que le fichier existe, l'utiliser
+    // URI content:// MediaStore
+    if (albumArtPath != null && albumArtPath!.startsWith('content://')) {
+      return ClipRRect(
+        borderRadius: radius,
+        child: Image.network(
+          albumArtPath!,
+          width: size,
+          height: size,
+          fit: fit,
+          errorBuilder: (_, __, ___) => _buildPlaceholder(context),
+        ),
+      );
+    }
+
+    // Fichier local (téléchargements Deezer)
     if (albumArtPath != null && File(albumArtPath!).existsSync()) {
       return ClipRRect(
         borderRadius: radius,
@@ -35,15 +49,12 @@ class AlbumArtImage extends StatelessWidget {
           width: size,
           height: size,
           fit: fit,
-          errorBuilder: (context, error, stackTrace) {
-            return _buildQueryArtwork(context, radius);
-          },
+          errorBuilder: (_, __, ___) => _buildPlaceholder(context),
         ),
       );
     }
 
-    // Sinon, utiliser QueryArtworkWidget d'on_audio_query
-    return _buildQueryArtwork(context, radius);
+    return _buildPlaceholder(context);
   }
 
   Widget _buildQueryArtwork(BuildContext context, BorderRadius radius) {

@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:archive/archive.dart';
-import 'package:flutter_media_metadata/flutter_media_metadata.dart';
+import 'package:audiotags/audiotags.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:musio/features/settings/presentation/providers/settings_provider.dart';
 import 'package:path/path.dart' as path;
@@ -200,19 +200,19 @@ Future<DownloadResult> downloadTrackAndAddToLibrary(
     String? albumArtPath;
 
     try {
-      final metadata = await MetadataRetriever.fromFile(file);
-      title = metadata.trackName ?? title;
-      artist = metadata.trackArtistNames?.join(', ') ?? artist;
-      album = metadata.albumName ?? album;
-      durationMs = metadata.trackDuration ?? 0;
-      year = metadata.year;
-      trackNumber = metadata.trackNumber;
-      if (metadata.albumArt != null && metadata.albumArt!.isNotEmpty) {
+      final tag = await AudioTags.read(file.path);
+      title = tag?.title ?? title;
+      artist = tag?.trackArtist ?? artist;
+      album = tag?.album ?? album;
+      durationMs = (tag?.duration ?? 0) * 1000;
+      year = tag?.year;
+      trackNumber = tag?.trackNumber;
+      if (tag?.pictures != null && tag!.pictures!.isNotEmpty) {
         final appDir = await getApplicationDocumentsDirectory();
         final artDir = Directory(path.join(appDir.path, 'album_artworks'));
         if (!await artDir.exists()) await artDir.create(recursive: true);
         final artPath = path.join(artDir.path, 'deezer_${track.id}.jpg');
-        await File(artPath).writeAsBytes(metadata.albumArt!);
+        await File(artPath).writeAsBytes(tag.pictures!.first.bytes);
         albumArtPath = artPath;
       }
     } catch (_) {
@@ -311,16 +311,16 @@ Future<DownloadResult> downloadAlbumAndAddToLibrary(
       String? albumArtPath;
 
       try {
-        final metadata = await MetadataRetriever.fromFile(outFile);
-        title = metadata.trackName ?? title;
-        artist = metadata.trackArtistNames?.join(', ') ?? artist;
-        albumName = metadata.albumName ?? albumName;
-        durationMs = metadata.trackDuration ?? 0;
-        year = metadata.year;
-        trackNumber = metadata.trackNumber;
-        if (metadata.albumArt != null && metadata.albumArt!.isNotEmpty) {
+        final tag = await AudioTags.read(outFile.path);
+        title = tag?.title ?? title;
+        artist = tag?.trackArtist ?? artist;
+        albumName = tag?.album ?? albumName;
+        durationMs = (tag?.duration ?? 0) * 1000;
+        year = tag?.year;
+        trackNumber = tag?.trackNumber;
+        if (tag?.pictures != null && tag!.pictures!.isNotEmpty) {
           final artPath = path.join(artDir.path, 'deezer_album_${album.id}_$index.jpg');
-          await File(artPath).writeAsBytes(metadata.albumArt!);
+          await File(artPath).writeAsBytes(tag.pictures!.first.bytes);
           albumArtPath = artPath;
         }
       } catch (_) {}
