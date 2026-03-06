@@ -29,6 +29,9 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        leading: BackButton(
+          onPressed: () => context.pop(),
+        ),
         title: TextField(
           controller: _searchController,
           autofocus: true,

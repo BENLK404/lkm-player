@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:musio/shared/utils/app_toast.dart';
 import 'package:musio/features/download/data/models/deezer_search_result.dart';
 import 'package:musio/features/download/data/telegramusic_api_client.dart';
@@ -8,7 +9,9 @@ import 'package:musio/features/download/presentation/providers/download_provider
 import 'package:musio/shared/widgets/mini_player.dart';
 
 class OnlineScreen extends ConsumerStatefulWidget {
-  const OnlineScreen({super.key});
+  const OnlineScreen({super.key, this.showBackButton = true});
+
+  final bool showBackButton;
 
   @override
   ConsumerState<OnlineScreen> createState() => _OnlineScreenState();
@@ -35,6 +38,12 @@ class _OnlineScreenState extends ConsumerState<OnlineScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        leading: widget.showBackButton
+            ? BackButton(
+                onPressed: () => context.pop(),
+              )
+            : null,
+        automaticallyImplyLeading: widget.showBackButton,
         title: const Text('Découvrir'),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(56),
@@ -113,7 +122,7 @@ class _OnlineScreenState extends ConsumerState<OnlineScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Allez dans Paramètres > Serveur de téléchargement et indiquez l’URL de l’API Telegramusic (ex: http://192.168.1.10:8000).',
+                'Allez dans Paramètres > Serveur de téléchargement et indiquez l’URL de l’API Telegramusic (par défaut : https://lkm.emmanuekebeh.dev).',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),

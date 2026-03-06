@@ -373,12 +373,15 @@ class _StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: AppTheme.darkCard,
+        color: scheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withOpacity(0.06)),
+        border: Border.all(color: scheme.outlineVariant.withOpacity(0.35)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -386,31 +389,30 @@ class _StatCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: AppTheme.primaryColor.withOpacity(0.15),
+              color: scheme.primaryContainer,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(
               icon,
               size: 24,
-              color: AppTheme.primaryColor,
+              color: scheme.onPrimaryContainer,
             ),
           ),
           const SizedBox(height: 14),
           Text(
             value,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-              letterSpacing: -0.5,
+            style: textTheme.titleLarge?.copyWith(
+              color: scheme.onSurface,
+              fontWeight: FontWeight.w800,
+              letterSpacing: -0.4,
             ),
           ),
           const SizedBox(height: 2),
           Text(
             label,
-            style: TextStyle(
-              color: Colors.white60,
-              fontSize: 13,
+            style: textTheme.bodySmall?.copyWith(
+              color: scheme.onSurfaceVariant,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ],

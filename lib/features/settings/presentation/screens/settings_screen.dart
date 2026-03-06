@@ -19,18 +19,13 @@ class SettingsScreen extends ConsumerWidget {
     final sleepTimerDefault = ref.watch(sleepTimerDefaultMinutesProvider);
 
     return Scaffold(
+        appBar: AppBar(
+          leading: const BackButton(),
+          title: const Text('Paramètres'),
+        ),
         body: SafeArea(
       child: ListView(
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-            child: Text(
-              'Paramètres',
-              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-            ),
-          ),
           _buildSectionHeader(context, 'Apparence'),
           themeMode.when(
             data: (modeIndex) => ListTile(
@@ -75,7 +70,7 @@ class SettingsScreen extends ConsumerWidget {
               title: const Text('Serveur de téléchargement'),
               subtitle: Text(
                 baseUrl.isEmpty
-                    ? 'Non configuré (ex: http://192.168.1.10:8000)'
+                    ? 'Non configuré (défaut: https://lkm.emmanuekebeh.dev)'
                     : baseUrl,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -383,7 +378,7 @@ class SettingsScreen extends ConsumerWidget {
         content: TextField(
           controller: controller,
           decoration: const InputDecoration(
-            hintText: 'http://192.168.1.10:8000',
+            hintText: 'https://lkm.emmanuekebeh.dev',
             labelText: 'URL de l\'API Telegramusic',
           ),
           keyboardType: TextInputType.url,

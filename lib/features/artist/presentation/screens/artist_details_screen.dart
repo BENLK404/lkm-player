@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:musio/features/artist/presentation/providers/artist_wikipedia_provider.dart';
 import 'package:musio/features/music/presentation/providers/music_provider.dart';
 import 'package:musio/features/player/presentation/providers/audio_player_provider.dart';
 import 'package:musio/shared/widgets/album_art_image.dart';
@@ -9,6 +10,7 @@ import 'package:musio/shared/widgets/album_card.dart';
 import 'package:musio/shared/widgets/mini_player.dart';
 import 'package:musio/shared/widgets/song_tile.dart';
 import 'package:palette_generator/palette_generator.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ArtistDetailsScreen extends ConsumerStatefulWidget {
   final String artistId;
@@ -145,6 +147,11 @@ class _ArtistDetailsScreenState extends ConsumerState<ArtistDetailsScreen> {
                 ],
               ),
             ),
+          ),
+
+          // Biographie Wikipedia (cache + API)
+          SliverToBoxAdapter(
+            child: _WikipediaSection(artistName: artist.name),
           ),
 
           // Actions
@@ -298,6 +305,87 @@ class _ArtistDetailsScreenState extends ConsumerState<ArtistDetailsScreen> {
               ?.copyWith(color: Colors.white70),
         ),
       ],
+    );
+  }
+}
+
+/// Section affichant la biographie de l'artiste depuis Wikipedia (cache puis API).
+class _WikipediaSection extends ConsumerWidget {
+  const _WikipediaSection({required this.artistName});
+
+  final String artistName;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final asyncInfo = ref.watch(artistWikipediaInfoProvider(artistName));
+    return asyncInfo.when(
+      data: (info) {
+        if (info == null || info.extract.isEmpty) {
+          return const SizedBox.shrink();
+        }
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'À propos',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                info.extract,
+                maxLines: 6,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Colors.white70,
+                      height: 1.4,
+                    ),
+              ),
+              const SizedBox(height: 8),
+              InkWell(
+                onTap: () async {
+                  final uri = Uri.parse(info.pageUrl);
+                  if (await canLaunchUrl(uri)) {
+                    await launchUrl(uri, mode: LaunchMode.externalApplication);
+                  }
+                },
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.open_in_new,
+                      size: 16,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Lire sur Wikipedia',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.primary,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+      loading: () => const Padding(
+        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: SizedBox(
+          height: 24,
+          width: 24,
+          child: CircularProgressIndicator(strokeWidth: 2),
+        ),
+      ),
+      error: (_, __) => const SizedBox.shrink(),
     );
   }
 }

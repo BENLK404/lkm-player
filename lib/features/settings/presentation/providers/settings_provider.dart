@@ -202,7 +202,7 @@ class ExcludeOtherMessaging extends _$ExcludeOtherMessaging {
 
 /// URL de base de l'API Telegramusic.
 /// Défaut utilisé si l'utilisateur n'a rien configuré dans Paramètres.
-const String kDownloadApiBaseUrlDefault = 'http://192.168.1.68:8000';
+const String kDownloadApiBaseUrlDefault = 'https://lkm.emmanuekebeh.dev';
 
 @riverpod
 class DownloadApiBaseUrl extends _$DownloadApiBaseUrl {

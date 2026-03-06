@@ -1,8 +1,22 @@
-// Force compileSdk 34+ for all Android library subprojects (fixes android:attr/lStar not found)
 subprojects {
     afterEvaluate {
         if (project.plugins.hasPlugin("com.android.library")) {
-            project.android.compileSdkVersion 34
+            project.android.compileSdkVersion 36
+
+            if (project.android.namespace == null || project.android.namespace.isEmpty()) {
+                project.android.namespace = project.group.toString()
+            }
+
+            project.android.compileOptions {
+                sourceCompatibility JavaVersion.VERSION_17
+                targetCompatibility JavaVersion.VERSION_17
+            }
+        }
+
+        if (project.plugins.hasPlugin("org.jetbrains.kotlin.android")) {
+            project.android.kotlinOptions {
+                jvmTarget = "17"
+            }
         }
     }
 }

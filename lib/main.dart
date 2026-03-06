@@ -27,6 +27,7 @@ void main() async {
   await Hive.openBox<PlaylistModel>('playlists');
   await Hive.openBox<SavedPlayerState>('player_state');
   await Hive.openBox('lyrics_cache');
+  await Hive.openBox('artist_wikipedia_cache');
 
   // Initialiser le service audio
   final audioHandler = await AudioService.init(

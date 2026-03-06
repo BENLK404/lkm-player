@@ -118,37 +118,55 @@ class AlbumArtImageLarge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Widget artworkWidget = AlbumArtImage(
-      albumArtPath: albumArtPath,
-      songId: songId,
-      size: size,
-      borderRadius: BorderRadius.circular(16),
-      fit: BoxFit.cover,
-    );
+    final radius = BorderRadius.circular(16);
+    Widget child;
 
-    // Ajouter Hero animation si tag fourni
-    if (heroTag != null) {
-      artworkWidget = Hero(
-        tag: heroTag!,
-        child: artworkWidget,
+    // Utiliser directement la pochette si disponible
+    if (albumArtPath != null && albumArtPath!.startsWith('content://')) {
+      child = ClipRRect(
+        borderRadius: radius,
+        child: Image.network(
+          albumArtPath!,
+          width: size,
+          height: size,
+          fit: BoxFit.cover,
+        ),
+      );
+    } else if (albumArtPath != null && File(albumArtPath!).existsSync()) {
+      child = ClipRRect(
+        borderRadius: radius,
+        child: Image.file(
+          File(albumArtPath!),
+          width: size,
+          height: size,
+          fit: BoxFit.cover,
+        ),
+      );
+    } else {
+      // Aucun cover: pas de carré coloré, juste une icône centrée
+      child = Center(
+        child: Icon(
+          Icons.music_note,
+          size: size * 0.45,
+          color: Theme.of(context)
+              .colorScheme
+              .onSurface
+              .withValues(alpha: 0.85),
+        ),
       );
     }
 
-    // Ajouter ombre et bordure
-    return Container(
+    if (heroTag != null) {
+      child = Hero(
+        tag: heroTag!,
+        child: child,
+      );
+    }
+
+    return SizedBox(
       width: size,
       height: size,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
-            blurRadius: 30,
-            spreadRadius: 5,
-          ),
-        ],
-      ),
-      child: artworkWidget,
+      child: child,
     );
   }
 }

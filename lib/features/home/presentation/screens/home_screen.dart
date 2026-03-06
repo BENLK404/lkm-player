@@ -6,11 +6,9 @@ import 'package:musio/features/for_you/presentation/screens/for_you_screen.dart'
 import 'package:musio/features/music/data/models/album_model.dart';
 import 'package:musio/features/music/data/models/playlist_model.dart';
 import 'package:musio/features/music/data/models/song_model.dart';
-import 'package:musio/features/music/data/repositories/music_repository.dart';
 import 'package:musio/features/music/presentation/providers/music_provider.dart';
 import 'package:musio/features/playlist/data/system_playlist.dart';
 import 'package:musio/features/settings/presentation/providers/settings_provider.dart';
-import 'package:musio/features/settings/presentation/screens/settings_screen.dart';
 import 'package:musio/shared/widgets/album_card.dart';
 import 'package:musio/shared/widgets/mini_player.dart';
 import 'package:musio/shared/widgets/song_tile.dart';
@@ -34,27 +32,17 @@ class OfflineHomeScreen extends ConsumerStatefulWidget {
   ConsumerState<OfflineHomeScreen> createState() => _OfflineHomeScreenState();
 }
 
-class _OfflineHomeScreenState extends ConsumerState<OfflineHomeScreen>
-    with SingleTickerProviderStateMixin {
-  late TabController _tabController;
+class _OfflineHomeScreenState extends ConsumerState<OfflineHomeScreen> {
+  int _currentIndex = 0;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 5, vsync: this);
-    // Reconstruit lorsque l'onglet change pour l'affichage de l'AppBar
-    _tabController.addListener(() => setState(() {}));
 
     // Demander les permissions au démarrage
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(musicRepositoryProvider).requestPermissions();
     });
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
   }
 
   void _clearSelection() {
@@ -63,7 +51,8 @@ class _OfflineHomeScreenState extends ConsumerState<OfflineHomeScreen>
     ref.read(selectedAlbumIdsProvider.notifier).state = {};
   }
 
-  void _confirmDeleteSelectedSongs(BuildContext context, Set<String> ids) async {
+  void _confirmDeleteSelectedSongs(
+      BuildContext context, Set<String> ids) async {
     if (ids.isEmpty) return;
     final confirmed = await showDialog<bool>(
       context: context,
@@ -73,10 +62,13 @@ class _OfflineHomeScreenState extends ConsumerState<OfflineHomeScreen>
           '${ids.length} morceau(x) seront supprimés de la bibliothèque. Les fichiers seront supprimés du téléphone.',
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Annuler')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Annuler')),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            style: TextButton.styleFrom(foregroundColor: Theme.of(ctx).colorScheme.error),
+            style: TextButton.styleFrom(
+                foregroundColor: Theme.of(ctx).colorScheme.error),
             child: const Text('Supprimer'),
           ),
         ],
@@ -94,7 +86,8 @@ class _OfflineHomeScreenState extends ConsumerState<OfflineHomeScreen>
     }
   }
 
-  void _confirmDeleteSelectedAlbums(BuildContext context, Set<String> ids) async {
+  void _confirmDeleteSelectedAlbums(
+      BuildContext context, Set<String> ids) async {
     if (ids.isEmpty) return;
     final confirmed = await showDialog<bool>(
       context: context,
@@ -104,10 +97,13 @@ class _OfflineHomeScreenState extends ConsumerState<OfflineHomeScreen>
           'Les ${ids.length} album(s) et toutes leurs pistes seront supprimés de la bibliothèque. Les fichiers seront supprimés du téléphone.',
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Annuler')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Annuler')),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            style: TextButton.styleFrom(foregroundColor: Theme.of(ctx).colorScheme.error),
+            style: TextButton.styleFrom(
+                foregroundColor: Theme.of(ctx).colorScheme.error),
             child: const Text('Supprimer'),
           ),
         ],
@@ -116,9 +112,11 @@ class _OfflineHomeScreenState extends ConsumerState<OfflineHomeScreen>
     if (confirmed == true) {
       final notifier = ref.read(musicProvider.notifier);
       final playerNotifier = ref.read(audioPlayerProvider.notifier);
-      final currentQueueIds = ref.read(audioPlayerProvider).queue.map((s) => s.id).toSet();
+      final currentQueueIds =
+          ref.read(audioPlayerProvider).queue.map((s) => s.id).toSet();
       for (final albumId in ids) {
-        final songIds = ref.read(albumSongsProvider(albumId)).map((s) => s.id).toSet();
+        final songIds =
+            ref.read(albumSongsProvider(albumId)).map((s) => s.id).toSet();
         if (songIds.any((id) => currentQueueIds.contains(id))) {
           await playerNotifier.stop();
           break;
@@ -137,9 +135,6 @@ class _OfflineHomeScreenState extends ConsumerState<OfflineHomeScreen>
   @override
   Widget build(BuildContext context) {
     final musicState = ref.watch(musicProvider);
-    final isSongList = ref.watch(songDisplayModeProvider);
-    final isOnlineEnabled =
-        ref.watch(onlineFeatureEnabledProvider).valueOrNull ?? false;
     final selectionMode = ref.watch(selectionModeProvider);
     final selectedSongIds = ref.watch(selectedSongIdsProvider);
     final selectedAlbumIds = ref.watch(selectedAlbumIdsProvider);
@@ -150,6 +145,13 @@ class _OfflineHomeScreenState extends ConsumerState<OfflineHomeScreen>
         : selectionMode == 'albums'
             ? selectedAlbumIds.length
             : 0;
+
+    final titles = const <String>[
+      'Pour moi',
+      'Albums',
+      'Titres',
+      'Playlists',
+    ];
 
     return Scaffold(
       appBar: isSelectionActive
@@ -164,7 +166,8 @@ class _OfflineHomeScreenState extends ConsumerState<OfflineHomeScreen>
               actions: [
                 if (selectionCount > 0)
                   IconButton(
-                    icon: Icon(Icons.delete_outline, color: Theme.of(context).colorScheme.error),
+                    icon: Icon(Icons.delete_outline,
+                        color: Theme.of(context).colorScheme.error),
                     tooltip: 'Supprimer',
                     onPressed: () {
                       if (selectionMode == 'songs') {
@@ -175,28 +178,18 @@ class _OfflineHomeScreenState extends ConsumerState<OfflineHomeScreen>
                     },
                   ),
               ],
-              bottom: TabBar(
-                controller: _tabController,
-                tabAlignment: TabAlignment.start,
-                indicatorColor: Theme.of(context).colorScheme.primary,
-                dividerColor: Theme.of(context).colorScheme.surface,
-                labelColor: Theme.of(context).colorScheme.primary,
-                unselectedLabelColor: Colors.grey,
-                isScrollable: true,
-                tabs: const [
-                  Tab(text: 'Pour Moi'),
-                  Tab(text: 'Chansons'),
-                  Tab(text: 'Albums'),
-                  Tab(text: 'Artistes'),
-                  Tab(text: 'Playlists'),
-                ],
-              ),
             )
           : AppBar(
-        title: const Text('LKM Player'),
-        centerTitle: false,
-        actions: _buildAppBarActions(context, ref),
-      ),
+              automaticallyImplyLeading: false,
+              title: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 180),
+                child: Text(
+                  titles[_currentIndex],
+                  key: ValueKey<int>(_currentIndex),
+                ),
+              ),
+              actions: _buildAppBarActions(context, ref),
+            ),
       body: musicState.when(
         data: (state) {
           if (state.isLoading) {
@@ -212,27 +205,17 @@ class _OfflineHomeScreenState extends ConsumerState<OfflineHomeScreen>
             );
           }
 
-          if (state.songs.isEmpty && _tabController.index != 4) {
+          if (state.songs.isEmpty) {
             return _buildEmptyState();
           }
 
-          return Column(
+          return IndexedStack(
+            index: _currentIndex,
             children: [
-              Expanded(
-                child: TabBarView(
-                  controller: _tabController,
-                  physics:
-                      const NeverScrollableScrollPhysics(), // Prevent swipe to align with standard BottomNav behavior
-                  children: [
-                    const ForYouScreen(),
-                    _buildAlbumsTab(state.albums),
-                    _buildSongsTab(state.songs),
-                    _buildPlaylistsTab(state.playlists, state.songs),
-                    const SettingsScreen(), // Embed SettingsScreen directly as a tab
-                  ],
-                ),
-              ),
-              const MiniPlayer(),
+              const ForYouScreen(),
+              _buildAlbumsTab(state.albums),
+              _buildSongsTab(state.songs),
+              _buildPlaylistsTab(state.playlists, state.songs),
             ],
           );
         },
@@ -254,24 +237,52 @@ class _OfflineHomeScreenState extends ConsumerState<OfflineHomeScreen>
           ),
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _tabController.index,
-        onTap: (index) {
-          _tabController.animateTo(index);
-        },
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: Theme.of(context).colorScheme.primary,
-        unselectedItemColor: Colors.grey,
-        items: const [
-          BottomNavigationBarItem(
-              icon: Icon(Icons.home_filled), label: 'Accueil'),
-          BottomNavigationBarItem(icon: Icon(Icons.album), label: 'Albums'),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.music_note), label: 'Titres'),
-          BottomNavigationBarItem(icon: Icon(Icons.favorite), label: 'Favoris'),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.settings), label: 'Paramètres'),
-        ],
+      floatingActionButton: _currentIndex == 3
+          ? FloatingActionButton.extended(
+              onPressed: () => _showCreatePlaylistDialog(context, ref),
+              label: const Text('Créer une playlist'),
+              icon: const Icon(Icons.add),
+            )
+          : null,
+      bottomNavigationBar: SafeArea(
+        top: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const MiniPlayer(),
+            NavigationBar(
+              selectedIndex: _currentIndex,
+              onDestinationSelected: (index) {
+                if (ref.read(selectionModeProvider) != null) {
+                  _clearSelection();
+                }
+                setState(() => _currentIndex = index);
+              },
+              destinations: const [
+                NavigationDestination(
+                  icon: Icon(Icons.auto_awesome_outlined),
+                  selectedIcon: Icon(Icons.auto_awesome),
+                  label: 'Pour moi',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.album_outlined),
+                  selectedIcon: Icon(Icons.album),
+                  label: 'Albums',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.music_note_outlined),
+                  selectedIcon: Icon(Icons.music_note),
+                  label: 'Titres',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.queue_music_outlined),
+                  selectedIcon: Icon(Icons.queue_music),
+                  label: 'Playlists',
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -281,84 +292,96 @@ class _OfflineHomeScreenState extends ConsumerState<OfflineHomeScreen>
         ref.watch(onlineFeatureEnabledProvider).valueOrNull ?? false;
     final isSongList = ref.watch(songDisplayModeProvider);
 
-    List<Widget> actions = [];
+    return [
+      PopupMenuButton<String>(
+        icon: const Icon(Icons.more_vert),
+        tooltip: 'Plus d\'options',
+        onSelected: _handleMenuAction,
+        itemBuilder: (context) {
+          final menuItems = <PopupMenuEntry<String>>[];
 
-    if (_tabController.index != 4) {
-      // Don't show these if in Settings
-      if (isOnlineEnabled) {
-        actions.add(
-          IconButton(
-            icon: const Icon(Icons.public),
-            tooltip: 'Découvrir en ligne',
-            onPressed: () => context.push(AppRouter.online),
-          ),
-        );
-      }
-      actions.add(
-        IconButton(
-          icon: const Icon(Icons.search),
-          onPressed: () => context.push(AppRouter.search),
-        ),
-      );
-
-      actions.add(
-        PopupMenuButton<String>(
-          icon: const Icon(Icons.more_vert),
-          onSelected: _handleMenuAction,
-          itemBuilder: (context) {
-            final menuItems = <PopupMenuEntry<String>>[
+          if (isOnlineEnabled) {
+            menuItems.add(
               const PopupMenuItem(
-                value: 'scan',
+                value: 'online',
                 child: Row(
                   children: [
-                    Icon(Icons.refresh),
+                    Icon(Icons.public),
                     SizedBox(width: 12),
-                    Text('Rescanner la bibliothèque'),
+                    Text('Découvrir en ligne'),
                   ],
                 ),
               ),
-            ];
+            );
+          }
+          menuItems.addAll([
+            const PopupMenuItem(
+              value: 'search',
+              child: Row(
+                children: [
+                  Icon(Icons.search),
+                  SizedBox(width: 12),
+                  Text('Rechercher'),
+                ],
+              ),
+            ),
+            const PopupMenuItem(
+              value: 'settings',
+              child: Row(
+                children: [
+                  Icon(Icons.settings_outlined),
+                  SizedBox(width: 12),
+                  Text('Paramètres'),
+                ],
+              ),
+            ),
+            const PopupMenuDivider(),
+            const PopupMenuItem(
+              value: 'scan',
+              child: Row(
+                children: [
+                  Icon(Icons.refresh),
+                  SizedBox(width: 12),
+                  Text('Rescanner la bibliothèque'),
+                ],
+              ),
+            ),
+          ]);
 
-            // Option pour l'onglet "Albums" (avant "Chansons" donc index 1)
-            if (_tabController.index == 1) {
-              menuItems.addAll([
-                const PopupMenuDivider(),
-                const PopupMenuItem(
-                  value: 'album_grid_size',
-                  child: Row(
-                    children: [
-                      Icon(Icons.grid_view),
-                      SizedBox(width: 12),
-                      Text('Taille de la grille'),
-                    ],
-                  ),
+          if (_currentIndex == 1) {
+            menuItems.addAll([
+              const PopupMenuDivider(),
+              const PopupMenuItem(
+                value: 'album_grid_size',
+                child: Row(
+                  children: [
+                    Icon(Icons.grid_view),
+                    SizedBox(width: 12),
+                    Text('Taille de la grille'),
+                  ],
                 ),
-              ]);
-            }
-
-            // Option de bascule pour l'onglet "Chansons" (maintenant index 2)
-            if (_tabController.index == 2) {
-              menuItems.addAll([
-                const PopupMenuDivider(),
-                PopupMenuItem(
-                  value: 'toggle_song_view',
-                  child: Row(
-                    children: [
-                      Icon(isSongList ? Icons.grid_view : Icons.list),
-                      const SizedBox(width: 12),
-                      Text(isSongList ? 'Vue grille' : 'Vue liste'),
-                    ],
-                  ),
+              ),
+            ]);
+          }
+          if (_currentIndex == 2) {
+            menuItems.addAll([
+              const PopupMenuDivider(),
+              PopupMenuItem(
+                value: 'toggle_song_view',
+                child: Row(
+                  children: [
+                    Icon(isSongList ? Icons.grid_view : Icons.list),
+                    const SizedBox(width: 12),
+                    Text(isSongList ? 'Vue grille' : 'Vue liste'),
+                  ],
                 ),
-              ]);
-            }
-
-            return menuItems;
-          },
-        ),
-      );
-    }
-    return actions;
+              ),
+            ]);
+          }
+          return menuItems;
+        },
+      ),
+    ];
   }
 
   Widget _buildSongsTab(List<SongModel> songs) {
@@ -386,7 +409,10 @@ class _OfflineHomeScreenState extends ConsumerState<OfflineHomeScreen>
                   return InkWell(
                     onTap: () {
                       final next = Set<String>.from(selectedIds);
-                      if (isSelected) next.remove(song.id); else next.add(song.id);
+                      if (isSelected)
+                        next.remove(song.id);
+                      else
+                        next.add(song.id);
                       ref.read(selectedSongIdsProvider.notifier).state = next;
                     },
                     child: Row(
@@ -395,8 +421,12 @@ class _OfflineHomeScreenState extends ConsumerState<OfflineHomeScreen>
                           value: isSelected,
                           onChanged: (_) {
                             final next = Set<String>.from(selectedIds);
-                            if (isSelected) next.remove(song.id); else next.add(song.id);
-                            ref.read(selectedSongIdsProvider.notifier).state = next;
+                            if (isSelected)
+                              next.remove(song.id);
+                            else
+                              next.add(song.id);
+                            ref.read(selectedSongIdsProvider.notifier).state =
+                                next;
                           },
                         ),
                         Expanded(
@@ -418,7 +448,9 @@ class _OfflineHomeScreenState extends ConsumerState<OfflineHomeScreen>
                   onLongPress: () {
                     ref.read(selectionModeProvider.notifier).state = 'songs';
                     ref.read(selectedAlbumIdsProvider.notifier).state = {};
-                    ref.read(selectedSongIdsProvider.notifier).state = {song.id};
+                    ref.read(selectedSongIdsProvider.notifier).state = {
+                      song.id
+                    };
                   },
                 );
               },
@@ -439,7 +471,10 @@ class _OfflineHomeScreenState extends ConsumerState<OfflineHomeScreen>
                   return InkWell(
                     onTap: () {
                       final next = Set<String>.from(selectedIds);
-                      if (isSelected) next.remove(song.id); else next.add(song.id);
+                      if (isSelected)
+                        next.remove(song.id);
+                      else
+                        next.add(song.id);
                       ref.read(selectedSongIdsProvider.notifier).state = next;
                     },
                     child: Stack(
@@ -455,8 +490,12 @@ class _OfflineHomeScreenState extends ConsumerState<OfflineHomeScreen>
                             value: isSelected,
                             onChanged: (_) {
                               final next = Set<String>.from(selectedIds);
-                              if (isSelected) next.remove(song.id); else next.add(song.id);
-                              ref.read(selectedSongIdsProvider.notifier).state = next;
+                              if (isSelected)
+                                next.remove(song.id);
+                              else
+                                next.add(song.id);
+                              ref.read(selectedSongIdsProvider.notifier).state =
+                                  next;
                             },
                           ),
                         ),
@@ -468,7 +507,9 @@ class _OfflineHomeScreenState extends ConsumerState<OfflineHomeScreen>
                   onLongPress: () {
                     ref.read(selectionModeProvider.notifier).state = 'songs';
                     ref.read(selectedAlbumIdsProvider.notifier).state = {};
-                    ref.read(selectedSongIdsProvider.notifier).state = {song.id};
+                    ref.read(selectedSongIdsProvider.notifier).state = {
+                      song.id
+                    };
                   },
                   child: AlbumCard(
                     album: song.toAlbumModel(),
@@ -512,7 +553,10 @@ class _OfflineHomeScreenState extends ConsumerState<OfflineHomeScreen>
             return InkWell(
               onTap: () {
                 final next = Set<String>.from(selectedIds);
-                if (isSelected) next.remove(album.id); else next.add(album.id);
+                if (isSelected)
+                  next.remove(album.id);
+                else
+                  next.add(album.id);
                 ref.read(selectedAlbumIdsProvider.notifier).state = next;
               },
               child: Stack(
@@ -525,8 +569,12 @@ class _OfflineHomeScreenState extends ConsumerState<OfflineHomeScreen>
                       value: isSelected,
                       onChanged: (_) {
                         final next = Set<String>.from(selectedIds);
-                        if (isSelected) next.remove(album.id); else next.add(album.id);
-                        ref.read(selectedAlbumIdsProvider.notifier).state = next;
+                        if (isSelected)
+                          next.remove(album.id);
+                        else
+                          next.add(album.id);
+                        ref.read(selectedAlbumIdsProvider.notifier).state =
+                            next;
                       },
                     ),
                   ),
@@ -553,95 +601,88 @@ class _OfflineHomeScreenState extends ConsumerState<OfflineHomeScreen>
     final recentCount = songs.where((s) => s.lastPlayed != null).length;
     final mostPlayedCount = songs.where((s) => s.playCount > 0).length;
 
-    return Scaffold(
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showCreatePlaylistDialog(context, ref),
-        label: const Text('Créer une playlist'),
-        icon: const Icon(Icons.add),
-      ),
-      body: ListView(
-        children: [
-          // Playlists système
+    return ListView(
+      padding: const EdgeInsets.only(bottom: 140),
+      children: [
+        // Playlists système
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+          child: Text(
+            'PLAYLISTS SYSTÈME',
+            style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  color: Theme.of(context).colorScheme.primary,
+                  fontWeight: FontWeight.bold,
+                ),
+          ),
+        ),
+        ListTile(
+          leading: CircleAvatar(
+            backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+            child: Icon(Icons.favorite,
+                color: Theme.of(context).colorScheme.primary),
+          ),
+          title: const Text('Favoris'),
+          subtitle:
+              Text('$favoritesCount chanson${favoritesCount != 1 ? 's' : ''}'),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => context.push('/playlist/${SystemPlaylist.favorites}'),
+        ),
+        ListTile(
+          leading: CircleAvatar(
+            backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+            child: Icon(Icons.history,
+                color: Theme.of(context).colorScheme.primary),
+          ),
+          title: const Text('Récemment jouées'),
+          subtitle: Text('$recentCount chanson${recentCount != 1 ? 's' : ''}'),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => context.push('/playlist/${SystemPlaylist.recent}'),
+        ),
+        ListTile(
+          leading: CircleAvatar(
+            backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+            child: Icon(Icons.trending_up,
+                color: Theme.of(context).colorScheme.primary),
+          ),
+          title: const Text('Les plus jouées'),
+          subtitle: Text(
+              '$mostPlayedCount chanson${mostPlayedCount != 1 ? 's' : ''}'),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => context.push('/playlist/${SystemPlaylist.mostPlayed}'),
+        ),
+        const Divider(height: 24),
+        // Playlists utilisateur
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+          child: Text(
+            'MES PLAYLISTS',
+            style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  color: Theme.of(context).colorScheme.primary,
+                  fontWeight: FontWeight.bold,
+                ),
+          ),
+        ),
+        if (playlists.isEmpty)
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            padding: const EdgeInsets.all(24),
             child: Text(
-              'PLAYLISTS SYSTÈME',
-              style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    color: Theme.of(context).colorScheme.primary,
-                    fontWeight: FontWeight.bold,
+              'Créez une playlist avec le bouton +',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
             ),
-          ),
-          ListTile(
-            leading: CircleAvatar(
-              backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-              child: Icon(Icons.favorite,
-                  color: Theme.of(context).colorScheme.primary),
-            ),
-            title: const Text('Favoris'),
-            subtitle: Text(
-                '$favoritesCount chanson${favoritesCount != 1 ? 's' : ''}'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => context.push('/playlist/${SystemPlaylist.favorites}'),
-          ),
-          ListTile(
-            leading: CircleAvatar(
-              backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-              child: Icon(Icons.history,
-                  color: Theme.of(context).colorScheme.primary),
-            ),
-            title: const Text('Récemment jouées'),
-            subtitle:
-                Text('$recentCount chanson${recentCount != 1 ? 's' : ''}'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => context.push('/playlist/${SystemPlaylist.recent}'),
-          ),
-          ListTile(
-            leading: CircleAvatar(
-              backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-              child: Icon(Icons.trending_up,
-                  color: Theme.of(context).colorScheme.primary),
-            ),
-            title: const Text('Les plus jouées'),
-            subtitle: Text(
-                '$mostPlayedCount chanson${mostPlayedCount != 1 ? 's' : ''}'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => context.push('/playlist/${SystemPlaylist.mostPlayed}'),
-          ),
-          const Divider(height: 24),
-          // Playlists utilisateur
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-            child: Text(
-              'MES PLAYLISTS',
-              style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    color: Theme.of(context).colorScheme.primary,
-                    fontWeight: FontWeight.bold,
-                  ),
-            ),
-          ),
-          if (playlists.isEmpty)
-            Padding(
-              padding: const EdgeInsets.all(24),
-              child: Text(
-                'Créez une playlist avec le bouton +',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-              ),
-            )
-          else
-            ...playlists.map((playlist) => ListTile(
-                  leading: const Icon(Icons.playlist_play),
-                  title: Text(playlist.name),
-                  subtitle: Text(
-                      '${playlist.songIds.length} chanson${playlist.songIds.length != 1 ? 's' : ''}'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/playlist/${playlist.id}'),
-                )),
-          const SizedBox(height: 80),
-        ],
-      ),
+          )
+        else
+          ...playlists.map((playlist) => ListTile(
+                leading: const Icon(Icons.playlist_play),
+                title: Text(playlist.name),
+                subtitle: Text(
+                    '${playlist.songIds.length} chanson${playlist.songIds.length != 1 ? 's' : ''}'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => context.push('/playlist/${playlist.id}'),
+              )),
+        const SizedBox(height: 12),
+      ],
     );
   }
 
@@ -749,6 +790,12 @@ class _OfflineHomeScreenState extends ConsumerState<OfflineHomeScreen>
 
   void _handleMenuAction(String action) {
     switch (action) {
+      case 'online':
+        context.push(AppRouter.online);
+        break;
+      case 'search':
+        context.push(AppRouter.search);
+        break;
       case 'scan':
         ref.read(musicProvider.notifier).rescanLibrary();
         ScaffoldMessenger.of(context).showSnackBar(

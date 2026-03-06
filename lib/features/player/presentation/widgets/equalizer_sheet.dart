@@ -23,9 +23,6 @@ class EqualizerSheet extends ConsumerStatefulWidget {
 class _EqualizerSheetState extends ConsumerState<EqualizerSheet> {
   late final ja.AndroidEqualizer _equalizer;
 
-  static const _bgDark = Color(0xFF121212);
-  static const _bgGradientTop = Color(0xFF1a1a2e);
-
   @override
   void initState() {
     super.initState();
@@ -34,142 +31,135 @@ class _EqualizerSheetState extends ConsumerState<EqualizerSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final primary = Theme.of(context).colorScheme.primary;
+    final scheme = Theme.of(context).colorScheme;
+    final primary = scheme.primary;
 
     return Container(
-      decoration: const BoxDecoration(
-        color: _bgDark,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      decoration: BoxDecoration(
+        color: scheme.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: SafeArea(
         top: false,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    _bgGradientTop.withOpacity(0.95),
-                    _bgGradientTop.withOpacity(0.0),
-                  ],
-                ),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final maxHeight = MediaQuery.sizeOf(context).height * 0.80;
+            return ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight: constraints.maxHeight.isFinite
+                    ? constraints.maxHeight.clamp(0, maxHeight)
+                    : maxHeight,
               ),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                child: Row(
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.keyboard_arrow_down_rounded),
-                      color: Colors.white,
-                      iconSize: 32,
-                      onPressed: () => Navigator.of(context).pop(),
-                    ),
-                    const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: primary.withOpacity(0.15),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Icon(Icons.graphic_eq_rounded, color: primary, size: 24),
-                    ),
-                    const SizedBox(width: 12),
-                    const Expanded(
-                      child: Text(
-                        'Égaliseur',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    child: Row(
+                      children: [
+                        IconButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          icon: const Icon(Icons.keyboard_arrow_down_rounded),
+                          tooltip: 'Fermer',
                         ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              child: StreamBuilder<bool>(
-                stream: _equalizer.enabledStream,
-                builder: (context, snapshot) {
-                  final enabled = snapshot.data ?? false;
-                  return Material(
-                    color: Colors.white.withOpacity(enabled ? 0.08 : 0.04),
-                    borderRadius: BorderRadius.circular(14),
-                    child: SwitchListTile(
-                      title: Text(
-                        'Activé',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w500,
-                          fontSize: 15,
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: scheme.primaryContainer,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Icon(
+                            Icons.graphic_eq_rounded,
+                            color: scheme.onPrimaryContainer,
+                            size: 22,
+                          ),
                         ),
-                      ),
-                      subtitle: Text(
-                        enabled ? 'Les réglages sont appliqués' : 'Désactivé',
-                        style: TextStyle(color: Colors.white54, fontSize: 13),
-                      ),
-                      value: enabled,
-                      activeColor: primary,
-                      onChanged: (value) => _equalizer.setEnabled(value),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            'Égaliseur',
+                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                  fontWeight: FontWeight.w800,
+                                ),
+                          ),
+                        ),
+                      ],
                     ),
-                  );
-                },
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'Bandes',
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
                   ),
-                ),
+                  Expanded(
+                    child: ListView(
+                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                      children: [
+                        StreamBuilder<bool>(
+                          stream: _equalizer.enabledStream,
+                          builder: (context, snapshot) {
+                            final enabled = snapshot.data ?? false;
+                            return Card(
+                              child: SwitchListTile(
+                                title: Text(
+                                  'Activé',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleMedium
+                                      ?.copyWith(fontWeight: FontWeight.w700),
+                                ),
+                                subtitle: Text(
+                                  enabled
+                                      ? 'Les réglages sont appliqués'
+                                      : 'Désactivé',
+                                ),
+                                value: enabled,
+                                onChanged: (value) => _equalizer.setEnabled(value),
+                              ),
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          'Bandes',
+                          style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                                color: scheme.onSurfaceVariant,
+                              ),
+                        ),
+                        const SizedBox(height: 10),
+                        SizedBox(
+                          height: 260,
+                          child: FutureBuilder<ja.AndroidEqualizerParameters>(
+                            future: _equalizer.parameters,
+                            builder: (context, snapshot) {
+                              if (!snapshot.hasData) {
+                                return Center(
+                                  child: CircularProgressIndicator(
+                                    color: primary,
+                                    strokeWidth: 2,
+                                  ),
+                                );
+                              }
+                              final parameters = snapshot.data!;
+                              return Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: parameters.bands
+                                    .map((band) => _buildBandSlider(
+                                          context,
+                                          band,
+                                          parameters.minDecibels,
+                                          parameters.maxDecibels,
+                                        ))
+                                    .toList(),
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-            ),
-            const SizedBox(height: 8),
-            SizedBox(
-              height: 260,
-              child: FutureBuilder<ja.AndroidEqualizerParameters>(
-                future: _equalizer.parameters,
-                builder: (context, snapshot) {
-                  if (!snapshot.hasData) {
-                    return Center(
-                      child: CircularProgressIndicator(
-                        color: primary,
-                        strokeWidth: 2,
-                      ),
-                    );
-                  }
-                  final parameters = snapshot.data!;
-                  return Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: parameters.bands
-                        .map((band) => _buildBandSlider(
-                              context,
-                              band,
-                              parameters.minDecibels,
-                              parameters.maxDecibels,
-                            ))
-                        .toList(),
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 20),
-          ],
+            );
+          },
         ),
       ),
     );
@@ -181,7 +171,8 @@ class _EqualizerSheetState extends ConsumerState<EqualizerSheet> {
     double minGain,
     double maxGain,
   ) {
-    final primary = Theme.of(context).colorScheme.primary;
+    final scheme = Theme.of(context).colorScheme;
+    final primary = scheme.primary;
     final label = _bandLabelForFrequency(band.centerFrequency);
 
     return Expanded(
@@ -192,7 +183,7 @@ class _EqualizerSheetState extends ConsumerState<EqualizerSheet> {
           children: [
             Text(
               label,
-              style: TextStyle(
+              style: const TextStyle(
                 color: Colors.white70,
                 fontSize: 11,
                 fontWeight: FontWeight.w500,
@@ -212,9 +203,10 @@ class _EqualizerSheetState extends ConsumerState<EqualizerSheet> {
                     child: SliderTheme(
                       data: SliderTheme.of(context).copyWith(
                         activeTrackColor: primary,
-                        inactiveTrackColor: Colors.white12,
+                        inactiveTrackColor:
+                            scheme.onSurface.withValues(alpha: 0.12),
                         thumbColor: primary,
-                        overlayColor: primary.withOpacity(0.2),
+                        overlayColor: primary.withValues(alpha: 0.2),
                         trackHeight: 4,
                       ),
                       child: Slider(
@@ -235,7 +227,7 @@ class _EqualizerSheetState extends ConsumerState<EqualizerSheet> {
                 final gain = snapshot.data ?? 0.0;
                 return Text(
                   gain >= 0 ? '+${gain.toStringAsFixed(0)}' : gain.toStringAsFixed(0),
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: Colors.white54,
                     fontSize: 11,
                     fontWeight: FontWeight.w500,
