@@ -1,11 +1,27 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
-  // Seed du thème (facile à changer pour re-skin complet)
-  static const Color seedColor = Color(0xFF4ECDC4);
+  // Palette des couleurs d'accent disponibles
+  static const List<Color> accentColors = [
+    Color(0xFF4ECDC4), // 0 — Teal/Vert (défaut)
+    Color(0xFFE53935), // 1 — Rouge vif
+    Color(0xFFFDD835), // 2 — Jaune soleil
+    Color(0xFF7C4DFF), // 3 — Violet électrique
+    Color(0xFFFF7043), // 4 — Orange corail
+  ];
+
+  // Noms des couleurs (pour l'UI)
+  static const List<String> accentColorNames = [
+    'Teal',
+    'Rouge',
+    'Jaune',
+    'Violet',
+    'Orange',
+  ];
 
   // Back-compat (utilisé potentiellement ailleurs)
-  static const Color primaryColor = seedColor;
+  static Color get seedColor => accentColors[0];
+  static const Color primaryColor = Color(0xFF4ECDC4);
   static const Color secondaryColor = Color(0xFFFF6584);
   static const Color accentColor = Color(0xFF6C63FF);
   static const Color aColor = Color(0xFF3C454B);
@@ -13,9 +29,16 @@ class AppTheme {
   static ThemeData lightTheme = _theme(brightness: Brightness.light);
   static ThemeData darkTheme = _theme(brightness: Brightness.dark);
 
-  static ThemeData _theme({required Brightness brightness}) {
+  /// Génère un ThemeData avec la couleur d'accent choisie.
+  static ThemeData themeFor(Color seed, Brightness brightness) {
+    return _theme(brightness: brightness, seedColor: seed);
+  }
+
+  static ThemeData _theme(
+      {required Brightness brightness, Color? seedColor}) {
+    final seed = seedColor ?? accentColors[0];
     final scheme = ColorScheme.fromSeed(
-      seedColor: seedColor,
+      seedColor: seed,
       brightness: brightness,
     );
 
@@ -26,6 +49,7 @@ class AppTheme {
       brightness: brightness,
       colorScheme: scheme,
       visualDensity: VisualDensity.standard,
+      fontFamily: 'Lexend',
     );
 
     final textTheme = base.textTheme.copyWith(
@@ -93,7 +117,8 @@ class AppTheme {
         height: 68,
         backgroundColor: scheme.surfaceContainer,
         elevation: 0,
-        indicatorColor: scheme.secondaryContainer.withOpacity(isDark ? 0.55 : 1),
+        indicatorColor:
+            scheme.secondaryContainer.withOpacity(isDark ? 0.55 : 1),
         labelTextStyle: WidgetStateProperty.resolveWith(
           (states) => textTheme.labelSmall?.copyWith(
             color: states.contains(WidgetState.selected)
@@ -167,7 +192,8 @@ class AppTheme {
 
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: scheme.surfaceContainerHighest.withOpacity(isDark ? 0.35 : 1),
+        fillColor:
+            scheme.surfaceContainerHighest.withOpacity(isDark ? 0.35 : 1),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide(color: scheme.outlineVariant),

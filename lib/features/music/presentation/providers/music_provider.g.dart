@@ -71,7 +71,7 @@ final allArtistsProvider = AutoDisposeProvider<List<ArtistModel>>.internal(
 );
 
 typedef AllArtistsRef = AutoDisposeProviderRef<List<ArtistModel>>;
-String _$albumSongsHash() => r'cc087c951a13a9c4227c18cf63705578aa502256';
+String _$albumSongsHash() => r'56a09a96517a7a21037daf792e62fb57a5f17265';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -232,7 +232,7 @@ class _AlbumSongsProviderElement
   String get albumId => (origin as AlbumSongsProvider).albumId;
 }
 
-String _$artistSongsHash() => r'34ab4d45e1760ebb1e21a1f80d7a2ee1c7b69dcb';
+String _$artistSongsHash() => r'6e8009c09e0f14d1c3f7f3e67f96e2fd86172d58';
 
 /// Provider pour les chansons d'un artiste spécifique (Synchrone)
 ///
@@ -639,7 +639,7 @@ class _LyricsProviderElement extends AutoDisposeFutureProviderElement<String?>
   String get songId => (origin as LyricsProvider).songId;
 }
 
-String _$musicHash() => r'bc8b24649ace0f903d5cc46bc0c68a99793bd914';
+String _$musicHash() => r'3abf695809afa2dd744523da46ac31c07bab9429';
 
 /// See also [Music].
 @ProviderFor(Music)

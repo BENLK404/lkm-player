@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:musio/features/artist/presentation/providers/artist_wikipedia_provider.dart';
 import 'package:musio/features/music/data/models/album_model.dart';
 import 'package:musio/features/music/presentation/providers/music_provider.dart';
 import 'package:musio/features/player/presentation/providers/audio_player_provider.dart';
@@ -11,6 +12,7 @@ import 'package:musio/shared/widgets/album_art_image.dart';
 import 'package:musio/shared/widgets/mini_player.dart';
 import 'package:musio/shared/widgets/song_tile.dart';
 import 'package:palette_generator/palette_generator.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class AlbumDetailsScreen extends ConsumerStatefulWidget {
   final String albumId;
@@ -30,7 +32,6 @@ class _AlbumDetailsScreenState extends ConsumerState<AlbumDetailsScreen> {
   @override
   void initState() {
     super.initState();
-    // We'll load the color after the build once we have the album
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadDominantColor();
     });
@@ -98,23 +99,62 @@ class _AlbumDetailsScreenState extends ConsumerState<AlbumDetailsScreen> {
     final albums = ref.read(allAlbumsProvider);
     try {
       final album = albums.firstWhere((a) => a.id == widget.albumId);
-      if (album.albumArtPath != null) {
-        final imageProvider = FileImage(File(album.albumArtPath!));
-        final palette = await PaletteGenerator.fromImageProvider(
-          imageProvider,
-          maximumColorCount: 10,
-        );
-        if (mounted) {
-          setState(() {
-            dominantColor = palette.dominantColor?.color ??
-                palette.vibrantColor?.color ??
-                palette.mutedColor?.color;
-          });
-        }
+      if (album.albumArtPath == null) return;
+      final path = album.albumArtPath!;
+      final ImageProvider imageProvider = path.startsWith('content://')
+          ? ResizeImage(NetworkImage(path), width: 80, height: 80)
+          : ResizeImage(FileImage(File(path)), width: 80, height: 80);
+      final palette = await PaletteGenerator.fromImageProvider(
+        imageProvider,
+        maximumColorCount: 8,
+      );
+      if (mounted) {
+        setState(() {
+          dominantColor = palette.vibrantColor?.color ??
+              palette.dominantColor?.color ??
+              palette.mutedColor?.color;
+        });
       }
-    } catch (_) {
-      // Ignore if album not found yet
-    }
+    } catch (_) {}
+  }
+
+  Color _vibrantButtonColor(Color base, ColorScheme scheme) {
+    final hsl = HSLColor.fromColor(base);
+    return hsl
+        .withSaturation((hsl.saturation + 0.2).clamp(0.0, 1.0))
+        .withLightness(hsl.lightness.clamp(0.35, 0.55))
+        .toColor();
+  }
+
+  void _showArtistPopup(BuildContext context, String artistName,
+      String? albumArtPath, String? songId) {
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: 'Artiste',
+      barrierColor: Colors.black87,
+      transitionDuration: const Duration(milliseconds: 300),
+      transitionBuilder: (context, anim, secondAnim, child) {
+        return FadeTransition(
+          opacity: anim,
+          child: SlideTransition(
+            position: Tween<Offset>(
+              begin: const Offset(0, 0.08),
+              end: Offset.zero,
+            ).animate(
+                CurvedAnimation(parent: anim, curve: Curves.easeOutCubic)),
+            child: child,
+          ),
+        );
+      },
+      pageBuilder: (context, _, __) {
+        return _ArtistPopup(
+          artistName: artistName,
+          albumArtPath: albumArtPath,
+          songId: songId,
+        );
+      },
+    );
   }
 
   @override
@@ -137,11 +177,16 @@ class _AlbumDetailsScreenState extends ConsumerState<AlbumDetailsScreen> {
     }
     final album = albums[albumIndex];
 
-    // Apply the diluted solid color background
     final backgroundColor = dominantColor != null
         ? Color.lerp(
-            Theme.of(context).scaffoldBackgroundColor, dominantColor!, 0.15)
+            Theme.of(context).scaffoldBackgroundColor, dominantColor!, 0.35)!
         : Theme.of(context).scaffoldBackgroundColor;
+    final playButtonColor = dominantColor != null
+        ? _vibrantButtonColor(dominantColor!, Theme.of(context).colorScheme)
+        : Theme.of(context).colorScheme.primary;
+
+    // First song for art display in popup
+    final firstSong = songs.isNotEmpty ? songs.first : null;
 
     return Scaffold(
       backgroundColor: backgroundColor,
@@ -152,7 +197,7 @@ class _AlbumDetailsScreenState extends ConsumerState<AlbumDetailsScreen> {
             expandedHeight: 340,
             pinned: true,
             stretch: true,
-            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+            backgroundColor: backgroundColor,
             actions: [
               IconButton(
                 icon: Icon(Icons.delete_outline,
@@ -165,16 +210,11 @@ class _AlbumDetailsScreenState extends ConsumerState<AlbumDetailsScreen> {
               background: Stack(
                 fit: StackFit.expand,
                 children: [
-                  // Fond uni basé sur la couleur dominante
-                  Container(color: backgroundColor),
-
-                  // Contenu de l'en-tête
                   Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const SizedBox(height: 40), // Espace pour la status bar
-                        // Pochette principale
+                        const SizedBox(height: 40),
                         Container(
                           width: 180,
                           height: 180,
@@ -201,7 +241,6 @@ class _AlbumDetailsScreenState extends ConsumerState<AlbumDetailsScreen> {
                           ),
                         ),
                         const SizedBox(height: 16),
-                        // Titre de l'album
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 24),
                           child: Text(
@@ -219,14 +258,27 @@ class _AlbumDetailsScreenState extends ConsumerState<AlbumDetailsScreen> {
                           ),
                         ),
                         const SizedBox(height: 4),
-                        // Artiste
-                        Text(
-                          album.artist,
-                          style:
-                              Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    color: Colors.white70,
-                                  ),
-                        ),
+                        // Artiste — affichage simple
+                        if (album.artist.isNotEmpty)
+                          Text(
+                            album.artist,
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(
+                                  color: Colors.white70,
+                                ),
+                          )
+                        else
+                          Text(
+                            album.artist,
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(
+                                  color: Colors.white70,
+                                ),
+                          ),
                       ],
                     ),
                   ),
@@ -241,7 +293,6 @@ class _AlbumDetailsScreenState extends ConsumerState<AlbumDetailsScreen> {
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
-                  // Métadonnées (Année • Nb titres)
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -254,7 +305,7 @@ class _AlbumDetailsScreenState extends ConsumerState<AlbumDetailsScreen> {
                               ?.copyWith(color: Colors.white60),
                         ),
                       Text(
-                        '${album.trackCount} titres',
+                        '${album.trackCount} titre${album.trackCount > 1 ? 's' : ''}',
                         style: Theme.of(context)
                             .textTheme
                             .bodyMedium
@@ -263,12 +314,9 @@ class _AlbumDetailsScreenState extends ConsumerState<AlbumDetailsScreen> {
                     ],
                   ),
                   const SizedBox(height: 24),
-
-                  // Boutons d'action
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // Bouton Lecture
                       Expanded(
                         child: ElevatedButton(
                           onPressed: () {
@@ -279,14 +327,13 @@ class _AlbumDetailsScreenState extends ConsumerState<AlbumDetailsScreen> {
                             }
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor:
-                                Theme.of(context).colorScheme.primary,
+                            backgroundColor: playButtonColor,
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(30),
                             ),
-                            elevation: 4,
+                            elevation: 0,
                           ),
                           child: const Row(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -302,38 +349,30 @@ class _AlbumDetailsScreenState extends ConsumerState<AlbumDetailsScreen> {
                         ),
                       ),
                       const SizedBox(width: 16),
-                      // Bouton Aléatoire
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: () {
-                            if (songs.isNotEmpty) {
-                              ref
-                                  .read(audioPlayerProvider.notifier)
-                                  .play(songs, 0);
-                              ref
-                                  .read(audioPlayerProvider.notifier)
-                                  .toggleShuffle();
-                            }
-                          },
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30),
-                            ),
-                            side: BorderSide(color: Colors.white24),
-                            foregroundColor: Colors.white,
+                      ElevatedButton(
+                        onPressed: () {
+                          if (songs.isNotEmpty) {
+                            ref
+                                .read(audioPlayerProvider.notifier)
+                                .play(songs, 0);
+                            ref
+                                .read(audioPlayerProvider.notifier)
+                                .toggleShuffle();
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white.withOpacity(0.15),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
                           ),
-                          child: const Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.shuffle_rounded),
-                              SizedBox(width: 8),
-                              Text('Aléatoire',
-                                  style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold)),
-                            ],
-                          ),
+                          elevation: 0,
+                          shadowColor: Colors.transparent,
+                        ),
+                        child: const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [Icon(Icons.shuffle_rounded)],
                         ),
                       ),
                     ],
@@ -350,7 +389,6 @@ class _AlbumDetailsScreenState extends ConsumerState<AlbumDetailsScreen> {
                 final song = songs[index];
                 return Theme(
                   data: Theme.of(context).copyWith(
-                    // Ensure text contrasts well with potentially dark background
                     textTheme: Theme.of(context).textTheme.apply(
                           bodyColor: Colors.white,
                           displayColor: Colors.white,
@@ -361,7 +399,7 @@ class _AlbumDetailsScreenState extends ConsumerState<AlbumDetailsScreen> {
                     song: song,
                     playlist: songs,
                     songIndex: index,
-                    showIndex: true, // Afficher le numéro de piste
+                    showIndex: true,
                   ),
                 );
               },
@@ -369,7 +407,28 @@ class _AlbumDetailsScreenState extends ConsumerState<AlbumDetailsScreen> {
             ),
           ),
 
-          // Espace pour le mini player
+          // Divider(
+          //   color: Colors.white12,
+          //   thickness: 1,
+          // ),
+
+          // === BIO ARTISTE WIKIPEDIA (en bas de la liste) ===
+          if (album.artist.isNotEmpty && songs.isNotEmpty)
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 24, 20, 8),
+                child: _WikiDescriptionText(
+                  artistName: album.artist,
+                  onArtistTap: () => _showArtistPopup(
+                    context,
+                    album.artist,
+                    firstSong?.albumArtPath,
+                    firstSong?.id,
+                  ),
+                ),
+              ),
+            ),
+
           const SliverToBoxAdapter(
             child: SizedBox(height: 80),
           ),
@@ -378,4 +437,262 @@ class _AlbumDetailsScreenState extends ConsumerState<AlbumDetailsScreen> {
       bottomSheet: const MiniPlayer(),
     );
   }
+}
+
+/// Affiche la description Wikipedia en 2 lignes avec "voir plus".
+class _WikiDescriptionText extends ConsumerWidget {
+  final String artistName;
+  final VoidCallback onArtistTap;
+
+  const _WikiDescriptionText({
+    required this.artistName,
+    required this.onArtistTap,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final asyncInfo = ref.watch(artistWikipediaInfoProvider(artistName));
+
+    return asyncInfo.when(
+      data: (info) {
+        if (info == null || info.extract.isEmpty) {
+          return const SizedBox.shrink();
+        }
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'À propos de $artistName',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              info.extract,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: Colors.white70,
+                fontSize: 14,
+                height: 1.4,
+              ),
+            ),
+            const SizedBox(height: 6),
+            GestureDetector(
+              onTap: onArtistTap,
+              child: Text(
+                'Voir plus',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.primary,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+      loading: () => const Center(
+        child: SizedBox(
+          width: 20,
+          height: 20,
+          child: CircularProgressIndicator(strokeWidth: 2),
+        ),
+      ),
+      error: (_, __) => const SizedBox.shrink(),
+    );
+  }
+}
+
+/// Popup noir avec image artiste (moitié haute) + bio Wikipedia (moitié basse).
+class _ArtistPopup extends ConsumerWidget {
+  final String artistName;
+  final String? albumArtPath;
+  final String? songId;
+
+  const _ArtistPopup({
+    required this.artistName,
+    required this.albumArtPath,
+    required this.songId,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final asyncInfo = ref.watch(artistWikipediaInfoProvider(artistName));
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: GestureDetector(
+        onTap: () => Navigator.of(context).pop(),
+        behavior: HitTestBehavior.opaque,
+        child: Center(
+          child: GestureDetector(
+            onTap: () {}, // Prevent closing when tapping inside
+            child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 60),
+              constraints: BoxConstraints(maxHeight: screenHeight * 0.82),
+              decoration: BoxDecoration(
+                color: const Color(0xFF0A0A0A),
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // === IMAGE ARTISTE (moitié supérieure) ===
+                    SizedBox(
+                      height: screenHeight * 0.35,
+                      width: double.infinity,
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          _buildArtImage(),
+                          // Gradient bottom
+                          const DecoratedBox(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                stops: [0.5, 1.0],
+                                colors: [
+                                  Colors.transparent,
+                                  Color(0xFF0A0A0A),
+                                ],
+                              ),
+                            ),
+                          ),
+                          // Close button
+                          Positioned(
+                            top: 12,
+                            right: 12,
+                            child: GestureDetector(
+                              onTap: () => Navigator.of(context).pop(),
+                              child: Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: BoxDecoration(
+                                  color: Colors.black54,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.close_rounded,
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
+                              ),
+                            ),
+                          ),
+                          // Artist name overlay
+                          Positioned(
+                            bottom: 16,
+                            left: 20,
+                            right: 20,
+                            child: Text(
+                              artistName,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                                shadows: [
+                                  Shadow(blurRadius: 10, color: Colors.black),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // === BIO WIKIPEDIA (scrollable) ===
+                    Flexible(
+                      child: asyncInfo.when(
+                        data: (info) {
+                          if (info == null || info.extract.isEmpty) {
+                            return Padding(
+                              padding: const EdgeInsets.all(20),
+                              child: Text(
+                                'Aucune information disponible sur Wikipedia.',
+                                style: TextStyle(color: Colors.white38),
+                                textAlign: TextAlign.center,
+                              ),
+                            );
+                          }
+                          return SingleChildScrollView(
+                            padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  info.extract,
+                                  style: const TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 14,
+                                    height: 1.5,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                        loading: () => const Padding(
+                          padding: EdgeInsets.all(32),
+                          child: Center(
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        ),
+                        error: (_, __) => const Padding(
+                          padding: EdgeInsets.all(20),
+                          child: Text(
+                            'Impossible de charger les informations.',
+                            style: TextStyle(color: Colors.white38),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildArtImage() {
+    if (albumArtPath == null) return _artPlaceholder();
+    if (albumArtPath!.startsWith('content://')) {
+      return Image.network(
+        albumArtPath!,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => _artPlaceholder(),
+      );
+    }
+    final file = File(albumArtPath!);
+    if (file.existsSync()) {
+      return Image.file(
+        file,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => _artPlaceholder(),
+      );
+    }
+    return _artPlaceholder();
+  }
+
+  Widget _artPlaceholder() => Container(
+        color: const Color(0xFF1A1A2E),
+        child: Center(
+          child: Text(
+            artistName.isNotEmpty ? artistName[0].toUpperCase() : '?',
+            style: const TextStyle(
+              color: Colors.white12,
+              fontSize: 80,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+      );
 }

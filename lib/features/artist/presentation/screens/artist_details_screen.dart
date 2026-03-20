@@ -149,6 +149,14 @@ class _ArtistDetailsScreenState extends ConsumerState<ArtistDetailsScreen> {
             ),
           ),
 
+          // Divider
+          SliverToBoxAdapter(
+            child: Divider(
+              color: Colors.white.withOpacity(0.1),
+              thickness: 1,
+            ),
+          ),
+
           // Biographie Wikipedia (cache + API)
           SliverToBoxAdapter(
             child: _WikipediaSection(artistName: artist.name),
@@ -332,7 +340,7 @@ class _WikipediaSection extends ConsumerWidget {
                 'À propos',
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: Theme.of(context).colorScheme.primary,
                     ),
               ),
               const SizedBox(height: 8),
@@ -346,33 +354,6 @@ class _WikipediaSection extends ConsumerWidget {
                     ),
               ),
               const SizedBox(height: 8),
-              InkWell(
-                onTap: () async {
-                  final uri = Uri.parse(info.pageUrl);
-                  if (await canLaunchUrl(uri)) {
-                    await launchUrl(uri, mode: LaunchMode.externalApplication);
-                  }
-                },
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.open_in_new,
-                      size: 16,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      'Lire sur Wikipedia',
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.primary,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
             ],
           ),
         );

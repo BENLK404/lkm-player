@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:musio/core/routing/app_router.dart';
+import 'package:musio/core/theme/app_theme.dart';
 import 'package:musio/features/download/presentation/providers/download_provider.dart';
 import 'package:musio/features/music/presentation/providers/music_provider.dart';
 import 'package:musio/features/settings/presentation/providers/settings_provider.dart';
@@ -14,8 +15,8 @@ class SettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final minDuration = ref.watch(minSongDurationProvider);
     final isOnlineEnabled = ref.watch(onlineFeatureEnabledProvider);
-
     final themeMode = ref.watch(themeModeSettingProvider);
+    final accentColor = ref.watch(accentColorSettingProvider);
     final sleepTimerDefault = ref.watch(sleepTimerDefaultMinutesProvider);
 
     return Scaffold(
@@ -34,6 +35,31 @@ class SettingsScreen extends ConsumerWidget {
               leading: const Icon(Icons.palette_outlined),
               onTap: () => _showThemeModeDialog(context, ref),
             ),
+            loading: () => const SizedBox.shrink(),
+            error: (_, __) => const SizedBox.shrink(),
+          ),
+          accentColor.when(
+            data: (colorIndex) {
+              final idx = colorIndex.clamp(0, AppTheme.accentColors.length - 1);
+              return ListTile(
+                title: const Text('Couleur principale'),
+                subtitle: Text(AppTheme.accentColorNames[idx]),
+                leading: const Icon(Icons.color_lens_outlined),
+                trailing: Container(
+                  width: 28,
+                  height: 28,
+                  decoration: BoxDecoration(
+                    color: AppTheme.accentColors[idx],
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: Theme.of(context).colorScheme.outlineVariant,
+                      width: 2,
+                    ),
+                  ),
+                ),
+                onTap: () => _showAccentColorDialog(context, ref, colorIndex),
+              );
+            },
             loading: () => const SizedBox.shrink(),
             error: (_, __) => const SizedBox.shrink(),
           ),
@@ -364,6 +390,66 @@ class SettingsScreen extends ConsumerWidget {
               },
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  void _showAccentColorDialog(BuildContext context, WidgetRef ref, int current) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Couleur principale'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: List.generate(
+            AppTheme.accentColors.length,
+            (index) {
+              final color = AppTheme.accentColors[index];
+              final name = AppTheme.accentColorNames[index];
+              final isSelected = index == current.clamp(0, AppTheme.accentColors.length - 1);
+              return InkWell(
+                onTap: () {
+                  ref.read(accentColorSettingProvider.notifier).setColorIndex(index);
+                  Navigator.pop(context);
+                },
+                borderRadius: BorderRadius.circular(12),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          color: color,
+                          shape: BoxShape.circle,
+                          border: isSelected
+                              ? Border.all(color: Colors.white, width: 3)
+                              : null,
+                          boxShadow: isSelected
+                              ? [BoxShadow(color: color.withOpacity(0.5), blurRadius: 8)]
+                              : null,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Text(
+                        name,
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          fontWeight: isSelected ? FontWeight.bold : null,
+                        ),
+                      ),
+                      if (isSelected) ...[
+                        const Spacer(),
+                        Icon(Icons.check_rounded,
+                            color: Theme.of(context).colorScheme.primary),
+                      ],
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
         ),
       ),
     );
