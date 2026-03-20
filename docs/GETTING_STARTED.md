@@ -1,18 +1,27 @@
-# 🚀 Guide de Démarrage Rapide - LKM Player
+# Guide de Démarrage Rapide - LKM Player
 
 Ce guide vous accompagne étape par étape pour configurer et lancer LKM Player.
 
 ---
 
-## ⚡ Installation Rapide (5 minutes)
+## Installation Rapide (5 minutes)
 
 ### Étape 1 : Cloner et naviguer
 ```bash
-cd musio
+git clone https://github.com/BENLK404/lkm-player.git
+cd lkm-player
 ```
+
+### Étape 1b : Installation complète (Flutter + API)
+```bash
+make setup
+```
+
+Ou manuellement pour la partie Flutter uniquement :
 
 ### Étape 2 : Installer les dépendances
 ```bash
+cd apps/mobile
 flutter pub get
 ```
 
@@ -22,27 +31,27 @@ dart run build_runner build --delete-conflicting-outputs
 ```
 
 Cette commande génère :
-- ✅ Fichiers `.freezed.dart` (pour les modèles immutables)
-- ✅ Fichiers `.g.dart` (pour JSON et Hive)
-- ✅ Fichiers providers Riverpod
+-  Fichiers `.freezed.dart` (pour les modèles immutables)
+-  Fichiers `.g.dart` (pour JSON et Hive)
+-  Fichiers providers Riverpod
 
 ### Étape 4 : Configuration Android
 
-Ouvrez `android/app/src/main/AndroidManifest.xml` et ajoutez :
+Ouvrez `apps/mobile/android/app/src/main/AndroidManifest.xml` et ajoutez :
 
 ```xml
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    
+
     <!-- PERMISSIONS - Ajoutez ces lignes AVANT <application> -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.READ_MEDIA_AUDIO"/>
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
-    
+
     <application
         android:label="LKM Player"
         android:icon="@mipmap/ic_launcher">
-        
+
         <!-- SERVICE AUDIO - Ajoutez cette section DANS <application> -->
         <service
             android:name="com.ryanheise.audioservice.AudioService"
@@ -52,7 +61,7 @@ Ouvrez `android/app/src/main/AndroidManifest.xml` et ajoutez :
                 <action android:name="android.media.browse.MediaBrowserService"/>
             </intent-filter>
         </service>
-        
+
         <!-- Le reste de votre configuration -->
         <activity ...>
         </activity>
@@ -62,28 +71,32 @@ Ouvrez `android/app/src/main/AndroidManifest.xml` et ajoutez :
 
 ### Étape 5 : Lancer l'app
 ```bash
-flutter run
+# Depuis la racine du monorepo
+make app-run
+
+# Ou depuis apps/mobile/
+cd apps/mobile && flutter run
 ```
 
 ---
 
-## 🔍 Vérification de l'Installation
+## Vérification de l'Installation
 
 Après `build_runner`, vous devriez voir ces fichiers générés :
 
 ```
-lib/features/music/data/models/
+apps/mobile/lib/features/music/data/models/
 ├── song_model.dart
-├── song_model.freezed.dart      ✅ GÉNÉRÉ
-├── song_model.g.dart            ✅ GÉNÉRÉ
+├── song_model.freezed.dart       (généré)
+├── song_model.g.dart             (généré)
 ├── album_model.dart
-├── album_model.freezed.dart     ✅ GÉNÉRÉ
+├── album_model.freezed.dart      (généré)
 └── ...
 ```
 
 ---
 
-## 🧪 Tester les Fonctionnalités
+## Tester les Fonctionnalités
 
 ### Test 1 : Scanner la bibliothèque
 
@@ -125,13 +138,13 @@ playerState.when(
 
 ---
 
-## 🐛 Résolution de Problèmes Courants
+## Résolution de Problèmes Courants
 
 ### Erreur : "No file or variants found for asset"
 **Solution** : Exécutez `flutter clean && flutter pub get`
 
 ### Erreur : "MissingPluginException"
-**Solution** : 
+**Solution** :
 1. Arrêtez l'app
 2. Exécutez `flutter clean`
 3. Relancez `flutter run`
@@ -154,7 +167,7 @@ dart run build_runner build --delete-conflicting-outputs
 
 ---
 
-## 📱 Tester sur Appareil Réel
+## Tester sur Appareil Réel
 
 Pour les permissions audio, il est recommandé de tester sur un **appareil physique** :
 
@@ -166,7 +179,7 @@ Pour les permissions audio, il est recommandé de tester sur un **appareil physi
 
 ---
 
-## 🎯 Prochaines Actions
+## Prochaines Actions
 
 Une fois l'installation terminée, vous pouvez :
 
@@ -187,11 +200,11 @@ Une fois l'installation terminée, vous pouvez :
 
 ---
 
-## 💡 Conseils
+## Conseils
 
 - **Utilisez le watch mode** pour la génération automatique :
   ```bash
-  dart run build_runner watch
+  cd apps/mobile && dart run build_runner watch
   ```
 
 - **Activez les logs** pour déboguer :
@@ -206,13 +219,13 @@ Une fois l'installation terminée, vous pouvez :
 
 ---
 
-## 📞 Besoin d'Aide ?
+## Besoin d'Aide ?
 
-- Consultez le [README.md](README.md) principal
-- Vérifiez les [issues GitHub](https://github.com/votre-repo/issues)
+- Consultez le [README.md](../README.md) principal
+- Vérifiez les [issues GitHub](https://github.com/BENLK404/lkm-player/issues)
 - Documentation [Riverpod](https://riverpod.dev/)
 - Documentation [Freezed](https://pub.dev/packages/freezed)
 
 ---
 
-**Bon développement ! 🎵**
+**Bon développement ! **

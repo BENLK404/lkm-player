@@ -1,10 +1,10 @@
-# 🏗️ Architecture de LKM Player
+# Architecture de LKM Player
 
 Ce document explique l'architecture et les choix de conception du projet LKM Player.
 
 ---
 
-## 📐 Architecture Globale
+## Architecture Globale
 
 LKM Player suit une architecture **Clean Architecture** combinée avec une organisation **Feature-First**.
 
@@ -40,7 +40,7 @@ LKM Player suit une architecture **Clean Architecture** combinée avec une organ
 
 ---
 
-## 🎯 Principes de Conception
+## Principes de Conception
 
 ### 1. Separation of Concerns (SoC)
 Chaque couche a une responsabilité unique :
@@ -60,7 +60,9 @@ Chaque classe/fichier a une responsabilité unique.
 
 ---
 
-## 📦 Organisation par Features
+## Organisation par Features
+
+> Tous les chemins ci-dessous sont relatifs à `apps/mobile/lib/`.
 
 ```
 features/
@@ -70,14 +72,14 @@ features/
 ```
 
 Avantages :
-- ✅ Code organisé par fonctionnalité métier
-- ✅ Facile à naviguer et maintenir
-- ✅ Isolation des features
-- ✅ Scalabilité
+-  Code organisé par fonctionnalité métier
+-  Facile à naviguer et maintenir
+-  Isolation des features
+-  Scalabilité
 
 ---
 
-## 🔄 Flux de Données
+## Flux de Données
 
 ### Exemple : Charger toutes les chansons
 
@@ -120,7 +122,7 @@ Avantages :
 
 ---
 
-## 🎨 State Management (Riverpod)
+## State Management (Riverpod)
 
 ### Types de Providers Utilisés
 
@@ -161,7 +163,7 @@ Utilisé pour :
 
 ---
 
-## 🗃️ Modèles de Données (Freezed)
+## Modèles de Données (Freezed)
 
 ### Pourquoi Freezed ?
 
@@ -177,11 +179,11 @@ class SongModel with _$SongModel {
 ```
 
 Avantages :
-- ✅ **Immutabilité** : État prévisible
-- ✅ **copyWith** : Copie avec modifications
-- ✅ **Equality** : Comparaison automatique
-- ✅ **toString** : Debugging facile
-- ✅ **JSON** : Sérialisation automatique
+-  **Immutabilité** : État prévisible
+-  **copyWith** : Copie avec modifications
+-  **Equality** : Comparaison automatique
+-  **toString** : Debugging facile
+-  **JSON** : Sérialisation automatique
 
 ### Exemple d'utilisation
 
@@ -208,7 +210,7 @@ final fromJson = SongModel.fromJson(json);
 
 ---
 
-## 💾 Persistance (Hive)
+## Persistance (Hive)
 
 ### Structure Hive
 
@@ -232,7 +234,7 @@ final settingsBox = await Hive.openBox('settings');
 
 ---
 
-## 🎵 Architecture du Player
+## Architecture du Player
 
 ### AudioPlayerService
 
@@ -242,7 +244,7 @@ Le service central qui gère :
 class AudioPlayerService {
   final AudioPlayer _audioPlayer;           // just_audio
   final StreamController _stateController;  // État
-  
+
   PlayerState _currentState;                // État actuel
   List<SongModel> _originalQueue;           // Queue non mélangée
 }
@@ -281,7 +283,7 @@ toggleShuffle() {
 
 ---
 
-## 🔐 Gestion des Permissions
+## Gestion des Permissions
 
 ### Permission Flow
 
@@ -311,7 +313,7 @@ if (status.isGranted) {
 
 ---
 
-## 🧩 Patterns Utilisés
+## Patterns Utilisés
 
 ### 1. Repository Pattern
 ```dart
@@ -341,7 +343,7 @@ const factory SongModel(...) = _SongModel;
 
 ---
 
-## 🚀 Performance Optimizations
+## Performance Optimizations
 
 ### 1. Lazy Loading
 ```dart
@@ -369,7 +371,7 @@ final songs = ref.watch(allSongsProvider);
 
 ---
 
-## 🔮 Extensions Futures
+## Extensions Futures
 
 ### Phase 2 : Audio Background
 ```dart
@@ -397,7 +399,7 @@ class LyricsService {
 
 ---
 
-## 📚 Ressources Supplémentaires
+## Ressources Supplémentaires
 
 - [Clean Architecture (Uncle Bob)](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)
 - [Riverpod Architecture](https://codewithandrea.com/articles/flutter-app-architecture-riverpod-introduction/)
@@ -405,4 +407,4 @@ class LyricsService {
 
 ---
 
-**Cette architecture garantit un code maintenable, testable et scalable ! 🎯**
+**Cette architecture vise un code maintenable, testable et évolutif.**

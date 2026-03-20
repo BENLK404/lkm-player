@@ -1,176 +1,165 @@
-# 📊 LKM Player - Résumé du Projet
+# LKM Player - Résumé du Projet
 
-## 🎯 Vue d'Ensemble
+## Vue d'Ensemble
 
 **LKM Player** est un lecteur audio mobile Flutter moderne avec :
-- ✅ Architecture Clean + Feature-First
-- ✅ State Management : Riverpod 2.0
-- ✅ Modèles immutables : Freezed
-- ✅ Persistance : Hive
-- ✅ Audio : just_audio + audio_service
+-  Architecture Clean + Feature-First
+-  State Management : Riverpod 2.0
+-  Modèles immutables : Freezed
+-  Persistance : Hive
+-  Audio : just_audio + audio_service
 
 ---
 
-## 📦 Fichiers Créés (20 fichiers)
+## Fichiers Créés (20 fichiers)
 
-### 📚 Documentation (5 fichiers)
+### Documentation (dans `docs/`)
 ```
-README.md              # Introduction et overview
-GETTING_STARTED.md     # Guide d'installation pas à pas
-ARCHITECTURE.md        # Explication de l'architecture
-CONVENTIONS.md         # Standards de code
-TODO.md                # Roadmap et tâches
-```
-
-### 🔧 Configuration (4 fichiers)
-```
-pubspec.yaml           # Dépendances du projet
-analysis_options.yaml  # Configuration lint
-build.yaml             # Configuration build_runner
-.gitignore             # Fichiers à ignorer
+docs/GETTING_STARTED.md     # Guide d'installation pas à pas
+docs/ARCHITECTURE.md        # Explication de l'architecture
+docs/CONVENTIONS.md         # Standards de code
+docs/TODO.md                # Roadmap et tâches
+docs/DOCKER.md              # Déploiement Docker de l'API
 ```
 
-### 🛠️ Scripts (1 fichier)
+### Configuration
 ```
-dev.sh                 # Script helper pour dev
+Makefile                          # Orchestrateur de commandes (racine)
+docker-compose.yml                # Déploiement unifié (racine)
+apps/mobile/pubspec.yaml          # Dépendances Flutter
+apps/mobile/analysis_options.yaml # Configuration lint Dart
+services/api/requirements.txt     # Dépendances Python
+services/api/Dockerfile           # Image Docker de l'API
 ```
 
-### 💻 Code Source (9 fichiers)
+### Scripts
+```
+scripts/setup.sh       # Setup complet (Flutter + Python)
+apps/mobile/dev.sh     # Script helper Flutter
+```
+
+### Code Source Flutter (`apps/mobile/lib/`)
 
 #### Modèles de Données
 ```
-lib/features/music/data/models/
+apps/mobile/lib/features/music/data/models/
 ├── song_model.dart       # Modèle chanson avec métadonnées
 ├── album_model.dart      # Modèle album
 ├── artist_model.dart     # Modèle artiste
 └── playlist_model.dart   # Modèle playlist
 
-lib/features/player/data/models/
+apps/mobile/lib/features/player/data/models/
 └── player_state.dart     # État du lecteur audio
 ```
 
 #### Repositories & Services
 ```
-lib/features/music/data/repositories/
+apps/mobile/lib/features/music/data/repositories/
 └── music_repository.dart # Scan et accès bibliothèque
 
-lib/features/player/data/services/
+apps/mobile/lib/features/player/data/services/
 └── audio_player_service.dart # Moteur de lecture audio
 ```
 
 #### Providers
 ```
-lib/features/music/presentation/providers/
+apps/mobile/lib/features/music/presentation/providers/
 └── music_provider.dart   # Providers pour musique
 
-lib/features/player/presentation/providers/
+apps/mobile/lib/features/player/presentation/providers/
 └── audio_player_provider.dart # Providers pour player
 ```
 
-#### Application
+### Code Source API (`services/api/`)
 ```
-lib/
-└── main.dart            # Point d'entrée de l'app
-```
-
-### 🧪 Tests (1 fichier)
-```
-test/features/player/
-└── audio_player_service_test.dart # Tests unitaires player
+services/api/api/server.py        # API REST FastAPI
+services/api/handlers/deezer.py   # Logique Deezer
+services/api/handlers/yt_dlp.py   # Logique YouTube/SoundCloud
+services/api/dl_utils/            # Utilitaires de téléchargement
+services/api/main.py              # Bot Telegram
 ```
 
 ---
 
-## 🏗️ Structure Complète du Projet
+## Structure Complète du Projet (Monorepo)
 
 ```
-musio/
-├── 📚 Documentation
-│   ├── README.md
-│   ├── GETTING_STARTED.md
+lkm-player/
+├── README.md
+├── LICENSE
+├── Makefile                 # Orchestrateur de commandes
+├── docker-compose.yml       # Déploiement unifié (bot + API)
+│
+├──  docs/                 # Documentation
 │   ├── ARCHITECTURE.md
+│   ├── GETTING_STARTED.md
 │   ├── CONVENTIONS.md
-│   └── TODO.md
+│   ├── TODO.md
+│   └── ...
 │
-├── ⚙️ Configuration
-│   ├── pubspec.yaml
-│   ├── analysis_options.yaml
-│   ├── build.yaml
-│   └── .gitignore
+├──  scripts/
+│   └── setup.sh             # Setup complet
 │
-├── 🛠️ Scripts
-│   └── dev.sh
+├──  apps/
+│   └── mobile/              # App Flutter (Android/iOS)
+│       ├── pubspec.yaml
+│       ├── lib/
+│       │   ├── core/
+│       │   │   ├── providers/       # Providers globaux
+│       │   │   ├── routing/         # Navigation (go_router)
+│       │   │   ├── theme/           # Thème Material 3
+│       │   │   └── utils/           # Logger
+│       │   ├── features/
+│       │   │   ├── music/           # Bibliothèque, modèles, repository
+│       │   │   ├── player/          # Lecture audio, état, égaliseur
+│       │   │   ├── playlist/        # Playlists personnalisées
+│       │   │   ├── album/           # Détail album
+│       │   │   ├── artist/          # Détail artiste + Wikipedia
+│       │   │   ├── search/          # Recherche
+│       │   │   ├── settings/        # Paramètres, thème, stats
+│       │   │   ├── for_you/         # Suggestions
+│       │   │   ├── download/        # Téléchargement via API
+│       │   │   └── online/          # Découverte en ligne
+│       │   └── shared/              # Widgets partagés
+│       ├── android/
+│       └── ios/
 │
-├── 💻 Code Source
-│   └── lib/
-│       ├── core/
-│       │   ├── constants/    (vide - à implémenter)
-│       │   ├── errors/       (vide - à implémenter)
-│       │   └── utils/        (vide - à implémenter)
-│       │
-│       ├── features/
-│       │   ├── music/
-│       │   │   ├── data/
-│       │   │   │   ├── models/          ✅ 4 modèles
-│       │   │   │   ├── repositories/    ✅ 1 repository
-│       │   │   │   └── datasources/     (vide - à implémenter)
-│       │   │   ├── domain/
-│       │   │   │   ├── entities/        (vide - à implémenter)
-│       │   │   │   └── usecases/        (vide - à implémenter)
-│       │   │   └── presentation/
-│       │   │       ├── providers/       ✅ 1 provider
-│       │   │       ├── screens/         (vide - à implémenter)
-│       │   │       └── widgets/         (vide - à implémenter)
-│       │   │
-│       │   ├── player/
-│       │   │   ├── data/
-│       │   │   │   ├── models/          ✅ 1 modèle
-│       │   │   │   ├── repositories/    (vide - à implémenter)
-│       │   │   │   └── services/        ✅ 1 service
-│       │   │   ├── domain/
-│       │   │   │   ├── entities/        (vide - à implémenter)
-│       │   │   │   └── usecases/        (vide - à implémenter)
-│       │   │   └── presentation/
-│       │   │       ├── providers/       ✅ 1 provider
-│       │   │       ├── screens/         (vide - à implémenter)
-│       │   │       └── widgets/         (vide - à implémenter)
-│       │   │
-│       │   └── lyrics/
-│       │       ├── data/
-│       │       │   ├── models/          (vide - à implémenter)
-│       │       │   └── repositories/    (vide - à implémenter)
-│       │       ├── domain/
-│       │       │   └── entities/        (vide - à implémenter)
-│       │       └── presentation/
-│       │           ├── providers/       (vide - à implémenter)
-│       │           └── widgets/         (vide - à implémenter)
-│       │
-│       └── main.dart                    ✅ Point d'entrée
+├──  services/
+│   └── api/                 # Backend Python
+│       ├── Dockerfile
+│       ├── requirements.txt
+│       ├── api/             # FastAPI REST server
+│       │   └── server.py
+│       ├── handlers/        # Logique Deezer/YouTube
+│       ├── dl_utils/        # Utilitaires de téléchargement
+│       ├── main.py          # Bot Telegram
+│       └── bot.py
 │
-└── 🧪 Tests
-    └── test/
-        └── features/
-            └── player/
-                └── audio_player_service_test.dart ✅
+└── .github/
+    ├── workflows/
+    │   ├── flutter.yml      # CI Flutter (path: apps/mobile/**)
+    │   └── api.yml          # CI API (path: services/api/**)
+    ├── ISSUE_TEMPLATE/
+    └── PULL_REQUEST_TEMPLATE.md
 ```
 
 ---
 
-## ✅ Fonctionnalités Implémentées
+## Fonctionnalités Implémentées
 
 ### Core Système
 
-✅ **Architecture**
+ **Architecture**
 - Clean Architecture avec Feature-First
 - Separation of Concerns
 - Dependency Inversion
 
-✅ **State Management**
+ **State Management**
 - Riverpod 2.0 avec code generation
 - Providers singleton (keepAlive)
 - Stream providers pour temps réel
 
-✅ **Modèles de Données** (Freezed)
+ **Modèles de Données** (Freezed)
 - `SongModel` : Chanson avec métadonnées complètes
 - `AlbumModel` : Album avec liste de chansons
 - `ArtistModel` : Artiste avec statistiques
@@ -179,7 +168,7 @@ musio/
 
 ### Fonctionnalités Audio
 
-✅ **AudioPlayerService**
+ **AudioPlayerService**
 - Lecture/Pause/Stop
 - Navigation : Previous/Next
 - Seek (aller à une position)
@@ -190,7 +179,7 @@ musio/
 - Contrôle du volume
 - Auto-play next song
 
-✅ **MusicRepository**
+ **MusicRepository**
 - Scan complet de la bibliothèque
 - Récupération chansons/albums/artistes
 - Extraction des pochettes (artwork)
@@ -199,13 +188,13 @@ musio/
 
 ---
 
-## 🎯 Prochaines Étapes Immédiates
+## Prochaines Étapes Immédiates
 
 ### 1. Setup Initial (5 min)
 ```bash
-cd musio
-flutter pub get
-dart run build_runner build --delete-conflicting-outputs
+cd lkm-player
+make setup
+# Ou manuellement : cd apps/mobile && flutter pub get && dart run build_runner build --delete-conflicting-outputs
 ```
 
 ### 2. Configuration Android (10 min)
@@ -224,7 +213,7 @@ dart run build_runner build --delete-conflicting-outputs
 
 ---
 
-## 📊 Statistiques
+## Statistiques
 
 - **Lignes de code Dart** : ~1500 lignes
 - **Fichiers créés** : 20
@@ -234,46 +223,50 @@ dart run build_runner build --delete-conflicting-outputs
 
 ---
 
-## 🚀 Commandes Rapides
+## Commandes Rapides (Makefile)
 
 ```bash
-# Installation complète
-./dev.sh setup
+# Installation complète (Flutter + Python)
+make setup
 
-# Développement avec watch
-./dev.sh watch
+# Lancer l'app Flutter
+make app-run
 
-# Lancer l'app
-./dev.sh run
+# Lancer l'API FastAPI (dev)
+make api-run
 
-# Tests
-./dev.sh test
+# Lancer le bot Telegram
+make api-bot
 
-# Vérification complète
-./dev.sh check
+# Docker (bot + API)
+make docker-up
 
-# Aide
-./dev.sh help
+# Tests Flutter
+make app-test
+
+# Toutes les commandes
+make help
 ```
 
 ---
 
-## 📖 Documentation Détaillée
+## Documentation Détaillée
 
 | Fichier | Contenu |
 |---------|---------|
-| `README.md` | Vue d'ensemble, features, installation |
-| `GETTING_STARTED.md` | Guide pas-à-pas pour démarrer |
-| `ARCHITECTURE.md` | Explication architecture, flux de données |
-| `CONVENTIONS.md` | Standards de code, best practices |
-| `TODO.md` | Roadmap complète, tâches restantes |
+| [`README.md`](../README.md) | Vue d'ensemble monorepo, installation |
+| [`docs/GETTING_STARTED.md`](./GETTING_STARTED.md) | Guide pas-à-pas pour démarrer |
+| [`docs/ARCHITECTURE.md`](./ARCHITECTURE.md) | Explication architecture, flux de données |
+| [`docs/CONVENTIONS.md`](./CONVENTIONS.md) | Standards de code, best practices |
+| [`docs/TODO.md`](./TODO.md) | Roadmap complète, tâches restantes |
+| [`docs/DOCKER.md`](./DOCKER.md) | Déploiement Docker de l'API |
 
 ---
 
-## 🎨 Technologies & Patterns
+## Technologies & Patterns
 
 ### Technologies
-- **Framework** : Flutter 3.5+
+- **Framework** : Flutter 3.2+
 - **Language** : Dart 3.2+
 - **State** : Riverpod 2.5
 - **Models** : Freezed 2.4
@@ -297,7 +290,7 @@ dart run build_runner build --delete-conflicting-outputs
 
 ---
 
-## 💡 Points Forts du Projet
+## Points Forts du Projet
 
 1. **Architecture Solide** : Clean Architecture + Feature-First
 2. **Type Safety** : Freezed pour immutabilité
@@ -308,7 +301,7 @@ dart run build_runner build --delete-conflicting-outputs
 
 ---
 
-## 🎓 Concepts Clés à Comprendre
+## Concepts Clés à Comprendre
 
 ### 1. Riverpod
 - Auto-dispose des providers non utilisés
@@ -334,14 +327,14 @@ dart run build_runner build --delete-conflicting-outputs
 
 ---
 
-## 🎯 Objectifs Finaux
+## Objectifs Finaux
 
 ### Version 1.0 (MVP)
-- ✅ Scan bibliothèque musicale
-- ✅ Lecture audio de base
-- ⏳ Interface utilisateur complète
-- ⏳ Playlists
-- ⏳ Recherche
+- Scan bibliothèque musicale *(livré)*
+- Lecture audio de base *(livré)*
+- Interface utilisateur complète *(en cours / à compléter)*
+- Playlists *(en cours / à compléter)*
+- Recherche *(en cours / à compléter)*
 
 ### Version 1.5
 - Background audio
@@ -355,7 +348,7 @@ dart run build_runner build --delete-conflicting-outputs
 
 ---
 
-## 📞 Support & Ressources
+## Support & Ressources
 
 - **Documentation Flutter** : https://docs.flutter.dev/
 - **Riverpod Docs** : https://riverpod.dev/
@@ -364,5 +357,5 @@ dart run build_runner build --delete-conflicting-outputs
 
 ---
 
-**Projet** : LKM Player (package `musio`)  
-**Status** : Phase 1 et 2 complètes ✅ | Phase 3 en cours ⏳
+**Projet** : LKM Player (monorepo : `apps/mobile` + `services/api`)
+**Statut** : phases 1 et 2 complètes ; phase 3 en cours
