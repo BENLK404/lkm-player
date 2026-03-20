@@ -19,8 +19,8 @@ Merci de ton intérêt pour contribuer. Ce document explique comment proposer de
 - **Fichiers** : `snake_case` (ex. `audio_player_service.dart`).
 - **Classes** : `PascalCase`.
 - **Imports** : ordre Dart SDK → Flutter → packages → relatifs ; pas d’imports relatifs vers `lib/` (utiliser `package:musio/...`).
-- **Format** : `dart format .` avant de commit.
-- **Lint** : `flutter analyze` doit passer (voir `analysis_options.yaml`).
+- **Format** : `cd apps/mobile && dart format .` avant de commit.
+- **Lint** : `make app-analyze` doit passer (ou `cd apps/mobile && flutter analyze`).
 - **Riverpod** : préférer `@riverpod` / `@Riverpod()` avec code generation.
 - **Tests** : nouveaux comportements métier ou services de préférence couverts par des tests.
 
@@ -30,7 +30,7 @@ Détails : [CONVENTIONS.md](CONVENTIONS.md).
 
 1. Créer une branche depuis `main` : `git checkout -b feat/ma-feature` ou `fix/description-bug`.
 2. Faire des commits clairs (ex. `feat: ajout du preset Rock à l’égaliseur`).
-3. Lancer `flutter analyze` et `dart run build_runner build` si tu touches aux modèles/providers.
+3. Lancer `make app-analyze` et `make app-codegen` si tu touches aux modèles/providers.
 4. Ouvrir une PR vers `main` en remplissant le template (description, type, checklist).
 5. Répondre aux retours de review si besoin.
 

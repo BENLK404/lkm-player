@@ -51,9 +51,9 @@ git push -u origin main
 Si [GitHub CLI (gh)](https://cli.github.com/) est installé et connecté (`gh auth login`) :
 
 ```bash
-cd musio
+cd apps/mobile
 flutter build apk --release
-gh release create v1.0.0 build/app/outputs/flutter-apk/app-release.apk --title "v1.0.0" --notes-file CHANGELOG.md
+gh release create v1.0.0 build/app/outputs/flutter-apk/app-release.apk --title "v1.0.0" --notes-file ../../CHANGELOG.md
 ```
 
 Pour une release draft (à publier plus tard) : ajouter `--draft`.

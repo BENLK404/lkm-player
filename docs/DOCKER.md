@@ -1,15 +1,15 @@
 # Docker (Bot + API)
 
-Ce projet peut tourner en Docker de 2 façons :
+Ce projet peut tourner en Docker de 2 facons :
 
 - **Bot Telegram** : `main.py` (polling Telegram)
 - **API REST** : `api.server:app` (FastAPI / Uvicorn) pour une app (ex: Flutter / LKM Player)
 
-## Prérequis
+## Prerequis
 
 - Docker (Docker Desktop sur Windows)
 - Docker Compose
-- Un fichier `token.env` **à la racine** du projet (même dossier que `docker-compose.yml`)
+- Un fichier `token.env` dans `services/api/` (le `docker-compose.yml` racine le reference)
 
 Exemple minimal :
 
@@ -19,24 +19,24 @@ TELEGRAM_TOKEN=VOTRE_TOKEN_BOT
 BOT_LANG=fr
 ```
 
-Optionnel (YouTube) : place un `cookies.txt` dans `./local_resources/` (voir la doc `yt-dlp`).
+Optionnel (YouTube) : place un `cookies.txt` dans `services/api/local_resources/` (voir la doc `yt-dlp`).
 
-## Lancer avec Docker Compose (recommandé)
+## Lancer avec Docker Compose (recommande)
 
-Depuis la racine du projet :
+Depuis la **racine du monorepo** (`lkm-player/`) :
 
 ### Bot uniquement
 
 ```bash
-docker-compose up -d --build bot
-docker-compose logs -f bot
+docker compose up -d --build bot
+docker compose logs -f bot
 ```
 
 ### API uniquement
 
 ```bash
-docker-compose up -d --build api
-docker-compose logs -f api
+docker compose up -d --build api
+docker compose logs -f api
 ```
 
 - API : `http://localhost:8000/`
@@ -45,63 +45,68 @@ docker-compose logs -f api
 ### Bot + API
 
 ```bash
-docker-compose up -d --build
+docker compose up -d --build
+```
+
+Ou via le Makefile :
+
+```bash
+make docker-up
 ```
 
 ### Stop / suppression
 
 ```bash
-docker-compose down
+docker compose down
 ```
 
 ## Lancer sans Compose (docker run)
 
-### Construire l’image
+### Construire l'image
 
 ```bash
-docker build -t telegramusic:latest .
+docker build -t lkm-api:latest ./services/api
 ```
 
 ### Lancer le bot
 
 ```bash
-docker run --rm --env-file token.env ^
-  -v "%cd%/local_resources:/tmp/local_resources:ro" ^
-  -e COOKIES_PATH=/tmp/local_resources/cookies.txt ^
-  telegramusic:latest
+docker run --rm --env-file services/api/token.env \
+  -v "$(pwd)/services/api/local_resources:/tmp/local_resources:ro" \
+  -e COOKIES_PATH=/tmp/local_resources/cookies.txt \
+  lkm-api:latest
 ```
 
-### Lancer l’API
+### Lancer l'API
 
 ```bash
-docker run --rm -p 8000:8000 --env-file token.env ^
-  telegramusic:latest python -m uvicorn api.server:app --host 0.0.0.0 --port 8000
+docker run --rm -p 8000:8000 --env-file services/api/token.env \
+  lkm-api:latest python -m uvicorn api.server:app --host 0.0.0.0 --port 8000
 ```
 
-## Image “portable” (export/import)
+## Image "portable" (export/import)
 
 Sur une machine :
 
 ```bash
-docker save -o telegramusic.tar telegramusic:latest
+docker save -o lkm-api.tar lkm-api:latest
 ```
 
 Sur une autre machine :
 
 ```bash
-docker load -i telegramusic.tar
+docker load -i lkm-api.tar
 ```
 
-## Dépannage
+## Depannage
 
 ### Windows : `dockerDesktopLinuxEngine` introuvable
 
-- Démarrer **Docker Desktop**
-- Vérifier :
+- Demarrer **Docker Desktop**
+- Verifier :
 
 ```powershell
 docker ps
 ```
 
-Quand `docker ps` fonctionne, relancer `docker-compose up ...`.
-
+Quand `docker ps` fonctionne, relancer `docker compose up ...`.

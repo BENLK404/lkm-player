@@ -1,6 +1,6 @@
-# 🎨 Guide de l'Interface Utilisateur - LKM Player
+# Guide de l'Interface Utilisateur - LKM Player
 
-## 📱 Structure de Navigation
+## Structure de Navigation
 
 L'application utilise **GoRouter** pour une navigation déclarative et performante.
 
@@ -30,7 +30,7 @@ context.go('/now-playing');
 
 ---
 
-## 🎨 Thème
+## Thème
 
 L'application utilise un thème personnalisé avec support du mode clair et sombre.
 
@@ -64,7 +64,7 @@ Theme.of(context).textTheme.bodyMedium
 
 ---
 
-## 🧩 Widgets Réutilisables
+## Widgets Réutilisables
 
 ### 1. SongTile
 
@@ -135,7 +135,7 @@ ArtistCard(
 
 ---
 
-## 📺 Écrans Principaux
+## Écrans Principaux
 
 ### HomeScreen
 
@@ -211,7 +211,7 @@ Recherche globale:
 
 ---
 
-## 🎯 Bonnes Pratiques
+## Bonnes Pratiques
 
 ### 1. Utilisation des Providers
 
@@ -265,7 +265,7 @@ const MiniPlayer()
 
 ---
 
-## 🔄 États du Lecteur
+## États du Lecteur
 
 ### PlayerState
 
@@ -294,11 +294,11 @@ enum RepeatMode {
 
 ---
 
-## 🎨 Personnalisation
+## Personnalisation
 
 ### Modifier le Thème
 
-Éditez `/lib/core/theme/app_theme.dart`:
+Éditez `apps/mobile/lib/core/theme/app_theme.dart`:
 
 ```dart
 static const Color primaryColor = Color(0xFF6C63FF); // Votre couleur
@@ -306,8 +306,8 @@ static const Color primaryColor = Color(0xFF6C63FF); // Votre couleur
 
 ### Ajouter une Route
 
-1. Créez l'écran dans `/lib/features/{feature}/presentation/screens/`
-2. Ajoutez la route dans `/lib/core/routing/app_router.dart`
+1. Créez l'écran dans `apps/mobile/lib/features/{feature}/presentation/screens/`
+2. Ajoutez la route dans `apps/mobile/lib/core/routing/app_router.dart`
 
 ```dart
 GoRoute(
@@ -319,13 +319,13 @@ GoRoute(
 
 ### Créer un Widget Réutilisable
 
-1. Créez le fichier dans `/lib/shared/widgets/`
-2. Exportez-le dans `/lib/shared/widgets/widgets.dart`
+1. Créez le fichier dans `apps/mobile/lib/shared/widgets/`
+2. Exportez-le dans `apps/mobile/lib/shared/widgets/widgets.dart`
 3. Utilisez-le partout avec `import 'package:musio/shared/widgets/widgets.dart';`
 
 ---
 
-## 📦 Packages UI Utilisés
+## Packages UI Utilisés
 
 - **go_router**: Navigation déclarative
 - **flutter_riverpod**: State management
@@ -334,7 +334,7 @@ GoRoute(
 
 ---
 
-## 🚀 Prochaines Étapes UI
+## Prochaines Étapes UI
 
 - [ ] Animations de transition entre écrans
 - [ ] Couleurs adaptatives basées sur la pochette (palette_generator)
@@ -347,4 +347,4 @@ GoRoute(
 
 ---
 
-**Dernière mise à jour**: 2024-02-08
+**Dernière mise à jour** : 2025

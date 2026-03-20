@@ -1,6 +1,6 @@
-# 📋 TODO - LKM Player Development Roadmap
+# TODO - LKM Player Development Roadmap
 
-## ✅ Phase 1 : Structure & Core (TERMINÉ)
+## Phase 1 : Structure & Core (TERMINÉ)
 
 - [x] Structure du projet (Feature-First)
 - [x] Configuration Freezed + Riverpod
@@ -14,7 +14,7 @@
 
 ---
 
-## ✅ Phase 2 : Interface Utilisateur (TERMINÉE)
+## Phase 2 : Interface Utilisateur (TERMINÉE)
 
 ### 2.1 Navigation & Routing
 
@@ -61,7 +61,7 @@
 
 ---
 
-## 🎨 Phase 3 : Fonctionnalités Avancées
+## Phase 3 : Fonctionnalités Avancées
 
 ### 3.1 Recherche
 
@@ -96,7 +96,7 @@
 
 ---
 
-## 🎯 Phase 4 : Perfectionnement
+## Phase 4 : Perfectionnement
 
 ### 4.1 Persistance & Cache
 
@@ -135,7 +135,7 @@
 
 ---
 
-## 🎵 Phase 5 : Fonctionnalités Bonus
+## Phase 5 : Fonctionnalités Bonus
 
 ### 5.1 Recommandations
 
@@ -162,7 +162,7 @@
 
 ---
 
-## 🐛 Bugs & Corrections
+## Bugs & Corrections
 
 ### Bugs Connus
 - [ ] Aucun pour l'instant
@@ -177,7 +177,7 @@
 
 ---
 
-## 📝 Documentation
+## Documentation
 
 - [ ] Ajouter screenshots dans README
 - [ ] Créer guide utilisateur
@@ -186,7 +186,7 @@
 
 ---
 
-## 🧪 Tests
+## Tests
 
 ### Tests Unitaires
 - [x] AudioPlayerService (basique)
@@ -206,7 +206,7 @@
 
 ---
 
-## 🚀 Déploiement
+## Déploiement
 
 - [ ] Icône d'application
 - [ ] Splash screen
@@ -219,7 +219,7 @@
 
 ---
 
-## 💡 Idées Futures
+## Idées Futures
 
 - [ ] Mode voiture (Car Mode)
 - [ ] Gestes (swipe pour changer chanson)
@@ -232,19 +232,19 @@
 
 ---
 
-## 📊 Priorités
+## Priorités
 
-### 🔴 HAUTE PRIORITÉ
+### HAUTE PRIORITÉ
 1. Tests unitaires (repository, player, providers)
 2. Messages d’erreur utilisateur explicites (permissions, scan)
 3. Persistance paramètres (thème, égaliseur) si pas déjà fait
 
-### 🟡 MOYENNE PRIORITÉ
+### MOYENNE PRIORITÉ
 1. Playlists système (Favoris, Récemment jouées, Les plus jouées)
 2. Paroles .lrc externes, égaliseur presets
 3. Performance (pagination / lazy load si grosse bibliothèque)
 
-### 🟢 BASSE PRIORITÉ
+### BASSE PRIORITÉ
 1. Statistiques avancées, recommandations
 2. Widgets home screen (Android / iOS)
 3. Intégrations (Last.fm, Genius, etc.)
