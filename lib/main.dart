@@ -56,39 +56,26 @@ class MusioApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final themeModeAsync = ref.watch(themeModeSettingProvider);
+    final accentColorAsync = ref.watch(accentColorSettingProvider);
 
-    return themeModeAsync.when(
-      data: (modeIndex) {
-        final themeMode = switch (modeIndex) {
-          0 => ThemeMode.light,
-          1 => ThemeMode.dark,
-          _ => ThemeMode.system,
-        };
-        return MaterialApp.router(
-          title: 'LKM Player',
-          debugShowCheckedModeBanner: false,
-          theme: AppTheme.lightTheme,
-          darkTheme: AppTheme.darkTheme,
-          themeMode: themeMode,
-          routerConfig: AppRouter.router,
-        );
-      },
-      loading: () => MaterialApp.router(
-        title: 'LKM Player',
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.lightTheme,
-        darkTheme: AppTheme.darkTheme,
-        themeMode: ThemeMode.dark,
-        routerConfig: AppRouter.router,
-      ),
-      error: (_, __) => MaterialApp.router(
-        title: 'LKM Player',
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.lightTheme,
-        darkTheme: AppTheme.darkTheme,
-        themeMode: ThemeMode.dark,
-        routerConfig: AppRouter.router,
-      ),
+    final modeIndex = themeModeAsync.valueOrNull ?? 1;
+    final colorIndex = (accentColorAsync.valueOrNull ?? 0).clamp(0, AppTheme.accentColors.length - 1);
+    final seedColor = AppTheme.accentColors[colorIndex];
+
+    final themeMode = switch (modeIndex) {
+      0 => ThemeMode.light,
+      1 => ThemeMode.dark,
+      _ => ThemeMode.system,
+    };
+
+    return MaterialApp.router(
+      title: 'LKM Player',
+      debugShowCheckedModeBanner: false,
+      theme: AppTheme.themeFor(seedColor, Brightness.light),
+      darkTheme: AppTheme.themeFor(seedColor, Brightness.dark),
+      themeMode: themeMode,
+      routerConfig: AppRouter.router,
     );
   }
 }
+

@@ -201,12 +201,30 @@ final excludeOtherMessagingProvider =
 );
 
 typedef _$ExcludeOtherMessaging = AutoDisposeAsyncNotifier<bool>;
-String _$downloadApiBaseUrlHash() =>
-    r'd24f65cc8eb89c6df7eb25c838eac8acf9f66a72';
+String _$accentColorSettingHash() =>
+    r'c292685afb0063ef6c70890908e2742c73b2c368';
 
-/// URL de base de l'API Telegramusic. Défaut utilisé si l'utilisateur n'a rien configuré.
+/// Couleur d'accentuation choisie par l'utilisateur (index 0–4).
+/// 0 = Teal (défaut), 1 = Rouge, 2 = Jaune, 3 = Violet, 4 = Orange
 ///
-/// Copied from [DownloadApiBaseUrl].
+/// Copied from [AccentColorSetting].
+@ProviderFor(AccentColorSetting)
+final accentColorSettingProvider =
+    AutoDisposeAsyncNotifierProvider<AccentColorSetting, int>.internal(
+  AccentColorSetting.new,
+  name: r'accentColorSettingProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$accentColorSettingHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef _$AccentColorSetting = AutoDisposeAsyncNotifier<int>;
+String _$downloadApiBaseUrlHash() =>
+    r'95b654c39488a233180322c9fd10319993d26a62';
+
+/// See also [DownloadApiBaseUrl].
 @ProviderFor(DownloadApiBaseUrl)
 final downloadApiBaseUrlProvider =
     AutoDisposeAsyncNotifierProvider<DownloadApiBaseUrl, String>.internal(

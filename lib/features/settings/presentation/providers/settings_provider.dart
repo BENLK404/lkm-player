@@ -200,6 +200,25 @@ class ExcludeOtherMessaging extends _$ExcludeOtherMessaging {
   }
 }
 
+/// Couleur d'accentuation choisie par l'utilisateur (index 0–4).
+/// 0 = Teal (défaut), 1 = Rouge, 2 = Jaune, 3 = Violet, 4 = Orange
+@riverpod
+class AccentColorSetting extends _$AccentColorSetting {
+  late SharedPreferences _prefs;
+  static const _key = 'accent_color_index';
+
+  @override
+  Future<int> build() async {
+    _prefs = await SharedPreferences.getInstance();
+    return _prefs.getInt(_key) ?? 0;
+  }
+
+  Future<void> setColorIndex(int index) async {
+    state = AsyncValue.data(index);
+    await _prefs.setInt(_key, index);
+  }
+}
+
 /// URL de base de l'API Telegramusic.
 /// Défaut utilisé si l'utilisateur n'a rien configuré dans Paramètres.
 const String kDownloadApiBaseUrlDefault = 'https://lkm.emmanuekebeh.dev';

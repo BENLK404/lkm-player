@@ -24,7 +24,7 @@ final audioPlayerServiceProvider = Provider<AudioPlayerService>.internal(
 );
 
 typedef AudioPlayerServiceRef = ProviderRef<AudioPlayerService>;
-String _$audioPlayerHash() => r'72ce2850ab263a4a32b8849d379e7919295dcbb1';
+String _$audioPlayerHash() => r'b0a9790f5c9943b9dfa63fd0ac6cd139acb9aef5';
 
 /// See also [AudioPlayer].
 @ProviderFor(AudioPlayer)
