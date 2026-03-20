@@ -1,0 +1,41 @@
+name: API CI
+
+on:
+  push:
+    branches: [main, develop, monorepo]
+    paths:
+      - 'services/api/**'
+  pull_request:
+    paths:
+      - 'services/api/**'
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: services/api
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Check syntax
+        run: python -m py_compile main.py && python -m py_compile api/server.py
+
+  docker:
+    runs-on: ubuntu-latest
+    needs: lint-and-test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t lkm-api ./services/api
