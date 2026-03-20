@@ -19,7 +19,7 @@ migrate_working_dir/
 *.ipr
 *.iws
 .idea/
-# .vscode/
+.vscode/
 
 # ===== Flutter / Dart =====
 **/doc/api/
