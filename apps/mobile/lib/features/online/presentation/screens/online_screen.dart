@@ -255,7 +255,6 @@ class _OnlineScreenState extends ConsumerState<OnlineScreen> {
                     isDownloading: isDl,
                     progress: isDl ? downloadProgress : null,
                     onOpenDetails: () => _openAlbumTracksSheet(context, ref, apiClient, album),
-                    onDownloadAlbum: () => _downloadAlbum(context, album),
                   );
                 },
               ),
@@ -731,7 +730,6 @@ class _AlbumCard extends StatelessWidget {
     required this.isDownloading,
     required this.progress,
     required this.onOpenDetails,
-    required this.onDownloadAlbum,
   });
 
   final DeezerSearchResult album;
@@ -739,7 +737,6 @@ class _AlbumCard extends StatelessWidget {
   final bool isDownloading;
   final double? progress;
   final VoidCallback onOpenDetails;
-  final VoidCallback onDownloadAlbum;
 
   @override
   Widget build(BuildContext context) {
@@ -819,10 +816,10 @@ class _AlbumCard extends StatelessWidget {
                           shadowColor: Colors.black38,
                           child: InkWell(
                             customBorder: const CircleBorder(),
-                            onTap: onDownloadAlbum,
+                            onTap: onOpenDetails,
                             child: const Padding(
                               padding: EdgeInsets.all(10),
-                              child: Icon(Icons.download_rounded, color: Colors.white, size: 20),
+                              child: Icon(Icons.queue_music_rounded, color: Colors.white, size: 20),
                             ),
                           ),
                         ),
