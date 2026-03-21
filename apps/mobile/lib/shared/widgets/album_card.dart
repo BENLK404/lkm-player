@@ -11,8 +11,8 @@ class AlbumCard extends StatelessWidget {
   final String? customDetails;
 
   const AlbumCard({
-    super.key,
     required this.album,
+    super.key,
     this.onTap,
     this.onPlayTap,
     this.customSubtitle,
@@ -43,8 +43,9 @@ class AlbumCard extends StatelessWidget {
                     Positioned.fill(
                       child: AlbumArtImage(
                         albumArtPath: album.albumArtPath,
-                        songId:
-                            album.songIds.isNotEmpty ? album.songIds.first : '0',
+                        songId: album.songIds.isNotEmpty
+                            ? album.songIds.first
+                            : '0',
                         size: double.infinity,
                         borderRadius: BorderRadius.zero,
                         fit: BoxFit.cover,
@@ -104,8 +105,8 @@ class AlbumCard extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: scheme.onSurfaceVariant
-                                .withValues(alpha: 0.8),
+                            color:
+                                scheme.onSurfaceVariant.withValues(alpha: 0.8),
                           ),
                     ),
                   ],

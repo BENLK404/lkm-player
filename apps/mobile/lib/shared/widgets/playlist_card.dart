@@ -7,15 +7,16 @@ class PlaylistCard extends StatelessWidget {
   final VoidCallback onTap;
   final VoidCallback? onPlayTap;
   final String details;
-  final List<String?> albumArtPaths; // Liste des chemins d'images pour la mosaïque
+  final List<String?>
+      albumArtPaths; // Liste des chemins d'images pour la mosaïque
 
   const PlaylistCard({
-    super.key,
     required this.playlist,
     required this.onTap,
-    this.onPlayTap,
     required this.details,
     required this.albumArtPaths,
+    super.key,
+    this.onPlayTap,
   });
 
   @override
@@ -37,7 +38,10 @@ class PlaylistCard extends StatelessWidget {
                   child: Container(
                     width: 130,
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+                      color: Theme.of(context)
+                          .colorScheme
+                          .primary
+                          .withValues(alpha: 0.3),
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
@@ -48,7 +52,10 @@ class PlaylistCard extends StatelessWidget {
                   child: Container(
                     width: 140,
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.6),
+                      color: Theme.of(context)
+                          .colorScheme
+                          .primary
+                          .withValues(alpha: 0.6),
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
@@ -65,7 +72,8 @@ class PlaylistCard extends StatelessWidget {
                         offset: const Offset(0, 4),
                       ),
                     ],
-                    color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                    color:
+                        Theme.of(context).colorScheme.surfaceContainerHighest,
                   ),
                   child: Stack(
                     children: [
@@ -81,7 +89,8 @@ class PlaylistCard extends StatelessWidget {
                         child: Container(
                           height: 60,
                           decoration: BoxDecoration(
-                            borderRadius: const BorderRadius.vertical(bottom: Radius.circular(12)),
+                            borderRadius: const BorderRadius.vertical(
+                                bottom: Radius.circular(12)),
                             gradient: LinearGradient(
                               begin: Alignment.topCenter,
                               end: Alignment.bottomCenter,
@@ -150,7 +159,10 @@ class PlaylistCard extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withValues(alpha: 0.6),
                         fontSize: 11,
                       ),
                 ),
@@ -164,7 +176,8 @@ class PlaylistCard extends StatelessWidget {
 
   Widget _buildMosaic(BuildContext context) {
     // Filtrer les chemins nuls
-    final validPaths = albumArtPaths.where((path) => path != null).take(4).toList();
+    final validPaths =
+        albumArtPaths.where((path) => path != null).take(4).toList();
 
     if (validPaths.isEmpty) {
       return Container(

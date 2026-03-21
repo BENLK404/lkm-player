@@ -15,8 +15,8 @@ class ArtistDetailsScreen extends ConsumerStatefulWidget {
   final String artistId;
 
   const ArtistDetailsScreen({
-    super.key,
     required this.artistId,
+    super.key,
   });
 
   @override

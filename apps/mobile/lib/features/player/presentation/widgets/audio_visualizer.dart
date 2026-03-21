@@ -13,8 +13,8 @@ class AudioVisualizer extends StatefulWidget {
   final Color? color;
 
   const AudioVisualizer({
-    super.key,
     required this.isPlaying,
+    super.key,
     this.barCount = 32,
     this.barWidth = 3,
     this.minHeight = 4,

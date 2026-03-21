@@ -502,11 +502,11 @@ class _QueueTile extends StatelessWidget {
   final Widget dragHandle;
 
   const _QueueTile({
-    super.key,
     required this.song,
     required this.isNext,
     required this.onTap,
     required this.dragHandle,
+    super.key,
   });
 
   static const _green = Color(0xFF1DB954);

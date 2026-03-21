@@ -13,9 +13,9 @@ class AlbumArtImage extends StatelessWidget {
   final Widget? placeholderIcon;
 
   const AlbumArtImage({
+    required this.songId,
     super.key,
     this.albumArtPath,
-    required this.songId,
     this.size = 48,
     this.borderRadius,
     this.fit = BoxFit.cover,
@@ -90,9 +90,9 @@ class AlbumArtImageLarge extends StatelessWidget {
   final String? heroTag;
 
   const AlbumArtImageLarge({
+    required this.songId,
     super.key,
     this.albumArtPath,
-    required this.songId,
     this.size = 300,
     this.heroTag,
   });
@@ -129,10 +129,8 @@ class AlbumArtImageLarge extends StatelessWidget {
         child: Icon(
           Icons.music_note,
           size: size * 0.45,
-          color: Theme.of(context)
-              .colorScheme
-              .onSurface
-              .withValues(alpha: 0.85),
+          color:
+              Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.85),
         ),
       );
     }
@@ -159,9 +157,9 @@ class AlbumArtCircle extends StatelessWidget {
   final double size;
 
   const AlbumArtCircle({
+    required this.songId,
     super.key,
     this.albumArtPath,
-    required this.songId,
     this.size = 48,
   });
 

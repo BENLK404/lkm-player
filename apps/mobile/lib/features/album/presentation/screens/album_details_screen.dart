@@ -16,8 +16,8 @@ class AlbumDetailsScreen extends ConsumerStatefulWidget {
   final String albumId;
 
   const AlbumDetailsScreen({
-    super.key,
     required this.albumId,
+    super.key,
   });
 
   @override

@@ -18,10 +18,10 @@ class SongTile extends ConsumerWidget {
   final bool showIndex; // Nouveau paramètre
 
   const SongTile({
-    super.key,
     required this.song,
     required this.playlist,
     required this.songIndex,
+    super.key,
     this.onLongPress,
     this.showTrailingMenu = true,
     this.trailing,
@@ -33,7 +33,14 @@ class SongTile extends ConsumerWidget {
     final playerState = ref.watch(audioPlayerProvider);
     final isCurrentSong = playerState.currentSong?.id == song.id;
     final isPlaying = playerState.isPlaying && isCurrentSong;
-    final isFavorite = ref.watch(musicProvider).asData?.value.songs.firstWhere((s) => s.id == song.id, orElse: () => song).isFavorite ?? song.isFavorite;
+    final isFavorite = ref
+            .watch(musicProvider)
+            .asData
+            ?.value
+            .songs
+            .firstWhere((s) => s.id == song.id, orElse: () => song)
+            .isFavorite ??
+        song.isFavorite;
 
     return ListTile(
       leading: showIndex
@@ -79,107 +86,113 @@ class SongTile extends ConsumerWidget {
               : Theme.of(context).textTheme.bodySmall?.color,
         ),
       ),
-      trailing: trailing ?? (showTrailingMenu
-          ? Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  _formatDuration(Duration(milliseconds: song.duration)),
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-                const SizedBox(width: 8),
-                PopupMenuButton<String>(
-                  icon: const Icon(Icons.more_vert),
-                  onSelected: (value) => _handleMenuAction(context, ref, value),
-                  itemBuilder: (context) => [
-                    PopupMenuItem(
-                      value: 'toggle_favorite',
-                      child: Row(
-                        children: [
-                          Icon(isFavorite
-                              ? Icons.favorite
-                              : Icons.favorite_border),
-                          const SizedBox(width: 12),
-                          Text(isFavorite
-                              ? 'Retirer des favoris'
-                              : 'Ajouter aux favoris'),
-                        ],
-                      ),
+      trailing: trailing ??
+          (showTrailingMenu
+              ? Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      _formatDuration(Duration(milliseconds: song.duration)),
+                      style: Theme.of(context).textTheme.bodySmall,
                     ),
-                    const PopupMenuDivider(),
-                    const PopupMenuItem(
-                      value: 'play_next',
-                      child: Row(
-                        children: [
-                          Icon(Icons.queue_music),
-                          SizedBox(width: 12),
-                          Text('Lire ensuite'),
-                        ],
-                      ),
-                    ),
-                    const PopupMenuItem(
-                      value: 'add_to_queue',
-                      child: Row(
-                        children: [
-                          Icon(Icons.playlist_add),
-                          SizedBox(width: 12),
-                          Text('Ajouter à la file'),
-                        ],
-                      ),
-                    ),
-                    const PopupMenuItem(
-                      value: 'add_to_playlist',
-                      child: Row(
-                        children: [
-                          Icon(Icons.playlist_play),
-                          SizedBox(width: 12),
-                          Text('Ajouter à la playlist'),
-                        ],
-                      ),
-                    ),
-                    const PopupMenuDivider(),
-                    if (MusicRepository.effectiveAlbumKey(song) != null)
-                      const PopupMenuItem(
-                        value: 'go_to_album',
-                        child: Row(
-                          children: [
-                            Icon(Icons.album),
-                            SizedBox(width: 12),
-                            Text('Aller à l\'album'),
-                          ],
+                    const SizedBox(width: 8),
+                    PopupMenuButton<String>(
+                      icon: const Icon(Icons.more_vert),
+                      onSelected: (value) =>
+                          _handleMenuAction(context, ref, value),
+                      itemBuilder: (context) => [
+                        PopupMenuItem(
+                          value: 'toggle_favorite',
+                          child: Row(
+                            children: [
+                              Icon(isFavorite
+                                  ? Icons.favorite
+                                  : Icons.favorite_border),
+                              const SizedBox(width: 12),
+                              Text(isFavorite
+                                  ? 'Retirer des favoris'
+                                  : 'Ajouter aux favoris'),
+                            ],
+                          ),
                         ),
-                      ),
-                    if (MusicRepository.effectiveArtistKey(song) != null)
-                      const PopupMenuItem(
-                        value: 'go_to_artist',
-                        child: Row(
-                          children: [
-                            Icon(Icons.person),
-                            SizedBox(width: 12),
-                            Text('Aller à l\'artiste'),
-                          ],
+                        const PopupMenuDivider(),
+                        const PopupMenuItem(
+                          value: 'play_next',
+                          child: Row(
+                            children: [
+                              Icon(Icons.queue_music),
+                              SizedBox(width: 12),
+                              Text('Lire ensuite'),
+                            ],
+                          ),
                         ),
-                      ),
-                    const PopupMenuDivider(),
-                    PopupMenuItem(
-                      value: 'delete_song',
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.delete_outline, color: Theme.of(context).colorScheme.error),
-                          const SizedBox(width: 12),
-                          Text('Supprimer de la bibliothèque', style: TextStyle(color: Theme.of(context).colorScheme.error)),
-                        ],
-                      ),
+                        const PopupMenuItem(
+                          value: 'add_to_queue',
+                          child: Row(
+                            children: [
+                              Icon(Icons.playlist_add),
+                              SizedBox(width: 12),
+                              Text('Ajouter à la file'),
+                            ],
+                          ),
+                        ),
+                        const PopupMenuItem(
+                          value: 'add_to_playlist',
+                          child: Row(
+                            children: [
+                              Icon(Icons.playlist_play),
+                              SizedBox(width: 12),
+                              Text('Ajouter à la playlist'),
+                            ],
+                          ),
+                        ),
+                        const PopupMenuDivider(),
+                        if (MusicRepository.effectiveAlbumKey(song) != null)
+                          const PopupMenuItem(
+                            value: 'go_to_album',
+                            child: Row(
+                              children: [
+                                Icon(Icons.album),
+                                SizedBox(width: 12),
+                                Text('Aller à l\'album'),
+                              ],
+                            ),
+                          ),
+                        if (MusicRepository.effectiveArtistKey(song) != null)
+                          const PopupMenuItem(
+                            value: 'go_to_artist',
+                            child: Row(
+                              children: [
+                                Icon(Icons.person),
+                                SizedBox(width: 12),
+                                Text('Aller à l\'artiste'),
+                              ],
+                            ),
+                          ),
+                        const PopupMenuDivider(),
+                        PopupMenuItem(
+                          value: 'delete_song',
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.delete_outline,
+                                  color: Theme.of(context).colorScheme.error),
+                              const SizedBox(width: 12),
+                              Text('Supprimer de la bibliothèque',
+                                  style: TextStyle(
+                                      color:
+                                          Theme.of(context).colorScheme.error)),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ],
-                ),
-              ],
-            )
-          : Text(
-              _formatDuration(Duration(milliseconds: song.duration)),
-              style: Theme.of(context).textTheme.bodySmall,
-            )),
+                )
+              : Text(
+                  _formatDuration(Duration(milliseconds: song.duration)),
+                  style: Theme.of(context).textTheme.bodySmall,
+                )),
       onTap: () => _playSong(ref),
       onLongPress: onLongPress,
     );
@@ -221,16 +234,18 @@ class SongTile extends ConsumerWidget {
       case 'add_to_playlist':
         _showAddToPlaylistDialog(context, ref, song);
         break;
-      case 'go_to_album': {
-        final albumId = MusicRepository.effectiveAlbumKey(song);
-        if (albumId != null) context.push('/album/$albumId');
-        break;
-      }
-      case 'go_to_artist': {
-        final artistId = MusicRepository.effectiveArtistKey(song);
-        if (artistId != null) context.push('/artist/$artistId');
-        break;
-      }
+      case 'go_to_album':
+        {
+          final albumId = MusicRepository.effectiveAlbumKey(song);
+          if (albumId != null) context.push('/album/$albumId');
+          break;
+        }
+      case 'go_to_artist':
+        {
+          final artistId = MusicRepository.effectiveArtistKey(song);
+          if (artistId != null) context.push('/artist/$artistId');
+          break;
+        }
       case 'delete_song':
         _confirmDeleteSong(context, ref);
         break;
