@@ -356,43 +356,31 @@ class SettingsScreen extends ConsumerWidget {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Thème'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            RadioListTile<int>(
-              title: const Text('Clair'),
-              value: 0,
-              groupValue: current,
-              onChanged: (v) {
-                if (v != null) {
-                  ref.read(themeModeSettingProvider.notifier).setMode(v);
-                }
-                Navigator.pop(context);
-              },
-            ),
-            RadioListTile<int>(
-              title: const Text('Sombre'),
-              value: 1,
-              groupValue: current,
-              onChanged: (v) {
-                if (v != null) {
-                  ref.read(themeModeSettingProvider.notifier).setMode(v);
-                }
-                Navigator.pop(context);
-              },
-            ),
-            RadioListTile<int>(
-              title: const Text('Système'),
-              value: 2,
-              groupValue: current,
-              onChanged: (v) {
-                if (v != null) {
-                  ref.read(themeModeSettingProvider.notifier).setMode(v);
-                }
-                Navigator.pop(context);
-              },
-            ),
-          ],
+        content: RadioGroup<int>(
+          groupValue: current,
+          onChanged: (v) {
+            if (v != null) {
+              ref.read(themeModeSettingProvider.notifier).setMode(v);
+            }
+            Navigator.pop(context);
+          },
+          child: const Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              RadioListTile<int>(
+                title: Text('Clair'),
+                value: 0,
+              ),
+              RadioListTile<int>(
+                title: Text('Sombre'),
+                value: 1,
+              ),
+              RadioListTile<int>(
+                title: Text('Système'),
+                value: 2,
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -498,23 +486,27 @@ class SettingsScreen extends ConsumerWidget {
       builder: (context) => AlertDialog(
         title: const Text('Minuteur de sommeil (défaut)'),
         content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: options
-                .map((m) => RadioListTile<int>(
+          child: RadioGroup<int>(
+            groupValue: current,
+            onChanged: (v) {
+              if (v != null) {
+                ref
+                    .read(sleepTimerDefaultMinutesProvider.notifier)
+                    .setDefaultMinutes(v);
+              }
+              Navigator.pop(context);
+            },
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: options
+                  .map(
+                    (m) => RadioListTile<int>(
                       title: Text(m == 0 ? 'Désactivé' : '$m min'),
                       value: m,
-                      groupValue: current,
-                      onChanged: (v) {
-                        if (v != null) {
-                          ref
-                              .read(sleepTimerDefaultMinutesProvider.notifier)
-                              .setDefaultMinutes(v);
-                        }
-                        Navigator.pop(context);
-                      },
-                    ))
-                .toList(),
+                    ),
+                  )
+                  .toList(),
+            ),
           ),
         ),
       ),
