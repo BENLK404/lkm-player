@@ -127,7 +127,7 @@ class _VinylCardState extends ConsumerState<VinylCard>
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary.withOpacity(0.8),
+                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
@@ -159,7 +159,7 @@ class _VinylCardState extends ConsumerState<VinylCard>
             overflow: TextOverflow.ellipsis,
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                   fontSize: 10,
                 ),
           ),

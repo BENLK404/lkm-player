@@ -78,7 +78,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
 
                     BoxShadow(
 
-                      color: Theme.of(context).colorScheme.surface.withOpacity(0.6),
+                      color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.6),
 
                       blurRadius: 20,
 
@@ -148,7 +148,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
                   strokeWidth: 2,
                   // On utilise une couleur "Cyan/Teal" pour rappeler les circuits du logo
                   color: const Color(0xFF64FFDA),
-                  backgroundColor: Colors.white.withOpacity(0.1),
+                  backgroundColor: Colors.white.withValues(alpha: 0.1),
                 ),
               ),
             ],

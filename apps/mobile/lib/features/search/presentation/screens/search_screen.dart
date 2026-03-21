@@ -39,7 +39,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
             hintText: 'Rechercher une chanson, un album, un artiste...',
             border: InputBorder.none,
             hintStyle: TextStyle(
-              color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.5),
+              color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.5),
             ),
           ),
           style: Theme.of(context).textTheme.titleMedium,
@@ -240,7 +240,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
           Icon(
             Icons.search,
             size: 80,
-            color: Colors.grey.withOpacity(0.5),
+            color: Colors.grey.withValues(alpha: 0.5),
           ),
           const SizedBox(height: 16),
           Text(
@@ -268,7 +268,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
           Icon(
             Icons.search_off,
             size: 80,
-            color: Colors.grey.withOpacity(0.5),
+            color: Colors.grey.withValues(alpha: 0.5),
           ),
           const SizedBox(height: 16),
           Text(

@@ -103,13 +103,13 @@ class _OnlineScreenState extends ConsumerState<OnlineScreen> {
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.5),
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
                   Icons.settings_ethernet_rounded,
                   size: 56,
-                  color: Theme.of(context).colorScheme.primary.withOpacity(0.8),
+                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
                 ),
               ),
               const SizedBox(height: 24),
@@ -186,7 +186,7 @@ class _OnlineScreenState extends ConsumerState<OnlineScreen> {
               Icon(
                 Icons.search_rounded,
                 size: 72,
-                color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.6),
+                color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
               ),
               const SizedBox(height: 20),
               Text(
@@ -200,7 +200,7 @@ class _OnlineScreenState extends ConsumerState<OnlineScreen> {
               Text(
                 'Saisissez un titre ou un artiste puis validez.',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.8),
+                  color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.8),
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -321,7 +321,7 @@ class _OnlineScreenState extends ConsumerState<OnlineScreen> {
                           child: CircularProgressIndicator(
                             value: (progress ?? 0.0).clamp(0.0, 1.0),
                             strokeWidth: 2,
-                            backgroundColor: theme.colorScheme.surface.withOpacity(0.5),
+                            backgroundColor: theme.colorScheme.surface.withValues(alpha: 0.5),
                           ),
                         )
                       : Material(
@@ -380,8 +380,8 @@ class _OnlineScreenState extends ConsumerState<OnlineScreen> {
       color: Colors.transparent,
       child: InkWell(
         onTap: isDownloading ? null : () => _downloadTrack(context, track),
-        splashColor: theme.colorScheme.onSurface.withOpacity(0.08),
-        highlightColor: theme.colorScheme.onSurface.withOpacity(0.04),
+        splashColor: theme.colorScheme.onSurface.withValues(alpha: 0.08),
+        highlightColor: theme.colorScheme.onSurface.withValues(alpha: 0.04),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
           child: Row(
@@ -485,7 +485,7 @@ class _OnlineScreenState extends ConsumerState<OnlineScreen> {
         child: Icon(
           Icons.album_rounded,
           size: 48,
-          color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.5),
+          color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
         ),
       ),
     );

@@ -151,7 +151,7 @@ class _ArtistDetailsScreenState extends ConsumerState<ArtistDetailsScreen> {
           // Divider
           SliverToBoxAdapter(
             child: Divider(
-              color: Colors.white.withOpacity(0.1),
+              color: Colors.white.withValues(alpha: 0.1),
               thickness: 1,
             ),
           ),

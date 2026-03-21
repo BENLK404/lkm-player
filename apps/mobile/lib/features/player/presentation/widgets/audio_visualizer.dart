@@ -77,7 +77,7 @@ class _AudioVisualizerState extends State<AudioVisualizer>
                       right: i == widget.barCount - 1 ? 0 : 2,
                     ),
                     decoration: BoxDecoration(
-                      color: color.withOpacity(0.85),
+                      color: color.withValues(alpha: 0.85),
                       borderRadius: BorderRadius.circular(widget.barWidth / 2),
                     ),
                   );

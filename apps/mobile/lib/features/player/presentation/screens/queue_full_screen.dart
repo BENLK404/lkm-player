@@ -100,8 +100,8 @@ class QueueFullScreen extends ConsumerWidget {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            _bgGradientTop.withOpacity(0.95),
-            _bgGradientTop.withOpacity(0.0),
+            _bgGradientTop.withValues(alpha: 0.95),
+            _bgGradientTop.withValues(alpha: 0.0),
           ],
         ),
       ),
@@ -260,7 +260,7 @@ class QueueFullScreen extends ConsumerWidget {
                         height: 4,
                         margin: const EdgeInsets.only(bottom: 16),
                         decoration: BoxDecoration(
-                          color: Colors.grey.withOpacity(0.3),
+                          color: Colors.grey.withValues(alpha: 0.3),
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
@@ -570,7 +570,7 @@ class _QueueTile extends StatelessWidget {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: TextStyle(
-            color: isNext ? _green.withOpacity(0.9) : Colors.white38,
+            color: isNext ? _green.withValues(alpha: 0.9) : Colors.white38,
             fontSize: 13,
           ),
         ),

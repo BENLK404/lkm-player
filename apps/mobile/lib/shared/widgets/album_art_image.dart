@@ -67,15 +67,15 @@ class AlbumArtImage extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Theme.of(context).colorScheme.primary.withOpacity(0.3),
-            Theme.of(context).colorScheme.secondary.withOpacity(0.3),
+            Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+            Theme.of(context).colorScheme.secondary.withValues(alpha: 0.3),
           ],
         ),
       ),
       child: placeholderIcon ??
           Icon(
             Icons.music_note,
-            color: Theme.of(context).iconTheme.color?.withOpacity(0.7),
+            color: Theme.of(context).iconTheme.color?.withValues(alpha: 0.7),
             size: size.isFinite ? size * 0.5 : 48,
           ),
     );

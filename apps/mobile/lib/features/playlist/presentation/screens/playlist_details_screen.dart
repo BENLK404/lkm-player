@@ -153,7 +153,7 @@ class _PlaylistDetailsScreenState extends ConsumerState<PlaylistDetailsScreen> {
                                 borderRadius: BorderRadius.circular(12),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.3),
+                                    color: Colors.black.withValues(alpha: 0.3),
                                     blurRadius: 20,
                                     offset: const Offset(0, 10),
                                   ),
@@ -396,7 +396,7 @@ class _PlaylistDetailsScreenState extends ConsumerState<PlaylistDetailsScreen> {
           color = Colors.grey;
       }
       return Container(
-        color: color.withOpacity(0.2),
+        color: color.withValues(alpha: 0.2),
         child: Icon(iconData, size: 80, color: color),
       );
     } else {

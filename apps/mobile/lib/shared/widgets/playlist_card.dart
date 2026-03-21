@@ -37,7 +37,7 @@ class PlaylistCard extends StatelessWidget {
                   child: Container(
                     width: 130,
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
@@ -48,7 +48,7 @@ class PlaylistCard extends StatelessWidget {
                   child: Container(
                     width: 140,
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary.withOpacity(0.6),
+                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.6),
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
@@ -60,7 +60,7 @@ class PlaylistCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.2),
+                        color: Colors.black.withValues(alpha: 0.2),
                         blurRadius: 8,
                         offset: const Offset(0, 4),
                       ),
@@ -87,7 +87,7 @@ class PlaylistCard extends StatelessWidget {
                               end: Alignment.bottomCenter,
                               colors: [
                                 Colors.transparent,
-                                Colors.black.withOpacity(0.6),
+                                Colors.black.withValues(alpha: 0.6),
                               ],
                             ),
                           ),
@@ -108,7 +108,7 @@ class PlaylistCard extends StatelessWidget {
                                 shape: BoxShape.circle,
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.3),
+                                    color: Colors.black.withValues(alpha: 0.3),
                                     blurRadius: 4,
                                     offset: const Offset(0, 2),
                                   ),
@@ -150,7 +150,7 @@ class PlaylistCard extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                         fontSize: 11,
                       ),
                 ),

@@ -118,7 +118,7 @@ class _LyricsFullScreenState extends ConsumerState<LyricsFullScreen> {
                           Text(
                             'Impossible de charger les paroles',
                             style: TextStyle(
-                              color: textColor.withOpacity(0.7),
+                              color: textColor.withValues(alpha: 0.7),
                               fontSize: 16,
                             ),
                           ),
@@ -153,7 +153,7 @@ class _LyricsFullScreenState extends ConsumerState<LyricsFullScreen> {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              const Color(0xFF1a1a2e).withOpacity(0.95),
+              const Color(0xFF1a1a2e).withValues(alpha: 0.95),
               const Color(0xFF121212),
               const Color(0xFF0f0f0f),
             ],
@@ -179,7 +179,7 @@ class _LyricsFullScreenState extends ConsumerState<LyricsFullScreen> {
                 child: BackdropFilter(
                   filter: ImageFilter.blur(sigmaX: 80, sigmaY: 80),
                   child: Container(
-                    color: bgColor.withOpacity(0.6),
+                    color: bgColor.withValues(alpha: 0.6),
                   ),
                 ),
               ),
@@ -233,13 +233,13 @@ class _LyricsFullScreenState extends ConsumerState<LyricsFullScreen> {
             Icon(
               Icons.lyrics_outlined,
               size: 72,
-              color: iconColorDim.withOpacity(0.24),
+              color: iconColorDim.withValues(alpha: 0.24),
             ),
             const SizedBox(height: 24),
             Text(
               'Aucune parole disponible',
               style: TextStyle(
-                color: textColor.withOpacity(0.38),
+                color: textColor.withValues(alpha: 0.38),
                 fontSize: 18,
               ),
             ),
@@ -247,7 +247,7 @@ class _LyricsFullScreenState extends ConsumerState<LyricsFullScreen> {
             Text(
               '${currentSong.title} · ${currentSong.artist}',
               style: TextStyle(
-                color: textColor.withOpacity(0.24),
+                color: textColor.withValues(alpha: 0.24),
                 fontSize: 14,
               ),
               textAlign: TextAlign.center,
@@ -269,7 +269,7 @@ class _LyricsFullScreenState extends ConsumerState<LyricsFullScreen> {
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           child: Material(
-            color: textColor.withOpacity(0.12),
+            color: textColor.withValues(alpha: 0.12),
             borderRadius: BorderRadius.circular(16),
             child: InkWell(
               onTap: () {
@@ -298,7 +298,7 @@ class _LyricsFullScreenState extends ConsumerState<LyricsFullScreen> {
                           Text(
                             'Aller à ce moment',
                             style: TextStyle(
-                              color: textColor.withOpacity(0.7),
+                              color: textColor.withValues(alpha: 0.7),
                               fontSize: 12,
                             ),
                           ),
@@ -330,7 +330,7 @@ class _LyricsFullScreenState extends ConsumerState<LyricsFullScreen> {
       },
       lyricUi: _CustomLyricUI(
         textColor,
-        textColor.withOpacity(0.5),
+        textColor.withValues(alpha: 0.5),
       ),
     );
   }
@@ -360,7 +360,7 @@ class _CustomLyricUI extends lyric_ui.UINetease {
   @override
   TextStyle getPlayingExtTextStyle() {
     return TextStyle(
-      color: activeColor.withOpacity(0.7),
+      color: activeColor.withValues(alpha: 0.7),
       fontSize: 18,
       fontWeight: FontWeight.bold,
     );

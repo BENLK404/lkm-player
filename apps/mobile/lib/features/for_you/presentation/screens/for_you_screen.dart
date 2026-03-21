@@ -493,12 +493,12 @@ class _ListenTimeCard extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [primary.withOpacity(0.18), primary.withOpacity(0.06)],
+          colors: [primary.withValues(alpha: 0.18), primary.withValues(alpha: 0.06)],
           begin: Alignment.centerLeft,
           end: Alignment.centerRight,
         ),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: primary.withOpacity(0.18)),
+        border: Border.all(color: primary.withValues(alpha: 0.18)),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -510,7 +510,7 @@ class _ListenTimeCard extends StatelessWidget {
               Text(
                 'Temps d\'écoute total',
                 style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurface.withOpacity(0.6),
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -527,7 +527,7 @@ class _ListenTimeCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: primary.withOpacity(0.15),
+              color: primary.withValues(alpha: 0.15),
               shape: BoxShape.circle,
             ),
             child: Icon(Icons.headphones_rounded, color: primary, size: 24),
@@ -612,7 +612,7 @@ class _NowPlayingCard extends ConsumerWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurface.withOpacity(0.6),
+                        color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                       ),
                     ),
                   ],
@@ -695,7 +695,7 @@ class _ResumeLastCard extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurface.withOpacity(0.6),
+                        color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                       ),
                     ),
                   ],

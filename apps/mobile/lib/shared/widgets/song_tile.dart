@@ -75,7 +75,7 @@ class SongTile extends ConsumerWidget {
         style: TextStyle(
           fontSize: 12,
           color: isCurrentSong
-              ? Theme.of(context).colorScheme.primary.withOpacity(0.7)
+              ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.7)
               : Theme.of(context).textTheme.bodySmall?.color,
         ),
       ),

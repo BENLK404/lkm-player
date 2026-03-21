@@ -108,7 +108,7 @@ class AppTheme {
       ),
 
       dividerTheme: DividerThemeData(
-        color: scheme.outlineVariant.withOpacity(isDark ? 0.45 : 0.8),
+        color: scheme.outlineVariant.withValues(alpha: isDark ? 0.45 : 0.8),
         thickness: 1,
         space: 1,
       ),
@@ -118,7 +118,7 @@ class AppTheme {
         backgroundColor: scheme.surfaceContainer,
         elevation: 0,
         indicatorColor:
-            scheme.secondaryContainer.withOpacity(isDark ? 0.55 : 1),
+            scheme.secondaryContainer.withValues(alpha: isDark ? 0.55 : 1),
         labelTextStyle: WidgetStateProperty.resolveWith(
           (states) => textTheme.labelSmall?.copyWith(
             color: states.contains(WidgetState.selected)
@@ -163,7 +163,7 @@ class AppTheme {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         elevation: 0,
         showCloseIcon: true,
-        closeIconColor: scheme.onInverseSurface.withOpacity(0.85),
+        closeIconColor: scheme.onInverseSurface.withValues(alpha: 0.85),
       ),
 
       bottomSheetTheme: BottomSheetThemeData(
@@ -171,7 +171,7 @@ class AppTheme {
         modalBackgroundColor: scheme.surface,
         elevation: 0,
         showDragHandle: true,
-        dragHandleColor: scheme.onSurfaceVariant.withOpacity(0.35),
+        dragHandleColor: scheme.onSurfaceVariant.withValues(alpha: 0.35),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: sheetRadius.topLeft),
         ),
@@ -193,7 +193,7 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor:
-            scheme.surfaceContainerHighest.withOpacity(isDark ? 0.35 : 1),
+            scheme.surfaceContainerHighest.withValues(alpha: isDark ? 0.35 : 1),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide(color: scheme.outlineVariant),
