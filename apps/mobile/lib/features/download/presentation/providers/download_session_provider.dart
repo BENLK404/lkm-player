@@ -100,12 +100,18 @@ class SessionBanner {
   const SessionBanner({
     this.successMessage,
     this.errorMessage,
-    this.copyPath,
+    this.playSongId,
+    this.playAlbumDeezerId,
   });
 
   final String? successMessage;
   final String? errorMessage;
-  final String? copyPath;
+
+  /// ID [SongModel.id] du morceau (téléchargement d’une piste seule).
+  final String? playSongId;
+
+  /// ID album Deezer : lecture de toutes les pistes dont `albumId` correspond.
+  final String? playAlbumDeezerId;
 }
 
 class DownloadSessionState {
@@ -259,8 +265,8 @@ class DownloadSessionNotifier extends StateNotifier<DownloadSessionState> {
     _pumpRunning = true;
     try {
       while (true) {
-        final idx =
-            state.activeTasks.indexWhere((t) => t.status == DownloadTaskUiStatus.queued);
+        final idx = state.activeTasks
+            .indexWhere((t) => t.status == DownloadTaskUiStatus.queued);
         if (idx < 0) break;
 
         final task = state.activeTasks[idx];
@@ -284,7 +290,8 @@ class DownloadSessionNotifier extends StateNotifier<DownloadSessionState> {
               cancelToken: _activeToken,
               onDownloadProgress: (p) {
                 final cur = _taskById(tid);
-                if (cur != null && cur.status == DownloadTaskUiStatus.downloading) {
+                if (cur != null &&
+                    cur.status == DownloadTaskUiStatus.downloading) {
                   _replaceTask(tid, cur.copyWith(progress: p));
                 }
               },
@@ -296,7 +303,8 @@ class DownloadSessionNotifier extends StateNotifier<DownloadSessionState> {
               cancelToken: _activeToken,
               onDownloadProgress: (p) {
                 final cur = _taskById(tid);
-                if (cur != null && cur.status == DownloadTaskUiStatus.downloading) {
+                if (cur != null &&
+                    cur.status == DownloadTaskUiStatus.downloading) {
                   _replaceTask(tid, cur.copyWith(progress: p));
                 }
               },
@@ -326,7 +334,8 @@ class DownloadSessionNotifier extends StateNotifier<DownloadSessionState> {
             state = state.copyWith(
               banner: SessionBanner(
                 successMessage: msg,
-                copyPath: result.filePath,
+                playSongId: task.item.isAlbum ? null : result.song?.id,
+                playAlbumDeezerId: task.item.isAlbum ? task.item.id : null,
               ),
             );
           } else {

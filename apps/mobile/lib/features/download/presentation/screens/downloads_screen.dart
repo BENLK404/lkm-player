@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:musio/shared/utils/app_toast.dart';
 
 import '../providers/download_session_provider.dart';
+import '../utils/download_playback.dart';
 import '../widgets/active_downloads_section.dart';
 
 /// Page dédiée : téléchargements en cours (file + pause) et historique.
@@ -60,7 +59,8 @@ class _DownloadsScreenState extends ConsumerState<DownloadsScreen>
                   if (session.activeTasks.isNotEmpty) ...[
                     const SizedBox(width: 8),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 2),
                       decoration: BoxDecoration(
                         color: scheme.primaryContainer,
                         borderRadius: BorderRadius.circular(10),
@@ -195,7 +195,9 @@ class DownloadActiveTaskCard extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Icon(
-                  task.item.isAlbum ? Icons.album_rounded : Icons.music_note_rounded,
+                  task.item.isAlbum
+                      ? Icons.album_rounded
+                      : Icons.music_note_rounded,
                   size: 24,
                   color: scheme.primary,
                 ),
@@ -208,7 +210,8 @@ class DownloadActiveTaskCard extends ConsumerWidget {
                         task.title,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+                        style: textTheme.titleSmall
+                            ?.copyWith(fontWeight: FontWeight.w700),
                       ),
                       const SizedBox(height: 2),
                       Text(
@@ -246,7 +249,8 @@ class DownloadActiveTaskCard extends ConsumerWidget {
               ClipRRect(
                 borderRadius: BorderRadius.circular(999),
                 child: LinearProgressIndicator(
-                  value: task.status == DownloadTaskUiStatus.downloading && task.progress <= 0
+                  value: task.status == DownloadTaskUiStatus.downloading &&
+                          task.progress <= 0
                       ? null
                       : task.progress.clamp(0.0, 1.0),
                   minHeight: 5,
@@ -322,19 +326,23 @@ class _ActiveTaskActions extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             b(Icons.pause_rounded, 'Pause', () => notifier.pauseTask(task.id)),
-            b(Icons.close_rounded, 'Annuler', () => notifier.cancelTask(task.id)),
+            b(Icons.close_rounded, 'Annuler',
+                () => notifier.cancelTask(task.id)),
           ],
         );
       case DownloadTaskUiStatus.paused:
         return Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            b(Icons.play_arrow_rounded, 'Reprendre', () => notifier.resumeTask(task.id)),
-            b(Icons.delete_outline_rounded, 'Retirer', () => notifier.removeTask(task.id)),
+            b(Icons.play_arrow_rounded, 'Reprendre',
+                () => notifier.resumeTask(task.id)),
+            b(Icons.delete_outline_rounded, 'Retirer',
+                () => notifier.removeTask(task.id)),
           ],
         );
       case DownloadTaskUiStatus.queued:
-        return b(Icons.close_rounded, 'Retirer de la file', () => notifier.cancelTask(task.id));
+        return b(Icons.close_rounded, 'Retirer de la file',
+            () => notifier.cancelTask(task.id));
       case DownloadTaskUiStatus.completed:
       case DownloadTaskUiStatus.failed:
       case DownloadTaskUiStatus.cancelled:
@@ -399,7 +407,9 @@ class _HistoryTab extends ConsumerWidget {
                   builder: (ctx) => AlertDialog(
                     title: const Text('Vider l’historique ?'),
                     actions: [
-                      TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Non')),
+                      TextButton(
+                          onPressed: () => Navigator.pop(ctx),
+                          child: const Text('Non')),
                       FilledButton(
                         onPressed: () {
                           notifier.clearHistory();
@@ -435,9 +445,12 @@ class _HistoryTab extends ConsumerWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Icon(
-                              e.isAlbum ? Icons.album_rounded : Icons.music_note_rounded,
+                              e.isAlbum
+                                  ? Icons.album_rounded
+                                  : Icons.music_note_rounded,
                               size: 22,
-                              color: ok ? scheme.primary : scheme.onSurfaceVariant,
+                              color:
+                                  ok ? scheme.primary : scheme.onSurfaceVariant,
                             ),
                             const SizedBox(width: 10),
                             Expanded(
@@ -448,7 +461,10 @@ class _HistoryTab extends ConsumerWidget {
                                     e.title,
                                     maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
-                                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleSmall
+                                        ?.copyWith(
                                           fontWeight: FontWeight.w700,
                                         ),
                                   ),
@@ -456,14 +472,20 @@ class _HistoryTab extends ConsumerWidget {
                                     e.subtitle,
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
-                                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodySmall
+                                        ?.copyWith(
                                           color: scheme.onSurfaceVariant,
                                         ),
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
                                     _formatTime(e.at),
-                                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .labelSmall
+                                        ?.copyWith(
                                           color: scheme.outline,
                                         ),
                                   ),
@@ -475,12 +497,15 @@ class _HistoryTab extends ConsumerWidget {
                               children: [
                                 IconButton(
                                   tooltip: 'Supprimer',
-                                  icon: const Icon(Icons.delete_outline_rounded, size: 22),
-                                  onPressed: () => notifier.removeHistoryEntry(e.id),
+                                  icon: const Icon(Icons.delete_outline_rounded,
+                                      size: 22),
+                                  onPressed: () =>
+                                      notifier.removeHistoryEntry(e.id),
                                 ),
                                 IconButton(
                                   tooltip: 'Relancer',
-                                  icon: Icon(Icons.replay_rounded, size: 22, color: scheme.primary),
+                                  icon: Icon(Icons.replay_rounded,
+                                      size: 22, color: scheme.primary),
                                   onPressed: () => notifier.retryFromHistory(e),
                                 ),
                               ],
@@ -496,8 +521,10 @@ class _HistoryTab extends ConsumerWidget {
                               label: Text(_outcomeLabel(e.outcome)),
                               visualDensity: VisualDensity.compact,
                               backgroundColor: ok
-                                  ? scheme.primaryContainer.withValues(alpha: 0.5)
-                                  : scheme.errorContainer.withValues(alpha: 0.35),
+                                  ? scheme.primaryContainer
+                                      .withValues(alpha: 0.5)
+                                  : scheme.errorContainer
+                                      .withValues(alpha: 0.35),
                             ),
                             if (e.trackCount != null && e.trackCount! > 1)
                               Chip(
@@ -506,12 +533,16 @@ class _HistoryTab extends ConsumerWidget {
                               ),
                           ],
                         ),
-                        if (e.errorMessage != null && e.errorMessage!.isNotEmpty)
+                        if (e.errorMessage != null &&
+                            e.errorMessage!.isNotEmpty)
                           Padding(
                             padding: const EdgeInsets.only(top: 6),
                             child: Text(
                               e.errorMessage!,
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
                                     color: scheme.error,
                                   ),
                             ),
@@ -521,11 +552,21 @@ class _HistoryTab extends ConsumerWidget {
                             alignment: Alignment.centerLeft,
                             child: TextButton.icon(
                               onPressed: () {
-                                Clipboard.setData(ClipboardData(text: e.filePath!));
-                                AppToast.showCopied(context);
+                                if (!e.isAlbum) {
+                                  playSingleSongFromLibrary(
+                                    ref,
+                                    librarySongIdForDeezerTrack(e.deezerItemId),
+                                  );
+                                } else {
+                                  playAlbumFromLibraryByDeezerId(
+                                    ref,
+                                    e.deezerItemId,
+                                  );
+                                }
                               },
-                              icon: const Icon(Icons.copy_rounded, size: 18),
-                              label: const Text('Copier le chemin'),
+                              icon: const Icon(Icons.play_arrow_rounded,
+                                  size: 18),
+                              label: const Text('Jouer'),
                             ),
                           ),
                       ],
