@@ -1,0 +1,45 @@
+services:
+  bot:
+    build:
+      context: ./services/api
+      dockerfile: Dockerfile
+      args:
+        - ENABLE_FLAC=${ENABLE_FLAC:-0}
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - COOKIES_PATH=/tmp/local_resources/cookies.txt
+    volumes:
+      - cookies-data:/tmp/local_resources
+    networks:
+      - dokploy-network
+    command: ["python", "-u", "main.py"]
+
+  api:
+    build:
+      context: ./services/api
+      dockerfile: Dockerfile
+      args:
+        - ENABLE_FLAC=${ENABLE_FLAC:-0}
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - 8000
+    networks:
+      - dokploy-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.lkm-api.rule=Host(`${API_DOMAIN:-lkm.emmanuekebeh.dev}`)"
+      - "traefik.http.routers.lkm-api.entrypoints=websecure"
+      - "traefik.http.routers.lkm-api.tls.certResolver=letsencrypt"
+      - "traefik.http.services.lkm-api.loadbalancer.server.port=8000"
+    command: ["python", "-m", "uvicorn", "api.server:app", "--host", "0.0.0.0", "--port", "8000"]
+
+volumes:
+  cookies-data:
+
+networks:
+  dokploy-network:
+    external: true
