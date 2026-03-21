@@ -29,12 +29,6 @@ services:
       - 8000
     networks:
       - dokploy-network
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.lkm-api.rule=Host(`${API_DOMAIN:-lkm.emmanuekebeh.dev}`)"
-      - "traefik.http.routers.lkm-api.entrypoints=websecure"
-      - "traefik.http.routers.lkm-api.tls.certResolver=letsencrypt"
-      - "traefik.http.services.lkm-api.loadbalancer.server.port=8000"
     command: ["python", "-m", "uvicorn", "api.server:app", "--host", "0.0.0.0", "--port", "8000"]
 
 volumes:
