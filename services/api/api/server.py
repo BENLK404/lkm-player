@@ -138,6 +138,44 @@ async def album_meta(album_id: str):
         raise HTTPException(status_code=404, detail=str(e))
 
 
+@app.get("/api/album/{album_id}/tracks")
+async def album_tracks(album_id: str):
+    """Liste des pistes d'un album Deezer, formatée pour le client mobile."""
+    aid = _extract_id(album_id, ALBUM_REGEX) or album_id
+    try:
+        meta = get_album_metadata_from_api(aid)
+    except Exception as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    album_title = meta.get("title", "")
+    album_artist = meta.get("artist", "Unknown Artist")
+    album_cover = meta.get("api_json", {})
+    cover_url = (
+        album_cover.get("cover_small")
+        or album_cover.get("cover_medium")
+        or ""
+    )
+    tracks_raw = meta.get("tracks_api_data", [])
+    tracks = []
+    for t in tracks_raw:
+        artist = t.get("artist", {})
+        artist_name = artist.get("name", album_artist) if isinstance(artist, dict) else album_artist
+        tracks.append({
+            "id": str(t.get("id", "")),
+            "id_type": "track",
+            "title": t.get("title", ""),
+            "artist": artist_name,
+            "album": album_title,
+            "img_url": cover_url,
+            "preview_url": t.get("preview", ""),
+        })
+    return {
+        "album_id": aid,
+        "album_title": album_title,
+        "artist": album_artist,
+        "tracks": tracks,
+    }
+
+
 @app.get("/api/playlist/{playlist_id}/meta")
 async def playlist_meta(playlist_id: str):
     """Métadonnées d'une playlist Deezer (sans téléchargement)."""
@@ -356,6 +394,7 @@ async def root():
             "track_meta": "GET /api/track/{id}/meta",
             "download_track": "GET /api/download/track/{id}",
             "album_meta": "GET /api/album/{id}/meta",
+            "album_tracks": "GET /api/album/{id}/tracks",
             "download_album": "GET /api/download/album/{id}",
             "playlist_meta": "GET /api/playlist/{id}/meta",
             "download_playlist": "GET /api/download/playlist/{id}",
