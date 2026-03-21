@@ -76,7 +76,9 @@ class _OfflineHomeScreenState extends ConsumerState<OfflineHomeScreen> {
     );
     if (confirmed == true) {
       final notifier = ref.read(musicProvider.notifier);
-      for (final id in ids) await notifier.removeSong(id);
+      for (final id in ids) {
+        await notifier.removeSong(id);
+      }
       _clearSelection();
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -122,7 +124,9 @@ class _OfflineHomeScreenState extends ConsumerState<OfflineHomeScreen> {
           break;
         }
       }
-      for (final albumId in ids) await notifier.removeAlbum(albumId);
+      for (final albumId in ids) {
+        await notifier.removeAlbum(albumId);
+      }
       _clearSelection();
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -409,10 +413,11 @@ class _OfflineHomeScreenState extends ConsumerState<OfflineHomeScreen> {
                   return InkWell(
                     onTap: () {
                       final next = Set<String>.from(selectedIds);
-                      if (isSelected)
+                      if (isSelected) {
                         next.remove(song.id);
-                      else
+                      } else {
                         next.add(song.id);
+                      }
                       ref.read(selectedSongIdsProvider.notifier).state = next;
                     },
                     child: Row(
@@ -421,10 +426,11 @@ class _OfflineHomeScreenState extends ConsumerState<OfflineHomeScreen> {
                           value: isSelected,
                           onChanged: (_) {
                             final next = Set<String>.from(selectedIds);
-                            if (isSelected)
+                            if (isSelected) {
                               next.remove(song.id);
-                            else
+                            } else {
                               next.add(song.id);
+                            }
                             ref.read(selectedSongIdsProvider.notifier).state =
                                 next;
                           },
@@ -471,10 +477,11 @@ class _OfflineHomeScreenState extends ConsumerState<OfflineHomeScreen> {
                   return InkWell(
                     onTap: () {
                       final next = Set<String>.from(selectedIds);
-                      if (isSelected)
+                      if (isSelected) {
                         next.remove(song.id);
-                      else
+                      } else {
                         next.add(song.id);
+                      }
                       ref.read(selectedSongIdsProvider.notifier).state = next;
                     },
                     child: Stack(
@@ -490,10 +497,11 @@ class _OfflineHomeScreenState extends ConsumerState<OfflineHomeScreen> {
                             value: isSelected,
                             onChanged: (_) {
                               final next = Set<String>.from(selectedIds);
-                              if (isSelected)
+                              if (isSelected) {
                                 next.remove(song.id);
-                              else
+                              } else {
                                 next.add(song.id);
+                              }
                               ref.read(selectedSongIdsProvider.notifier).state =
                                   next;
                             },
@@ -553,10 +561,11 @@ class _OfflineHomeScreenState extends ConsumerState<OfflineHomeScreen> {
             return InkWell(
               onTap: () {
                 final next = Set<String>.from(selectedIds);
-                if (isSelected)
+                if (isSelected) {
                   next.remove(album.id);
-                else
+                } else {
                   next.add(album.id);
+                }
                 ref.read(selectedAlbumIdsProvider.notifier).state = next;
               },
               child: Stack(
@@ -569,10 +578,11 @@ class _OfflineHomeScreenState extends ConsumerState<OfflineHomeScreen> {
                       value: isSelected,
                       onChanged: (_) {
                         final next = Set<String>.from(selectedIds);
-                        if (isSelected)
+                        if (isSelected) {
                           next.remove(album.id);
-                        else
+                        } else {
                           next.add(album.id);
+                        }
                         ref.read(selectedAlbumIdsProvider.notifier).state =
                             next;
                       },

@@ -364,8 +364,9 @@ class SettingsScreen extends ConsumerWidget {
               value: 0,
               groupValue: current,
               onChanged: (v) {
-                if (v != null)
+                if (v != null) {
                   ref.read(themeModeSettingProvider.notifier).setMode(v);
+                }
                 Navigator.pop(context);
               },
             ),
@@ -374,8 +375,9 @@ class SettingsScreen extends ConsumerWidget {
               value: 1,
               groupValue: current,
               onChanged: (v) {
-                if (v != null)
+                if (v != null) {
                   ref.read(themeModeSettingProvider.notifier).setMode(v);
+                }
                 Navigator.pop(context);
               },
             ),
@@ -384,8 +386,9 @@ class SettingsScreen extends ConsumerWidget {
               value: 2,
               groupValue: current,
               onChanged: (v) {
-                if (v != null)
+                if (v != null) {
                   ref.read(themeModeSettingProvider.notifier).setMode(v);
+                }
                 Navigator.pop(context);
               },
             ),
@@ -503,10 +506,11 @@ class SettingsScreen extends ConsumerWidget {
                       value: m,
                       groupValue: current,
                       onChanged: (v) {
-                        if (v != null)
+                        if (v != null) {
                           ref
                               .read(sleepTimerDefaultMinutesProvider.notifier)
                               .setDefaultMinutes(v);
+                        }
                         Navigator.pop(context);
                       },
                     ))
