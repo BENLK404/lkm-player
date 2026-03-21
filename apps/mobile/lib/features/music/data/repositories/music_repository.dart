@@ -27,6 +27,9 @@ class MusicRepository {
   Directory? _artworkCacheDir;
   final Ref _ref;
 
+  /// Évite deux appels [querySongs] en parallèle (crash natif « Reply already submitted »).
+  Future<List<SongModel>>? _scanInFlight;
+
   // ─── Patterns par app ────────────────────────────────────────────────────────
   static const _whatsappPatterns = ['whatsapp', 'com.whatsapp'];
   static const _telegramPatterns = ['telegram', 'org.telegram'];
@@ -200,12 +203,31 @@ class MusicRepository {
 
   // --- MÉTHODES DE SCAN (Appel système + Mise à jour cache) ---
 
-  Future<List<SongModel>> scanAndCacheSongs() async {
+  Future<List<SongModel>> scanAndCacheSongs() {
+    if (_scanInFlight != null) return _scanInFlight!;
+    final future = _scanAndCacheSongsBody();
+    _scanInFlight = future.whenComplete(() => _scanInFlight = null);
+    return future;
+  }
+
+  Future<List<SongModel>> _scanAndCacheSongsBody() async {
     try {
       final hasPermission = await requestPermissions();
       if (!hasPermission) {
-        appLogger.w('Permissions refusées');
-        return [];
+        appLogger.w('Permissions refusées — conservation du cache');
+        return getSongsFromCache();
+      }
+
+      // Sur certains appareils (ex. MIUI), permission_handler peut être OK alors que
+      // le plugin média n’a pas l’accès bibliothèque → MissingPermissions + double reply natif.
+      final libraryOk = await _audioQuery.checkAndRequest();
+      if (!libraryOk) {
+        appLogger.w('Accès bibliothèque (on_audio_query) refusé — conservation du cache');
+        return getSongsFromCache();
+      }
+      if (!await _audioQuery.permissionsStatus()) {
+        appLogger.w('permissionsStatus=false — conservation du cache');
+        return getSongsFromCache();
       }
 
       await _initArtworkCache();
@@ -224,12 +246,21 @@ class MusicRepository {
       final excludeOther =
           await _ref.read(excludeOtherMessagingProvider.future);
 
-      final deviceSongs = await _audioQuery.querySongs(
-        sortType: aq.SongSortType.TITLE,
-        orderType: aq.OrderType.ASC_OR_SMALLER,
-        uriType: aq.UriType.EXTERNAL,
-        ignoreCase: true,
-      );
+      List<aq.SongModel> deviceSongs;
+      try {
+        deviceSongs = await _audioQuery.querySongs(
+          sortType: aq.SongSortType.TITLE,
+          orderType: aq.OrderType.ASC_OR_SMALLER,
+          uriType: aq.UriType.EXTERNAL,
+          ignoreCase: true,
+        );
+      } on PlatformException catch (e) {
+        if (e.code == 'MissingPermissions') {
+          appLogger.w('querySongs: MissingPermissions — conservation du cache');
+          return getSongsFromCache();
+        }
+        rethrow;
+      }
 
       final cachedSongs = _songBox.values.toList();
       final cachedSongsMap = {for (var s in cachedSongs) s.id: s};

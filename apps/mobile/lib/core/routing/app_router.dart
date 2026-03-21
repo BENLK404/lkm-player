@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:musio/features/album/presentation/screens/album_details_screen.dart';
 import 'package:musio/features/artist/presentation/screens/artist_details_screen.dart';
+import 'package:musio/features/download/presentation/screens/downloads_screen.dart';
 import 'package:musio/features/home/presentation/screens/home_screen.dart';
 import 'package:musio/features/home/presentation/screens/splash_screen.dart';
 import 'package:musio/features/music/data/models/song_model.dart';
@@ -20,6 +21,7 @@ class AppRouter {
   static const String splash = '/';
   static const String home = '/home';
   static const String online = '/online';
+  static const String downloads = '/downloads';
   static const String nowPlaying = '/now-playing';
   static const String albumDetails = '/album/:id';
   static const String artistDetails = '/artist/:id';
@@ -62,6 +64,19 @@ class AppRouter {
         pageBuilder: (context, state) => CustomTransitionPage(
           key: state.pageKey,
           child: const OnlineScreen(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return FadeTransition(opacity: animation, child: child);
+          },
+        ),
+      ),
+
+      // Téléchargements (file + historique)
+      GoRoute(
+        path: downloads,
+        name: 'downloads',
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          child: const DownloadsScreen(),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             return FadeTransition(opacity: animation, child: child);
           },

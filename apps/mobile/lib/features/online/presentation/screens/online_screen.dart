@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:musio/core/routing/app_router.dart';
 import 'package:musio/features/download/data/models/deezer_search_result.dart';
 import 'package:musio/features/download/data/telegramusic_api_client.dart';
 import 'package:musio/features/download/presentation/providers/download_provider.dart';
-import 'package:musio/shared/utils/app_toast.dart';
+import 'package:musio/features/download/presentation/providers/download_session_provider.dart';
+import 'package:musio/features/download/presentation/widgets/active_downloads_section.dart';
 import 'package:musio/shared/widgets/mini_player.dart';
 
 /// Écran « Découvrir » — recherche Deezer + téléchargement (design LKM unifié).
@@ -34,6 +35,8 @@ class _OnlineScreenState extends ConsumerState<OnlineScreen> {
 
   @override
   Widget build(BuildContext context) {
+    listenDownloadSessionBanner(context, ref);
+
     final searchState = ref.watch(onlineSearchStateProvider);
     final apiClient = ref.watch(downloadApiClientProvider);
     final downloadingTrackId = ref.watch(downloadingTrackIdProvider);
@@ -62,6 +65,30 @@ class _OnlineScreenState extends ConsumerState<OnlineScreen> {
                 letterSpacing: -0.5,
               ),
         ),
+        actions: [
+          Consumer(
+            builder: (context, ref, _) {
+              final n = ref.watch(downloadSessionProvider).activeTasks.length;
+              final label = n > 99 ? '99+' : '$n';
+              return IconButton(
+                tooltip: 'Téléchargements${n > 0 ? ' ($n)' : ''}',
+                onPressed: () => context.push(AppRouter.downloads),
+                // Le badge doit envelopper l’icône (pas tout le bouton) pour un placement correct en AppBar.
+                icon: Badge(
+                  isLabelVisible: n > 0,
+                  label: Text(
+                    label,
+                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800, height: 1),
+                  ),
+                  padding: n > 9
+                      ? const EdgeInsets.symmetric(horizontal: 5, vertical: 2)
+                      : const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  child: const Icon(Icons.downloading_rounded),
+                ),
+              );
+            },
+          ),
+        ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(64),
           child: Padding(
@@ -86,6 +113,7 @@ class _OnlineScreenState extends ConsumerState<OnlineScreen> {
       ),
       body: _buildBody(
         context,
+        ref,
         apiClient,
         searchState,
         downloadingTrackId,
@@ -98,6 +126,7 @@ class _OnlineScreenState extends ConsumerState<OnlineScreen> {
 
   Widget _buildBody(
     BuildContext context,
+    WidgetRef ref,
     TelegramusicApiClient? apiClient,
     OnlineSearchState searchState,
     String? downloadingTrackId,
@@ -133,6 +162,60 @@ class _OnlineScreenState extends ConsumerState<OnlineScreen> {
     }
 
     if (searchState.results.isEmpty && searchState.albumResults.isEmpty) {
+      final session = ref.watch(downloadSessionProvider);
+      if (session.hasActiveWork) {
+        return CustomScrollView(
+          physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+          slivers: [
+            SliverFillRemaining(
+              hasScrollBody: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(32, 0, 32, 120),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.downloading_rounded,
+                      size: 56,
+                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.65),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Téléchargements en cours',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Ouvre la file pour mettre en pause, annuler ou voir l’historique.',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 20),
+                    FilledButton.tonalIcon(
+                      onPressed: () => context.push(AppRouter.downloads),
+                      icon: const Icon(Icons.open_in_new_rounded),
+                      label: const Text('Voir les téléchargements'),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Ou lance une recherche pour ajouter d’autres titres.',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        );
+      }
       return const _StatePage(
         icon: Icons.explore_rounded,
         iconGradient: true,
@@ -171,7 +254,8 @@ class _OnlineScreenState extends ConsumerState<OnlineScreen> {
                     artSize: _albumArt,
                     isDownloading: isDl,
                     progress: isDl ? downloadProgress : null,
-                    onDownload: () => _downloadAlbum(context, album),
+                    onOpenDetails: () => _openAlbumTracksSheet(context, ref, apiClient, album),
+                    onDownloadAlbum: () => _downloadAlbum(context, album),
                   );
                 },
               ),
@@ -212,45 +296,308 @@ class _OnlineScreenState extends ConsumerState<OnlineScreen> {
   }
 
   Future<void> _downloadTrack(BuildContext context, DeezerSearchResult track) async {
-    final result = await downloadTrackAndAddToLibrary(ref, track);
-    if (!context.mounted) return;
-    if (result.isSuccess && result.filePath != null) {
-      final filePath = result.filePath!;
-      AppToast.showSuccess(
-        context,
-        message: '« ${track.title} » ajouté',
-        actionLabel: 'Copier',
-        onAction: () {
-          Clipboard.setData(ClipboardData(text: filePath));
-          if (context.mounted) AppToast.showCopied(context);
-        },
-      );
-    } else {
-      AppToast.showError(context, result.error ?? 'Échec du téléchargement');
-    }
+    await ref.read(downloadSessionProvider.notifier).enqueue(track);
   }
 
   Future<void> _downloadAlbum(BuildContext context, DeezerSearchResult album) async {
-    final result = await downloadAlbumAndAddToLibrary(ref, album);
-    if (!context.mounted) return;
-    if (result.isSuccess && result.filePath != null) {
-      final filePath = result.filePath!;
-      final count = result.trackCount ?? 0;
-      final msg = count > 1
-          ? '« ${album.displayTitle} » · $count pistes ajoutées'
-          : '« ${album.displayTitle} » ajouté';
-      AppToast.showSuccess(
-        context,
-        message: msg,
-        actionLabel: 'Copier',
-        onAction: () {
-          Clipboard.setData(ClipboardData(text: filePath));
-          if (context.mounted) AppToast.showCopied(context);
-        },
-      );
-    } else {
-      AppToast.showError(context, result.error ?? 'Échec du téléchargement');
-    }
+    await ref.read(downloadSessionProvider.notifier).enqueue(album);
+  }
+
+  void _openAlbumTracksSheet(
+    BuildContext context,
+    WidgetRef ref,
+    TelegramusicApiClient client,
+    DeezerSearchResult album,
+  ) {
+    final tracksFuture = client.albumTracks(album.id);
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      showDragHandle: true,
+      builder: (sheetContext) {
+        return DraggableScrollableSheet(
+          initialChildSize: 0.68,
+          minChildSize: 0.35,
+          maxChildSize: 0.94,
+          expand: false,
+          builder: (ctx, scrollController) {
+            final scheme = Theme.of(ctx).colorScheme;
+            final textTheme = Theme.of(ctx).textTheme;
+            return DecoratedBox(
+              decoration: BoxDecoration(
+                color: scheme.surface,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: SizedBox(
+                            width: 76,
+                            height: 76,
+                            child: album.imgUrl != null && album.imgUrl!.isNotEmpty
+                                ? Image.network(
+                                    album.imgUrl!,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (_, __, ___) =>
+                                        _AlbumPlaceholder(scheme: scheme),
+                                  )
+                                : _AlbumPlaceholder(scheme: scheme),
+                          ),
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                album.displayTitle,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                album.artist,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: textTheme.bodyMedium?.copyWith(
+                                  color: scheme.onSurfaceVariant,
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              FilledButton.tonalIcon(
+                                onPressed: () {
+                                  Navigator.of(sheetContext).pop();
+                                  _downloadAlbum(context, album);
+                                },
+                                icon: const Icon(Icons.folder_zip_rounded, size: 20),
+                                label: const Text('Télécharger l’album (ZIP)'),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Divider(height: 1, color: scheme.outlineVariant.withValues(alpha: 0.35)),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 10, 16, 6),
+                    child: Text(
+                      'Pistes',
+                      style: textTheme.labelLarge?.copyWith(
+                        letterSpacing: 0.6,
+                        color: scheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: FutureBuilder<List<DeezerSearchResult>>(
+                      future: tracksFuture,
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return const Center(
+                            child: Padding(
+                              padding: EdgeInsets.all(28),
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                          );
+                        }
+                        if (snapshot.hasError) {
+                          return Center(
+                            child: Padding(
+                              padding: const EdgeInsets.all(24),
+                              child: Text(
+                                '${snapshot.error}',
+                                textAlign: TextAlign.center,
+                                style: textTheme.bodyMedium?.copyWith(color: scheme.error),
+                              ),
+                            ),
+                          );
+                        }
+                        final tracks = snapshot.data ?? [];
+                        if (tracks.isEmpty) {
+                          return Center(
+                            child: Text(
+                              'Aucune piste',
+                              style: textTheme.bodyMedium?.copyWith(
+                                color: scheme.onSurfaceVariant,
+                              ),
+                            ),
+                          );
+                        }
+                        return Consumer(
+                          builder: (context, ref, _) {
+                            final downloadingTrackId = ref.watch(downloadingTrackIdProvider);
+                            final dlProgress = ref.watch(downloadProgressProvider);
+                            return ListView.builder(
+                              controller: scrollController,
+                              padding: const EdgeInsets.fromLTRB(8, 0, 8, 28),
+                              itemCount: tracks.length,
+                              itemBuilder: (context, i) {
+                                final track = tracks[i];
+                                final isDl = downloadingTrackId == track.id;
+                                return _AlbumTrackSheetRow(
+                                  track: track,
+                                  isDownloading: isDl,
+                                  progress: isDl ? dlProgress : null,
+                                  onDownload: () {
+                                    ref.read(downloadSessionProvider.notifier).enqueue(track);
+                                  },
+                                );
+                              },
+                            );
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
+/// Ligne piste dans la bottom sheet album.
+class _AlbumTrackSheetRow extends StatelessWidget {
+  const _AlbumTrackSheetRow({
+    required this.track,
+    required this.isDownloading,
+    required this.progress,
+    required this.onDownload,
+  });
+
+  final DeezerSearchResult track;
+  final bool isDownloading;
+  final double? progress;
+  final VoidCallback onDownload;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final p = progress?.clamp(0.0, 1.0);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Material(
+        color: scheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(14),
+        child: InkWell(
+          onTap: isDownloading ? null : onDownload,
+          borderRadius: BorderRadius.circular(14),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+            child: Row(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: SizedBox(
+                    width: 44,
+                    height: 44,
+                    child: track.imgUrl != null && track.imgUrl!.isNotEmpty
+                        ? Image.network(
+                            track.imgUrl!,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => _TrackThumbMini(scheme: scheme),
+                          )
+                        : _TrackThumbMini(scheme: scheme),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        track.title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+                      ),
+                      Text(
+                        track.artist,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: textTheme.bodySmall?.copyWith(
+                          color: scheme.onSurfaceVariant,
+                          fontSize: 12,
+                        ),
+                      ),
+                      if (isDownloading) ...[
+                        const SizedBox(height: 6),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(999),
+                          child: LinearProgressIndicator(
+                            value: p != null && p > 0 ? p : null,
+                            minHeight: 4,
+                            backgroundColor: scheme.surfaceContainerHighest,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                if (!isDownloading)
+                  IconButton.filledTonal(
+                    onPressed: onDownload,
+                    icon: const Icon(Icons.download_rounded, size: 20),
+                    style: IconButton.styleFrom(
+                      backgroundColor: scheme.primaryContainer.withValues(alpha: 0.65),
+                    ),
+                  )
+                else
+                  SizedBox(
+                    width: 40,
+                    height: 40,
+                    child: Center(
+                      child: p != null && p > 0
+                          ? Text(
+                              '${(p * 100).round()}%',
+                              style: textTheme.labelSmall?.copyWith(
+                                fontWeight: FontWeight.w800,
+                                color: scheme.primary,
+                              ),
+                            )
+                          : const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _TrackThumbMini extends StatelessWidget {
+  const _TrackThumbMini({required this.scheme});
+
+  final ColorScheme scheme;
+
+  @override
+  Widget build(BuildContext context) {
+    return ColoredBox(
+      color: scheme.surfaceContainerHighest,
+      child: Icon(Icons.music_note_rounded, color: scheme.onSurfaceVariant.withValues(alpha: 0.5)),
+    );
   }
 }
 
@@ -383,14 +730,16 @@ class _AlbumCard extends StatelessWidget {
     required this.artSize,
     required this.isDownloading,
     required this.progress,
-    required this.onDownload,
+    required this.onOpenDetails,
+    required this.onDownloadAlbum,
   });
 
   final DeezerSearchResult album;
   final double artSize;
   final bool isDownloading;
   final double? progress;
-  final VoidCallback onDownload;
+  final VoidCallback onOpenDetails;
+  final VoidCallback onDownloadAlbum;
 
   @override
   Widget build(BuildContext context) {
@@ -409,7 +758,7 @@ class _AlbumCard extends StatelessWidget {
             clipBehavior: Clip.antiAlias,
             elevation: 0,
             child: InkWell(
-              onTap: isDownloading ? null : onDownload,
+              onTap: isDownloading ? null : onOpenDetails,
               child: SizedBox(
                 width: artSize + 8,
                 height: artSize + 8,
@@ -470,7 +819,7 @@ class _AlbumCard extends StatelessWidget {
                           shadowColor: Colors.black38,
                           child: InkWell(
                             customBorder: const CircleBorder(),
-                            onTap: onDownload,
+                            onTap: onDownloadAlbum,
                             child: const Padding(
                               padding: EdgeInsets.all(10),
                               child: Icon(Icons.download_rounded, color: Colors.white, size: 20),
