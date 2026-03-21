@@ -9,6 +9,7 @@ import 'package:path_provider/path_provider.dart';
 
 import '../../../music/data/models/song_model.dart';
 import '../../../music/presentation/providers/music_provider.dart';
+import '../../data/download_cancel_token.dart';
 import '../../data/models/deezer_search_result.dart';
 import '../../data/telegramusic_api_client.dart';
 
@@ -151,9 +152,11 @@ class DownloadResult {
 
 /// Télécharge un morceau via l'API, l'enregistre sur l'appareil et l'ajoute à la bibliothèque.
 Future<DownloadResult> downloadTrackAndAddToLibrary(
-  WidgetRef ref,
-  DeezerSearchResult track,
-) async {
+  Ref ref,
+  DeezerSearchResult track, {
+  DownloadCancelToken? cancelToken,
+  void Function(double progress)? onDownloadProgress,
+}) async {
   final client = ref.read(downloadApiClientProvider);
   if (client == null || !client.isConfigured) {
     return const DownloadResult(error: 'API non configurée');
@@ -166,9 +169,12 @@ Future<DownloadResult> downloadTrackAndAddToLibrary(
   try {
     final bytes = await client.downloadTrack(
       track.id,
+      cancelToken: cancelToken,
       onProgress: (received, total) {
         if (total != null && total > 0) {
-          ref.read(downloadProgressProvider.notifier).state = received / total;
+          final p = received / total;
+          ref.read(downloadProgressProvider.notifier).state = p;
+          onDownloadProgress?.call(p);
         }
       },
     );
@@ -177,6 +183,7 @@ Future<DownloadResult> downloadTrackAndAddToLibrary(
     }
 
     ref.read(downloadProgressProvider.notifier).state = 1.0;
+    onDownloadProgress?.call(1.0);
 
     final downloadDirPath = await getDownloadDirectoryPath();
     final downloadDir = Directory(downloadDirPath);
@@ -241,6 +248,8 @@ Future<DownloadResult> downloadTrackAndAddToLibrary(
     await ref.read(musicProvider.notifier).loadFromCache();
 
     return DownloadResult(song: song, filePath: filePath);
+  } on DownloadCancelledException {
+    rethrow;
   } catch (e) {
     return DownloadResult(error: e.toString().replaceFirst('Exception: ', ''));
   } finally {
@@ -252,9 +261,11 @@ Future<DownloadResult> downloadTrackAndAddToLibrary(
 
 /// Télécharge un album (ZIP) via l'API, extrait les pistes et les ajoute à la bibliothèque.
 Future<DownloadResult> downloadAlbumAndAddToLibrary(
-  WidgetRef ref,
-  DeezerSearchResult album,
-) async {
+  Ref ref,
+  DeezerSearchResult album, {
+  DownloadCancelToken? cancelToken,
+  void Function(double progress)? onDownloadProgress,
+}) async {
   final client = ref.read(downloadApiClientProvider);
   if (client == null || !client.isConfigured) {
     return const DownloadResult(error: 'API non configurée');
@@ -267,9 +278,12 @@ Future<DownloadResult> downloadAlbumAndAddToLibrary(
   try {
     final bytes = await client.downloadAlbum(
       album.id,
+      cancelToken: cancelToken,
       onProgress: (received, total) {
         if (total != null && total > 0) {
-          ref.read(downloadProgressProvider.notifier).state = received / total;
+          final p = received / total;
+          ref.read(downloadProgressProvider.notifier).state = p;
+          onDownloadProgress?.call(p);
         }
       },
     );
@@ -278,6 +292,7 @@ Future<DownloadResult> downloadAlbumAndAddToLibrary(
     }
 
     ref.read(downloadProgressProvider.notifier).state = 1.0;
+    onDownloadProgress?.call(1.0);
 
     final archive = ZipDecoder().decodeBytes(bytes);
     final downloadDirPath = await getDownloadDirectoryPath();
@@ -350,6 +365,8 @@ Future<DownloadResult> downloadAlbumAndAddToLibrary(
       filePath: albumDirPath,
       trackCount: index,
     );
+  } on DownloadCancelledException {
+    rethrow;
   } catch (e) {
     return DownloadResult(error: e.toString().replaceFirst('Exception: ', ''));
   } finally {

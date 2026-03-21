@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:http/http.dart' as http;
 
+import 'download_cancel_token.dart';
 import 'models/deezer_search_result.dart';
 
 /// Client HTTP pour l'API Telegramusic (recherche + téléchargement).
@@ -61,6 +62,7 @@ class TelegramusicApiClient {
   Future<List<int>> downloadTrack(
     String trackId, {
     void Function(int received, int? total)? onProgress,
+    DownloadCancelToken? cancelToken,
   }) async {
     if (!isConfigured) throw Exception('API non configurée');
     final request = http.Request('GET', _uri('/api/download/track/$trackId'));
@@ -74,6 +76,9 @@ class TelegramusicApiClient {
       int received = 0;
       final chunks = <int>[];
       await for (final chunk in streamed.stream) {
+        if (cancelToken?.isCancelled == true) {
+          throw DownloadCancelledException(cancelToken!.reason ?? DownloadCancelReason.cancel);
+        }
         chunks.addAll(chunk);
         received += chunk.length;
         onProgress?.call(received, total != null && total > 0 ? total : null);
@@ -103,6 +108,7 @@ class TelegramusicApiClient {
   Future<List<int>> downloadAlbum(
     String albumId, {
     void Function(int received, int? total)? onProgress,
+    DownloadCancelToken? cancelToken,
   }) async {
     if (!isConfigured) throw Exception('API non configurée');
     final request = http.Request('GET', _uri('/api/download/album/$albumId'));
@@ -116,6 +122,9 @@ class TelegramusicApiClient {
       int received = 0;
       final chunks = <int>[];
       await for (final chunk in streamed.stream) {
+        if (cancelToken?.isCancelled == true) {
+          throw DownloadCancelledException(cancelToken!.reason ?? DownloadCancelReason.cancel);
+        }
         chunks.addAll(chunk);
         received += chunk.length;
         onProgress?.call(received, total != null && total > 0 ? total : null);
@@ -128,4 +137,29 @@ class TelegramusicApiClient {
 
   /// URL pochette album (pour affichage).
   String albumCoverUrl(String albumId) => '$baseUrl/api/album/$albumId/cover';
+
+  /// GET /api/album/{id}/tracks
+  Future<List<DeezerSearchResult>> albumTracks(String albumId) async {
+    if (!isConfigured) throw Exception('API non configurée');
+    try {
+      final response = await http
+          .get(
+            _uri('/api/album/$albumId/tracks'),
+            headers: {'Accept': 'application/json'},
+          )
+          .timeout(_timeout);
+      if (response.statusCode != 200) {
+        throw Exception('Pistes album: ${response.statusCode}');
+      }
+      final map = jsonDecode(response.body) as Map<String, dynamic>?;
+      final raw = map?['tracks'] as List<dynamic>? ?? [];
+      return raw
+          .map((e) => DeezerSearchResult.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } on SocketException {
+      throw Exception('Serveur injoignable ($baseUrl).');
+    } on TimeoutException {
+      throw Exception('Délai dépassé.');
+    }
+  }
 }
