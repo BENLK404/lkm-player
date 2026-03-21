@@ -55,7 +55,7 @@ class Music extends _$Music {
 
   Future<void> rescanLibrary() async {
     final repository = ref.read(musicRepositoryProvider);
-    
+
     // Garder l'état actuel mais mettre isLoading à true
     final currentState = state.valueOrNull ?? const MusicLibraryState();
     state = AsyncValue.data(currentState.copyWith(isLoading: true));
@@ -63,7 +63,7 @@ class Music extends _$Music {
     try {
       // Lancer le scan complet
       final songs = await repository.scanAndCacheSongs();
-      
+
       // Recharger les autres données qui dépendent des chansons
       final albums = await repository.getAlbumsFromCache();
       final artists = await repository.getArtistsFromCache();
@@ -106,7 +106,12 @@ class Music extends _$Music {
     final currentState = state.valueOrNull;
     if (currentState == null) return;
 
-    final updatedSong = song.copyWith(isFavorite: !song.isFavorite);
+    final currentSong = currentState.songs.firstWhere(
+      (s) => s.id == song.id,
+      orElse: () => song,
+    );
+    final updatedSong =
+        currentSong.copyWith(isFavorite: !currentSong.isFavorite);
 
     // Mettre à jour l'état local
     final updatedSongs = currentState.songs
@@ -124,8 +129,8 @@ class Music extends _$Music {
     await repository.createPlaylist(newPlaylist);
     final currentState = state.valueOrNull;
     if (currentState != null) {
-      state = AsyncValue.data(
-          currentState.copyWith(playlists: [...currentState.playlists, newPlaylist]));
+      state = AsyncValue.data(currentState
+          .copyWith(playlists: [...currentState.playlists, newPlaylist]));
     }
   }
 
@@ -157,8 +162,9 @@ class Music extends _$Music {
     final currentState = state.valueOrNull;
     if (currentState != null) {
       state = AsyncValue.data(currentState.copyWith(
-          playlists:
-              currentState.playlists.where((p) => p.id != playlistId).toList()));
+          playlists: currentState.playlists
+              .where((p) => p.id != playlistId)
+              .toList()));
     }
   }
 
@@ -214,7 +220,9 @@ List<ArtistModel> allArtists(AllArtistsRef ref) {
 List<SongModel> albumSongs(AlbumSongsRef ref, String albumId) {
   final musicState = ref.watch(musicProvider);
   final songs = musicState.valueOrNull?.songs ?? [];
-  return songs.where((s) => MusicRepository.effectiveAlbumKey(s) == albumId).toList();
+  return songs
+      .where((s) => MusicRepository.effectiveAlbumKey(s) == albumId)
+      .toList();
 }
 
 /// Provider pour les chansons d'un artiste spécifique (Synchrone)
@@ -222,7 +230,9 @@ List<SongModel> albumSongs(AlbumSongsRef ref, String albumId) {
 List<SongModel> artistSongs(ArtistSongsRef ref, String artistId) {
   final musicState = ref.watch(musicProvider);
   final songs = musicState.valueOrNull?.songs ?? [];
-  return songs.where((s) => MusicRepository.effectiveArtistKey(s) == artistId).toList();
+  return songs
+      .where((s) => MusicRepository.effectiveArtistKey(s) == artistId)
+      .toList();
 }
 
 /// Provider pour rechercher des chansons (Synchrone)
