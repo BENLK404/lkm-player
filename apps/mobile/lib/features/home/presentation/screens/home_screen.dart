@@ -146,7 +146,7 @@ class _OfflineHomeScreenState extends ConsumerState<OfflineHomeScreen> {
             ? selectedAlbumIds.length
             : 0;
 
-    final titles = const <String>[
+    const titles = <String>[
       'Pour moi',
       'Albums',
       'Titres',

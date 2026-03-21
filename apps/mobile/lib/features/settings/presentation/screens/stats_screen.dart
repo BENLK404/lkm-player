@@ -54,9 +54,9 @@ class StatsScreen extends ConsumerWidget {
                   albumsCount: albums.length,
                 ),
               ),
-              SliverToBoxAdapter(
+              const SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 24, 20, 8),
+                  padding: EdgeInsets.fromLTRB(20, 24, 20, 8),
                   child: Text(
                     'Les plus écoutés',
                     style: TextStyle(
@@ -96,7 +96,7 @@ class StatsScreen extends ConsumerWidget {
             ],
           );
         },
-        loading: () => Center(
+        loading: () => const Center(
           child: CircularProgressIndicator(
             color: AppTheme.primaryColor,
             strokeWidth: 2,
@@ -108,7 +108,7 @@ class StatsScreen extends ConsumerWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
+                const Icon(
                   Icons.error_outline_rounded,
                   size: 56,
                   color: Colors.white54,
@@ -125,7 +125,7 @@ class StatsScreen extends ConsumerWidget {
                 const SizedBox(height: 8),
                 Text(
                   '$e',
-                  style: TextStyle(color: Colors.white54, fontSize: 14),
+                  style: const TextStyle(color: Colors.white54, fontSize: 14),
                   textAlign: TextAlign.center,
                 ),
               ],
@@ -167,19 +167,19 @@ class StatsScreen extends ConsumerWidget {
                   color: AppTheme.primaryColor.withOpacity(0.15),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(
+                child: const Icon(
                   Icons.insights_rounded,
                   color: AppTheme.primaryColor,
                   size: 24,
                 ),
               ),
               const SizedBox(width: 12),
-              Expanded(
+              const Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text(
+                    Text(
                       'Statistiques',
                       style: TextStyle(
                         color: Colors.white,
@@ -217,7 +217,7 @@ class StatsScreen extends ConsumerWidget {
                 color: AppTheme.primaryColor.withOpacity(0.12),
                 shape: BoxShape.circle,
               ),
-              child: Icon(
+              child: const Icon(
                 Icons.bar_chart_rounded,
                 size: 56,
                 color: AppTheme.primaryColor,
@@ -232,7 +232,7 @@ class StatsScreen extends ConsumerWidget {
                   ),
             ),
             const SizedBox(height: 8),
-            Text(
+            const Text(
               'Scannez votre bibliothèque pour voir vos statistiques.',
               style: TextStyle(
                 color: Colors.white60,
@@ -311,14 +311,14 @@ class StatsScreen extends ConsumerWidget {
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: Colors.white12),
         ),
-        child: Column(
+        child: const Column(
           children: [
             Icon(
               Icons.headset_rounded,
               size: 44,
               color: Colors.white38,
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             Text(
               'Aucune écoute enregistrée',
               style: TextStyle(
@@ -328,7 +328,7 @@ class StatsScreen extends ConsumerWidget {
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 4),
+            SizedBox(height: 4),
             Text(
               'Lancez des morceaux pour voir votre top ici.',
               style: TextStyle(
@@ -506,7 +506,7 @@ class _TopSongTile extends StatelessWidget {
                       const SizedBox(height: 2),
                       Text(
                         song.artist,
-                        style: TextStyle(
+                        style: const TextStyle(
                           color: Colors.white60,
                           fontSize: 13,
                         ),
@@ -527,7 +527,7 @@ class _TopSongTile extends StatelessWidget {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.play_arrow_rounded,
                         size: 14,
                         color: AppTheme.primaryColor,
@@ -535,7 +535,7 @@ class _TopSongTile extends StatelessWidget {
                       const SizedBox(width: 4),
                       Text(
                         '${song.playCount}',
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           color: AppTheme.primaryColor,
                           fontSize: 13,

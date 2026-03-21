@@ -139,24 +139,24 @@ class SongTile extends ConsumerWidget {
                     ),
                     const PopupMenuDivider(),
                     if (MusicRepository.effectiveAlbumKey(song) != null)
-                      PopupMenuItem(
+                      const PopupMenuItem(
                         value: 'go_to_album',
                         child: Row(
                           children: [
-                            const Icon(Icons.album),
-                            const SizedBox(width: 12),
-                            const Text('Aller à l\'album'),
+                            Icon(Icons.album),
+                            SizedBox(width: 12),
+                            Text('Aller à l\'album'),
                           ],
                         ),
                       ),
                     if (MusicRepository.effectiveArtistKey(song) != null)
-                      PopupMenuItem(
+                      const PopupMenuItem(
                         value: 'go_to_artist',
                         child: Row(
                           children: [
-                            const Icon(Icons.person),
-                            const SizedBox(width: 12),
-                            const Text('Aller à l\'artiste'),
+                            Icon(Icons.person),
+                            SizedBox(width: 12),
+                            Text('Aller à l\'artiste'),
                           ],
                         ),
                       ),
@@ -188,7 +188,7 @@ class SongTile extends ConsumerWidget {
   String _formatDuration(Duration duration) {
     final minutes = duration.inMinutes;
     final seconds = duration.inSeconds.remainder(60);
-    return '${minutes}:${seconds.toString().padLeft(2, '0')}';
+    return '$minutes:${seconds.toString().padLeft(2, '0')}';
   }
 
   void _playSong(WidgetRef ref) {

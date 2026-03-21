@@ -338,7 +338,7 @@ class _LyricsFullScreenState extends ConsumerState<LyricsFullScreen> {
   String _formatDuration(Duration d) {
     final m = d.inMinutes;
     final s = d.inSeconds.remainder(60);
-    return '${m}:${s.toString().padLeft(2, '0')}';
+    return '$m:${s.toString().padLeft(2, '0')}';
   }
 }
 

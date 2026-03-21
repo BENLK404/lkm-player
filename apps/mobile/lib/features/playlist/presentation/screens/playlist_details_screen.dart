@@ -93,7 +93,7 @@ class _PlaylistDetailsScreenState extends ConsumerState<PlaylistDetailsScreen> {
                   .firstWhere(
                     (p) => p.id == widget.playlistId,
                     orElse: () =>
-                        PlaylistModel(id: '', name: 'Playlist', songIds: []),
+                        const PlaylistModel(id: '', name: 'Playlist', songIds: []),
                   )
                   .name;
 

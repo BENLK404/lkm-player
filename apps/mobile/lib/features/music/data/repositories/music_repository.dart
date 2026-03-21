@@ -1,10 +1,10 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:http/http.dart' as http;
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive/hive.dart';
+import 'package:http/http.dart' as http;
 import 'package:musio/core/utils/app_logger.dart';
 import 'package:musio/features/settings/presentation/providers/settings_provider.dart';
 import 'package:on_audio_query_pluse/on_audio_query.dart' as aq;
@@ -450,7 +450,7 @@ class MusicRepository {
   }
 
   Future<String?> _getWithRetry(Future<String?> Function() fn) async {
-    var result = await fn();
+    final result = await fn();
     if (result != null && result.trim().isNotEmpty) return result;
     await Future<void>.delayed(const Duration(milliseconds: 600));
     return fn();
@@ -620,7 +620,7 @@ class MusicRepository {
       title: song.title,
       artist: song.artist ?? 'Artiste inconnu',
       album: song.album ?? '',
-      path: song.data ?? '',
+      path: song.data,
       duration: song.duration ?? 0,
       albumArtPath: albumArtUri, // URI content:// au lieu d'un path fichier
       genre: song.genre,

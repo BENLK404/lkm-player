@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:musio/shared/utils/app_toast.dart';
 import 'package:musio/features/download/data/models/deezer_search_result.dart';
 import 'package:musio/features/download/data/telegramusic_api_client.dart';
 import 'package:musio/features/download/presentation/providers/download_provider.dart';
+import 'package:musio/shared/utils/app_toast.dart';
 import 'package:musio/shared/widgets/mini_player.dart';
 
 class OnlineScreen extends ConsumerStatefulWidget {

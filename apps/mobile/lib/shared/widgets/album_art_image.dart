@@ -1,9 +1,9 @@
 import 'dart:io';
+
 import 'package:flutter/material.dart';
-import 'package:on_audio_query_pluse/on_audio_query.dart';
 
 /// Widget réutilisable pour afficher les images d'albums
-/// Utilise le chemin du fichier en priorité, puis QueryArtworkWidget en fallback
+/// Utilise le chemin du fichier ou l'URI MediaStore ; sinon placeholder.
 class AlbumArtImage extends StatelessWidget {
   final String? albumArtPath;
   final String songId;
@@ -55,25 +55,6 @@ class AlbumArtImage extends StatelessWidget {
     }
 
     return _buildPlaceholder(context);
-  }
-
-  Widget _buildQueryArtwork(BuildContext context, BorderRadius radius) {
-    final artworkSize = size.isFinite ? size.toInt() * 2 : 200;
-    return ClipRRect(
-      borderRadius: radius,
-      child: QueryArtworkWidget(
-        id: int.tryParse(songId) ?? 0,
-        type: ArtworkType.AUDIO,
-        size: artworkSize, // Meilleure qualité
-        quality: 100,
-        artworkFit: fit,
-        artworkBorder: BorderRadius.zero,
-        nullArtworkWidget: _buildPlaceholder(context),
-        errorBuilder: (context, error, stack) {
-          return _buildPlaceholder(context);
-        },
-      ),
-    );
   }
 
   Widget _buildPlaceholder(BuildContext context) {

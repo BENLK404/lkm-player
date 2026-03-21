@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -12,7 +11,6 @@ import 'package:musio/shared/widgets/album_art_image.dart';
 import 'package:musio/shared/widgets/mini_player.dart';
 import 'package:musio/shared/widgets/song_tile.dart';
 import 'package:palette_generator/palette_generator.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class AlbumDetailsScreen extends ConsumerStatefulWidget {
   final String albumId;
@@ -572,7 +570,7 @@ class _ArtistPopup extends ConsumerWidget {
                               onTap: () => Navigator.of(context).pop(),
                               child: Container(
                                 padding: const EdgeInsets.all(6),
-                                decoration: BoxDecoration(
+                                decoration: const BoxDecoration(
                                   color: Colors.black54,
                                   shape: BoxShape.circle,
                                 ),
@@ -610,8 +608,8 @@ class _ArtistPopup extends ConsumerWidget {
                       child: asyncInfo.when(
                         data: (info) {
                           if (info == null || info.extract.isEmpty) {
-                            return Padding(
-                              padding: const EdgeInsets.all(20),
+                            return const Padding(
+                              padding: EdgeInsets.all(20),
                               child: Text(
                                 'Aucune information disponible sur Wikipedia.',
                                 style: TextStyle(color: Colors.white38),

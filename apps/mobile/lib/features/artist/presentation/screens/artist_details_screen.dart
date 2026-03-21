@@ -10,7 +10,6 @@ import 'package:musio/shared/widgets/album_card.dart';
 import 'package:musio/shared/widgets/mini_player.dart';
 import 'package:musio/shared/widgets/song_tile.dart';
 import 'package:palette_generator/palette_generator.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class ArtistDetailsScreen extends ConsumerStatefulWidget {
   final String artistId;
