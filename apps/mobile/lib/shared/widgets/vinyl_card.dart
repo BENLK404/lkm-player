@@ -9,9 +9,9 @@ class VinylCard extends ConsumerStatefulWidget {
   final VoidCallback onTap;
 
   const VinylCard({
-    super.key,
     required this.song,
     required this.onTap,
+    super.key,
   });
 
   @override
@@ -104,7 +104,8 @@ class _VinylCardState extends ConsumerState<VinylCard>
                             songId: widget.song.id,
                             size: double.infinity,
                             fit: BoxFit.cover,
-                            placeholderIcon: const Icon(Icons.music_note, size: 40, color: Colors.grey),
+                            placeholderIcon: const Icon(Icons.music_note,
+                                size: 40, color: Colors.grey),
                           ),
                         ),
                       ),
@@ -127,11 +128,16 @@ class _VinylCardState extends ConsumerState<VinylCard>
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary.withOpacity(0.8),
+                      color: Theme.of(context)
+                          .colorScheme
+                          .primary
+                          .withValues(alpha: 0.8),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
-                      isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                      isPlaying
+                          ? Icons.pause_rounded
+                          : Icons.play_arrow_rounded,
                       color: Colors.white,
                       size: 24,
                     ),
@@ -148,7 +154,9 @@ class _VinylCardState extends ConsumerState<VinylCard>
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   fontWeight: FontWeight.w600,
-                  color: isCurrentSong ? Theme.of(context).colorScheme.primary : null,
+                  color: isCurrentSong
+                      ? Theme.of(context).colorScheme.primary
+                      : null,
                   fontSize: 12,
                 ),
           ),
@@ -159,7 +167,10 @@ class _VinylCardState extends ConsumerState<VinylCard>
             overflow: TextOverflow.ellipsis,
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withValues(alpha: 0.7),
                   fontSize: 10,
                 ),
           ),

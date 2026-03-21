@@ -16,7 +16,7 @@ import 'package:palette_generator/palette_generator.dart';
 class PlaylistDetailsScreen extends ConsumerStatefulWidget {
   final String playlistId;
 
-  const PlaylistDetailsScreen({super.key, required this.playlistId});
+  const PlaylistDetailsScreen({required this.playlistId, super.key});
 
   @override
   ConsumerState<PlaylistDetailsScreen> createState() =>
@@ -92,8 +92,8 @@ class _PlaylistDetailsScreenState extends ConsumerState<PlaylistDetailsScreen> {
               : state.playlists
                   .firstWhere(
                     (p) => p.id == widget.playlistId,
-                    orElse: () =>
-                        PlaylistModel(id: '', name: 'Playlist', songIds: []),
+                    orElse: () => const PlaylistModel(
+                        id: '', name: 'Playlist', songIds: []),
                   )
                   .name;
 
@@ -153,7 +153,7 @@ class _PlaylistDetailsScreenState extends ConsumerState<PlaylistDetailsScreen> {
                                 borderRadius: BorderRadius.circular(12),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.3),
+                                    color: Colors.black.withValues(alpha: 0.3),
                                     blurRadius: 20,
                                     offset: const Offset(0, 10),
                                   ),
@@ -396,7 +396,7 @@ class _PlaylistDetailsScreenState extends ConsumerState<PlaylistDetailsScreen> {
           color = Colors.grey;
       }
       return Container(
-        color: color.withOpacity(0.2),
+        color: color.withValues(alpha: 0.2),
         child: Icon(iconData, size: 80, color: color),
       );
     } else {

@@ -1,9 +1,9 @@
 import 'dart:io';
+
 import 'package:flutter/material.dart';
-import 'package:on_audio_query_pluse/on_audio_query.dart';
 
 /// Widget réutilisable pour afficher les images d'albums
-/// Utilise le chemin du fichier en priorité, puis QueryArtworkWidget en fallback
+/// Utilise le chemin du fichier ou l'URI MediaStore ; sinon placeholder.
 class AlbumArtImage extends StatelessWidget {
   final String? albumArtPath;
   final String songId;
@@ -13,9 +13,9 @@ class AlbumArtImage extends StatelessWidget {
   final Widget? placeholderIcon;
 
   const AlbumArtImage({
+    required this.songId,
     super.key,
     this.albumArtPath,
-    required this.songId,
     this.size = 48,
     this.borderRadius,
     this.fit = BoxFit.cover,
@@ -57,25 +57,6 @@ class AlbumArtImage extends StatelessWidget {
     return _buildPlaceholder(context);
   }
 
-  Widget _buildQueryArtwork(BuildContext context, BorderRadius radius) {
-    final artworkSize = size.isFinite ? size.toInt() * 2 : 200;
-    return ClipRRect(
-      borderRadius: radius,
-      child: QueryArtworkWidget(
-        id: int.tryParse(songId) ?? 0,
-        type: ArtworkType.AUDIO,
-        size: artworkSize, // Meilleure qualité
-        quality: 100,
-        artworkFit: fit,
-        artworkBorder: BorderRadius.zero,
-        nullArtworkWidget: _buildPlaceholder(context),
-        errorBuilder: (context, error, stack) {
-          return _buildPlaceholder(context);
-        },
-      ),
-    );
-  }
-
   Widget _buildPlaceholder(BuildContext context) {
     return Container(
       width: size,
@@ -86,15 +67,15 @@ class AlbumArtImage extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Theme.of(context).colorScheme.primary.withOpacity(0.3),
-            Theme.of(context).colorScheme.secondary.withOpacity(0.3),
+            Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+            Theme.of(context).colorScheme.secondary.withValues(alpha: 0.3),
           ],
         ),
       ),
       child: placeholderIcon ??
           Icon(
             Icons.music_note,
-            color: Theme.of(context).iconTheme.color?.withOpacity(0.7),
+            color: Theme.of(context).iconTheme.color?.withValues(alpha: 0.7),
             size: size.isFinite ? size * 0.5 : 48,
           ),
     );
@@ -109,9 +90,9 @@ class AlbumArtImageLarge extends StatelessWidget {
   final String? heroTag;
 
   const AlbumArtImageLarge({
+    required this.songId,
     super.key,
     this.albumArtPath,
-    required this.songId,
     this.size = 300,
     this.heroTag,
   });
@@ -148,10 +129,8 @@ class AlbumArtImageLarge extends StatelessWidget {
         child: Icon(
           Icons.music_note,
           size: size * 0.45,
-          color: Theme.of(context)
-              .colorScheme
-              .onSurface
-              .withValues(alpha: 0.85),
+          color:
+              Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.85),
         ),
       );
     }
@@ -178,9 +157,9 @@ class AlbumArtCircle extends StatelessWidget {
   final double size;
 
   const AlbumArtCircle({
+    required this.songId,
     super.key,
     this.albumArtPath,
-    required this.songId,
     this.size = 48,
   });
 

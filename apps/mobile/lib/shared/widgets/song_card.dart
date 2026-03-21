@@ -11,9 +11,9 @@ class SongCard extends ConsumerWidget {
   final Widget? subtitleWidget;
 
   const SongCard({
-    super.key,
     required this.song,
     required this.onTap,
+    super.key,
     this.subtitle,
     this.subtitleWidget,
   });
@@ -48,7 +48,8 @@ class SongCard extends ConsumerWidget {
                   width: double.infinity,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(8),
-                    color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                    color:
+                        Theme.of(context).colorScheme.surfaceContainerHighest,
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(8),
@@ -58,7 +59,8 @@ class SongCard extends ConsumerWidget {
                       size: double.infinity,
                       borderRadius: BorderRadius.zero,
                       fit: BoxFit.cover,
-                      placeholderIcon: const Icon(Icons.music_note, size: 40, color: Colors.grey),
+                      placeholderIcon: const Icon(Icons.music_note,
+                          size: 40, color: Colors.grey),
                     ),
                   ),
                 ),
@@ -74,14 +76,16 @@ class SongCard extends ConsumerWidget {
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
+                          color: Colors.black.withValues(alpha: 0.2),
                           blurRadius: 2,
                           offset: const Offset(0, 1),
                         ),
                       ],
                     ),
                     child: Icon(
-                      isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                      isPlaying
+                          ? Icons.pause_rounded
+                          : Icons.play_arrow_rounded,
                       color: Colors.white,
                       size: 10, // Réduit à 10px
                     ),
@@ -103,7 +107,9 @@ class SongCard extends ConsumerWidget {
                   overflow: TextOverflow.ellipsis,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.w600,
-                        color: isCurrentSong ? Theme.of(context).colorScheme.primary : null,
+                        color: isCurrentSong
+                            ? Theme.of(context).colorScheme.primary
+                            : null,
                         fontSize: 12,
                       ),
                 ),
@@ -116,7 +122,10 @@ class SongCard extends ConsumerWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSurface
+                              .withValues(alpha: 0.7),
                           fontSize: 10,
                         ),
                   ),

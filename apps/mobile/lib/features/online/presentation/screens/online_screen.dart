@@ -134,7 +134,7 @@ class _OnlineScreenState extends ConsumerState<OnlineScreen> {
     double? downloadProgress,
   ) {
     if (apiClient == null || !apiClient.isConfigured) {
-      return _StatePage(
+      return const _StatePage(
         icon: Icons.cloud_off_rounded,
         iconGradient: true,
         title: 'Connexion au serveur',
@@ -216,7 +216,7 @@ class _OnlineScreenState extends ConsumerState<OnlineScreen> {
           ],
         );
       }
-      return _StatePage(
+      return const _StatePage(
         icon: Icons.explore_rounded,
         iconGradient: true,
         title: 'Trouve ta musique',

@@ -214,12 +214,13 @@ Future<DownloadResult> downloadTrackAndAddToLibrary(
       durationMs = (tag?.duration ?? 0) * 1000;
       year = tag?.year;
       trackNumber = tag?.trackNumber;
-      if (tag?.pictures != null && tag!.pictures!.isNotEmpty) {
+      final pictures = tag?.pictures;
+      if (pictures != null && pictures.isNotEmpty) {
         final appDir = await getApplicationDocumentsDirectory();
         final artDir = Directory(path.join(appDir.path, 'album_artworks'));
         if (!await artDir.exists()) await artDir.create(recursive: true);
         final artPath = path.join(artDir.path, 'deezer_${track.id}.jpg');
-        await File(artPath).writeAsBytes(tag.pictures!.first.bytes);
+        await File(artPath).writeAsBytes(pictures.first.bytes);
         albumArtPath = artPath;
       }
     } catch (_) {
@@ -333,9 +334,10 @@ Future<DownloadResult> downloadAlbumAndAddToLibrary(
         durationMs = (tag?.duration ?? 0) * 1000;
         year = tag?.year;
         trackNumber = tag?.trackNumber;
-        if (tag?.pictures != null && tag!.pictures!.isNotEmpty) {
+        final pictures = tag?.pictures;
+        if (pictures != null && pictures.isNotEmpty) {
           final artPath = path.join(artDir.path, 'deezer_album_${album.id}_$index.jpg');
-          await File(artPath).writeAsBytes(tag.pictures!.first.bytes);
+          await File(artPath).writeAsBytes(pictures.first.bytes);
           albumArtPath = artPath;
         }
       } catch (_) {}

@@ -6,14 +6,14 @@ class PlaylistScreen extends ConsumerWidget {
   final String playlistId;
 
   const PlaylistScreen({
-    super.key,
     required this.playlistId,
+    super.key,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // TODO: Implémenter le chargement de la playlist depuis le provider
-    
+
     return Scaffold(
       body: CustomScrollView(
         slivers: [
@@ -88,7 +88,7 @@ class PlaylistScreen extends ConsumerWidget {
               ),
             ],
           ),
-          
+
           // Playlist info
           SliverToBoxAdapter(
             child: Padding(
@@ -209,7 +209,7 @@ class PlaylistScreen extends ConsumerWidget {
 
   void _showEditDialog(BuildContext context) {
     final nameController = TextEditingController(text: 'Ma Playlist');
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(

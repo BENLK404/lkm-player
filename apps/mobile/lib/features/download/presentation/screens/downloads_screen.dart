@@ -169,7 +169,7 @@ class _ActiveDownloadsTab extends ConsumerWidget {
 
 /// Carte tâche active (partagée logique avec l’ancienne section).
 class DownloadActiveTaskCard extends ConsumerWidget {
-  const DownloadActiveTaskCard({super.key, required this.task});
+  const DownloadActiveTaskCard({required this.task, super.key});
 
   final DownloadSessionTask task;
 

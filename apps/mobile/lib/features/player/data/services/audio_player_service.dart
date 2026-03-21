@@ -4,9 +4,9 @@ import 'package:audio_service/audio_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive/hive.dart';
 import 'package:just_audio/just_audio.dart' as ja;
-import 'package:musio/features/player/data/models/saved_player_state.dart';
 import 'package:musio/core/providers/app_providers.dart';
 import 'package:musio/core/utils/app_logger.dart';
+import 'package:musio/features/player/data/models/saved_player_state.dart';
 import 'package:musio/features/player/data/services/audio_handler.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -143,7 +143,7 @@ class AudioPlayerService {
         }
       }
     } catch (e) {
-      AppLogger.e('Erreur lors de la restauration de l\'état', error: e);
+      appLogger.e('Erreur lors de la restauration de l\'état', error: e);
     }
   }
 
@@ -169,7 +169,7 @@ class AudioPlayerService {
 
       await box.put('last_state', savedState);
     } catch (e) {
-      AppLogger.e('Erreur lors de la sauvegarde de l\'état', error: e);
+      appLogger.e('Erreur lors de la sauvegarde de l\'état', error: e);
     }
   }
 

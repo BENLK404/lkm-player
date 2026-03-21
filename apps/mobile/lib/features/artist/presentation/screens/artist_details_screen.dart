@@ -10,14 +10,13 @@ import 'package:musio/shared/widgets/album_card.dart';
 import 'package:musio/shared/widgets/mini_player.dart';
 import 'package:musio/shared/widgets/song_tile.dart';
 import 'package:palette_generator/palette_generator.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class ArtistDetailsScreen extends ConsumerStatefulWidget {
   final String artistId;
 
   const ArtistDetailsScreen({
-    super.key,
     required this.artistId,
+    super.key,
   });
 
   @override
@@ -152,7 +151,7 @@ class _ArtistDetailsScreenState extends ConsumerState<ArtistDetailsScreen> {
           // Divider
           SliverToBoxAdapter(
             child: Divider(
-              color: Colors.white.withOpacity(0.1),
+              color: Colors.white.withValues(alpha: 0.1),
               thickness: 1,
             ),
           ),

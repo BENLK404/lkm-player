@@ -9,9 +9,9 @@ class SongListScreen extends ConsumerWidget {
   final List<SongModel> songs;
 
   const SongListScreen({
-    super.key,
     required this.title,
     required this.songs,
+    super.key,
   });
 
   @override

@@ -29,7 +29,7 @@ class WikipediaArtistService {
       if (json == null) return null;
       return ArtistWikipediaInfo.fromJson(json);
     } catch (e) {
-      AppLogger.w('Wikipedia cache read failed for $artistName', error: e);
+      appLogger.w('Wikipedia cache read failed for $artistName', error: e);
       return null;
     }
   }
@@ -40,7 +40,7 @@ class WikipediaArtistService {
       final key = _cacheKey(artistName);
       await _cacheBox.put(key, jsonEncode(info.toJson()));
     } catch (e) {
-      AppLogger.w('Wikipedia cache write failed for $artistName', error: e);
+      appLogger.w('Wikipedia cache write failed for $artistName', error: e);
     }
   }
 
@@ -67,7 +67,7 @@ class WikipediaArtistService {
           }
           break; // pas d'erreur mais pas de résultat, passer à la langue suivante
         } catch (e) {
-          AppLogger.w(
+          appLogger.w(
               'Wikipedia fetch failed for $artistName (lang=$lang, attempt=${attempt + 1})',
               error: e);
         }

@@ -34,8 +34,8 @@ class QueueFullScreen extends ConsumerWidget {
                   : Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                        const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 20),
                           child: Text(
                             'Lecture en cours',
                             style: TextStyle(
@@ -63,7 +63,7 @@ class QueueFullScreen extends ConsumerWidget {
                             playerState.isShuffled
                                 ? 'Lecture aléatoire à partir de :'
                                 : 'À suivre :',
-                            style: TextStyle(
+                            style: const TextStyle(
                               color: Colors.white70,
                               fontSize: 13,
                             ),
@@ -100,8 +100,8 @@ class QueueFullScreen extends ConsumerWidget {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            _bgGradientTop.withOpacity(0.95),
-            _bgGradientTop.withOpacity(0.0),
+            _bgGradientTop.withValues(alpha: 0.95),
+            _bgGradientTop.withValues(alpha: 0.0),
           ],
         ),
       ),
@@ -133,7 +133,7 @@ class QueueFullScreen extends ConsumerWidget {
   }
 
   Widget _buildEmpty(BuildContext context) {
-    return Center(
+    return const Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -142,7 +142,7 @@ class QueueFullScreen extends ConsumerWidget {
             size: 72,
             color: Colors.white24,
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: 24),
           Text(
             'La file d\'attente est vide',
             style: TextStyle(
@@ -163,7 +163,7 @@ class QueueFullScreen extends ConsumerWidget {
   ) {
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: _bgDark,
         border: Border(
           top: BorderSide(color: Colors.white12, width: 0.5),
@@ -180,7 +180,7 @@ class QueueFullScreen extends ConsumerWidget {
                 color: _green,
                 size: 24,
               ),
-              label: Text(
+              label: const Text(
                 'Lecture aléatoire',
                 style: TextStyle(
                   color: _green,
@@ -202,7 +202,7 @@ class QueueFullScreen extends ConsumerWidget {
           Expanded(
             child: OutlinedButton.icon(
               onPressed: () => _showSleepTimerSheet(context, ref),
-              icon: Icon(
+              icon: const Icon(
                 Icons.timer_outlined,
                 color: Colors.white70,
                 size: 24,
@@ -211,7 +211,7 @@ class QueueFullScreen extends ConsumerWidget {
                 sleepRemaining != null && sleepRemaining > 0
                     ? '${(sleepRemaining / 60).ceil()} min'
                     : 'Minuteur',
-                style: TextStyle(
+                style: const TextStyle(
                   color: Colors.white70,
                   fontWeight: FontWeight.w600,
                   fontSize: 15,
@@ -219,7 +219,7 @@ class QueueFullScreen extends ConsumerWidget {
               ),
               style: OutlinedButton.styleFrom(
                 foregroundColor: Colors.white70,
-                side: BorderSide(color: Colors.white24),
+                side: const BorderSide(color: Colors.white24),
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(24),
@@ -260,7 +260,7 @@ class QueueFullScreen extends ConsumerWidget {
                         height: 4,
                         margin: const EdgeInsets.only(bottom: 16),
                         decoration: BoxDecoration(
-                          color: Colors.grey.withOpacity(0.3),
+                          color: Colors.grey.withValues(alpha: 0.3),
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
@@ -413,7 +413,7 @@ class _NowPlayingCard extends StatelessWidget {
                       song.artist,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
+                      style: const TextStyle(
                         color: Colors.white60,
                         fontSize: 14,
                       ),
@@ -478,7 +478,7 @@ class _UpcomingList extends StatelessWidget {
           onTap: () => onSkipTo(queueIndex),
           dragHandle: ReorderableDragStartListener(
             index: index,
-            child: Icon(
+            child: const Icon(
               Icons.drag_handle_rounded,
               color: Colors.white38,
               size: 24,
@@ -502,11 +502,11 @@ class _QueueTile extends StatelessWidget {
   final Widget dragHandle;
 
   const _QueueTile({
-    super.key,
     required this.song,
     required this.isNext,
     required this.onTap,
     required this.dragHandle,
+    super.key,
   });
 
   static const _green = Color(0xFF1DB954);
@@ -548,7 +548,7 @@ class _QueueTile extends StatelessWidget {
         title: Row(
           children: [
             if (isNext) ...[
-              Icon(Icons.play_arrow_rounded, color: _green, size: 20),
+              const Icon(Icons.play_arrow_rounded, color: _green, size: 20),
               const SizedBox(width: 6),
             ],
             Expanded(
@@ -570,7 +570,7 @@ class _QueueTile extends StatelessWidget {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: TextStyle(
-            color: isNext ? _green.withOpacity(0.9) : Colors.white38,
+            color: isNext ? _green.withValues(alpha: 0.9) : Colors.white38,
             fontSize: 13,
           ),
         ),

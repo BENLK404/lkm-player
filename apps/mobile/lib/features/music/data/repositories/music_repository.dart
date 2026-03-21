@@ -1,10 +1,10 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:http/http.dart' as http;
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive/hive.dart';
+import 'package:http/http.dart' as http;
 import 'package:musio/core/utils/app_logger.dart';
 import 'package:musio/features/settings/presentation/providers/settings_provider.dart';
 import 'package:on_audio_query_pluse/on_audio_query.dart' as aq;
@@ -95,10 +95,10 @@ class MusicRepository {
 
       return true;
     } on PlatformException catch (e) {
-      AppLogger.e('Erreur lors de la demande de permissions', error: e);
+      appLogger.e('Erreur lors de la demande de permissions', error: e);
       return false;
     } catch (e) {
-      AppLogger.e('Erreur inattendue lors de la demande de permissions',
+      appLogger.e('Erreur inattendue lors de la demande de permissions',
           error: e);
       return false;
     }
@@ -214,7 +214,7 @@ class MusicRepository {
     try {
       final hasPermission = await requestPermissions();
       if (!hasPermission) {
-        AppLogger.w('Permissions refusées — conservation du cache');
+        appLogger.w('Permissions refusées — conservation du cache');
         return getSongsFromCache();
       }
 
@@ -222,11 +222,11 @@ class MusicRepository {
       // le plugin média n’a pas l’accès bibliothèque → MissingPermissions + double reply natif.
       final libraryOk = await _audioQuery.checkAndRequest();
       if (!libraryOk) {
-        AppLogger.w('Accès bibliothèque (on_audio_query) refusé — conservation du cache');
+        appLogger.w('Accès bibliothèque (on_audio_query) refusé — conservation du cache');
         return getSongsFromCache();
       }
       if (!await _audioQuery.permissionsStatus()) {
-        AppLogger.w('permissionsStatus=false — conservation du cache');
+        appLogger.w('permissionsStatus=false — conservation du cache');
         return getSongsFromCache();
       }
 
@@ -256,7 +256,7 @@ class MusicRepository {
         );
       } on PlatformException catch (e) {
         if (e.code == 'MissingPermissions') {
-          AppLogger.w('querySongs: MissingPermissions — conservation du cache');
+          appLogger.w('querySongs: MissingPermissions — conservation du cache');
           return getSongsFromCache();
         }
         rethrow;
@@ -277,27 +277,27 @@ class MusicRepository {
         if (excludeGlobal) {
           final p = deviceSong.data;
           if (excludeWhatsApp && _matchesPatterns(p, _whatsappPatterns)) {
-            AppLogger.d('Exclu (WhatsApp) : $p');
+            appLogger.d('Exclu (WhatsApp) : $p');
             continue;
           }
           if (excludeTelegram && _matchesPatterns(p, _telegramPatterns)) {
-            AppLogger.d('Exclu (Telegram) : $p');
+            appLogger.d('Exclu (Telegram) : $p');
             continue;
           }
           if (excludeSignal && _matchesPatterns(p, _signalPatterns)) {
-            AppLogger.d('Exclu (Signal) : $p');
+            appLogger.d('Exclu (Signal) : $p');
             continue;
           }
           if (excludeViber && _matchesPatterns(p, _viberPatterns)) {
-            AppLogger.d('Exclu (Viber) : $p');
+            appLogger.d('Exclu (Viber) : $p');
             continue;
           }
           if (excludeDiscord && _matchesPatterns(p, _discordPatterns)) {
-            AppLogger.d('Exclu (Discord) : $p');
+            appLogger.d('Exclu (Discord) : $p');
             continue;
           }
           if (excludeOther && _matchesPatterns(p, _otherPatterns)) {
-            AppLogger.d('Exclu (Autre messagerie) : $p');
+            appLogger.d('Exclu (Autre messagerie) : $p');
             continue;
           }
         }
@@ -336,7 +336,7 @@ class MusicRepository {
 
       return mergedSongs;
     } catch (e) {
-      AppLogger.e('Erreur lors du scan', error: e);
+      appLogger.e('Erreur lors du scan', error: e);
       return getSongsFromCache();
     }
   }
@@ -454,7 +454,7 @@ class MusicRepository {
     try {
       await _lyricsCacheBox.put(songId, lyrics);
     } catch (e) {
-      AppLogger.w('saveLyricsToCache failed for $songId', error: e);
+      appLogger.w('saveLyricsToCache failed for $songId', error: e);
     }
   }
 
@@ -481,7 +481,7 @@ class MusicRepository {
   }
 
   Future<String?> _getWithRetry(Future<String?> Function() fn) async {
-    var result = await fn();
+    final result = await fn();
     if (result != null && result.trim().isNotEmpty) return result;
     await Future<void>.delayed(const Duration(milliseconds: 600));
     return fn();
@@ -512,7 +512,7 @@ class MusicRepository {
       if (plain != null && plain.trim().isNotEmpty) return plain.trim();
       return null;
     } catch (e) {
-      AppLogger.w('_getLyricsFromLrclib failed for $artist / $title', error: e);
+      appLogger.w('_getLyricsFromLrclib failed for $artist / $title', error: e);
       return null;
     }
   }
@@ -546,7 +546,7 @@ class MusicRepository {
       if (plain != null && plain.trim().isNotEmpty) return plain.trim();
       return null;
     } catch (e) {
-      AppLogger.w('_getLyricsFromLrclibSearch failed for $artist / $title',
+      appLogger.w('_getLyricsFromLrclibSearch failed for $artist / $title',
           error: e);
       return null;
     }
@@ -566,7 +566,7 @@ class MusicRepository {
       final lyrics = json['lyrics'] as String?;
       return lyrics?.trim();
     } catch (e) {
-      AppLogger.w('_getLyricsFromLyricsOvh failed for $artist / $title',
+      appLogger.w('_getLyricsFromLyricsOvh failed for $artist / $title',
           error: e);
       return null;
     }
@@ -651,7 +651,7 @@ class MusicRepository {
       title: song.title,
       artist: song.artist ?? 'Artiste inconnu',
       album: song.album ?? '',
-      path: song.data ?? '',
+      path: song.data,
       duration: song.duration ?? 0,
       albumArtPath: albumArtUri, // URI content:// au lieu d'un path fichier
       genre: song.genre,
@@ -674,7 +674,7 @@ class MusicRepository {
         await _artworkCacheDir!.create(recursive: true);
       }
     } catch (e) {
-      AppLogger.e('Erreur lors du nettoyage du cache', error: e);
+      appLogger.e('Erreur lors du nettoyage du cache', error: e);
     }
   }
 }

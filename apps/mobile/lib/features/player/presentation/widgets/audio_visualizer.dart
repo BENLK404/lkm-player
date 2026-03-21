@@ -13,8 +13,8 @@ class AudioVisualizer extends StatefulWidget {
   final Color? color;
 
   const AudioVisualizer({
-    super.key,
     required this.isPlaying,
+    super.key,
     this.barCount = 32,
     this.barWidth = 3,
     this.minHeight = 4,
@@ -77,7 +77,7 @@ class _AudioVisualizerState extends State<AudioVisualizer>
                       right: i == widget.barCount - 1 ? 0 : 2,
                     ),
                     decoration: BoxDecoration(
-                      color: color.withOpacity(0.85),
+                      color: color.withValues(alpha: 0.85),
                       borderRadius: BorderRadius.circular(widget.barWidth / 2),
                     ),
                   );
