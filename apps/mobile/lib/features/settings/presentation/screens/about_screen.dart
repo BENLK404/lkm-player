@@ -36,6 +36,7 @@ class _AboutScreenState extends State<AboutScreen> {
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri);
     } else {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Impossible d\'ouvrir le lien: $url')),
       );

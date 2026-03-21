@@ -30,7 +30,7 @@ class MusioAudioHandler extends BaseAudioHandler with SeekHandler {
     try {
       await _player.setAudioSource(_playlist);
     } catch (e) {
-      AppLogger.e('Erreur chargement playlist vide', error: e);
+      appLogger.e('Erreur chargement playlist vide', error: e);
     }
   }
 

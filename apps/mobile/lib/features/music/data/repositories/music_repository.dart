@@ -92,10 +92,10 @@ class MusicRepository {
 
       return true;
     } on PlatformException catch (e) {
-      AppLogger.e('Erreur lors de la demande de permissions', error: e);
+      appLogger.e('Erreur lors de la demande de permissions', error: e);
       return false;
     } catch (e) {
-      AppLogger.e('Erreur inattendue lors de la demande de permissions',
+      appLogger.e('Erreur inattendue lors de la demande de permissions',
           error: e);
       return false;
     }
@@ -204,7 +204,7 @@ class MusicRepository {
     try {
       final hasPermission = await requestPermissions();
       if (!hasPermission) {
-        AppLogger.w('Permissions refusées');
+        appLogger.w('Permissions refusées');
         return [];
       }
 
@@ -246,27 +246,27 @@ class MusicRepository {
         if (excludeGlobal) {
           final p = deviceSong.data;
           if (excludeWhatsApp && _matchesPatterns(p, _whatsappPatterns)) {
-            AppLogger.d('Exclu (WhatsApp) : $p');
+            appLogger.d('Exclu (WhatsApp) : $p');
             continue;
           }
           if (excludeTelegram && _matchesPatterns(p, _telegramPatterns)) {
-            AppLogger.d('Exclu (Telegram) : $p');
+            appLogger.d('Exclu (Telegram) : $p');
             continue;
           }
           if (excludeSignal && _matchesPatterns(p, _signalPatterns)) {
-            AppLogger.d('Exclu (Signal) : $p');
+            appLogger.d('Exclu (Signal) : $p');
             continue;
           }
           if (excludeViber && _matchesPatterns(p, _viberPatterns)) {
-            AppLogger.d('Exclu (Viber) : $p');
+            appLogger.d('Exclu (Viber) : $p');
             continue;
           }
           if (excludeDiscord && _matchesPatterns(p, _discordPatterns)) {
-            AppLogger.d('Exclu (Discord) : $p');
+            appLogger.d('Exclu (Discord) : $p');
             continue;
           }
           if (excludeOther && _matchesPatterns(p, _otherPatterns)) {
-            AppLogger.d('Exclu (Autre messagerie) : $p');
+            appLogger.d('Exclu (Autre messagerie) : $p');
             continue;
           }
         }
@@ -305,7 +305,7 @@ class MusicRepository {
 
       return mergedSongs;
     } catch (e) {
-      AppLogger.e('Erreur lors du scan', error: e);
+      appLogger.e('Erreur lors du scan', error: e);
       return getSongsFromCache();
     }
   }
@@ -423,7 +423,7 @@ class MusicRepository {
     try {
       await _lyricsCacheBox.put(songId, lyrics);
     } catch (e) {
-      AppLogger.w('saveLyricsToCache failed for $songId', error: e);
+      appLogger.w('saveLyricsToCache failed for $songId', error: e);
     }
   }
 
@@ -481,7 +481,7 @@ class MusicRepository {
       if (plain != null && plain.trim().isNotEmpty) return plain.trim();
       return null;
     } catch (e) {
-      AppLogger.w('_getLyricsFromLrclib failed for $artist / $title', error: e);
+      appLogger.w('_getLyricsFromLrclib failed for $artist / $title', error: e);
       return null;
     }
   }
@@ -515,7 +515,7 @@ class MusicRepository {
       if (plain != null && plain.trim().isNotEmpty) return plain.trim();
       return null;
     } catch (e) {
-      AppLogger.w('_getLyricsFromLrclibSearch failed for $artist / $title',
+      appLogger.w('_getLyricsFromLrclibSearch failed for $artist / $title',
           error: e);
       return null;
     }
@@ -535,7 +535,7 @@ class MusicRepository {
       final lyrics = json['lyrics'] as String?;
       return lyrics?.trim();
     } catch (e) {
-      AppLogger.w('_getLyricsFromLyricsOvh failed for $artist / $title',
+      appLogger.w('_getLyricsFromLyricsOvh failed for $artist / $title',
           error: e);
       return null;
     }
@@ -643,7 +643,7 @@ class MusicRepository {
         await _artworkCacheDir!.create(recursive: true);
       }
     } catch (e) {
-      AppLogger.e('Erreur lors du nettoyage du cache', error: e);
+      appLogger.e('Erreur lors du nettoyage du cache', error: e);
     }
   }
 }

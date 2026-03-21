@@ -202,6 +202,7 @@ class SettingsScreen extends ConsumerWidget {
                         .read(excludeMessagingAppsProvider.notifier)
                         .setEnabled(value);
                     ref.read(musicProvider.notifier).rescanLibrary();
+                    if (!context.mounted) return;
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(value
@@ -311,6 +312,7 @@ class SettingsScreen extends ConsumerWidget {
             subtitle: const Text('Supprime les images des albums téléchargées'),
             onTap: () async {
               await ref.read(musicProvider.notifier).clearArtworkCache();
+              if (!context.mounted) return;
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                   content: Text('Cache des pochettes vidé.'),

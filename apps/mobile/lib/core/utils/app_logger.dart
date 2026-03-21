@@ -1,8 +1,8 @@
 import 'package:logger/logger.dart';
 
 /// Logger partagé pour l'application LKM Player.
-/// Utiliser [AppLogger.log] pour les messages de debug/erreur au lieu de [print].
-final AppLogger = Logger(
+/// Utiliser [appLogger] pour les messages de debug/erreur (ex. `.d`, `.w`, `.e`) au lieu de [print].
+final appLogger = Logger(
   printer: PrettyPrinter(
     methodCount: 0,
     errorMethodCount: 4,

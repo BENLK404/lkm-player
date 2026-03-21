@@ -143,7 +143,7 @@ class AudioPlayerService {
         }
       }
     } catch (e) {
-      AppLogger.e('Erreur lors de la restauration de l\'état', error: e);
+      appLogger.e('Erreur lors de la restauration de l\'état', error: e);
     }
   }
 
@@ -169,7 +169,7 @@ class AudioPlayerService {
 
       await box.put('last_state', savedState);
     } catch (e) {
-      AppLogger.e('Erreur lors de la sauvegarde de l\'état', error: e);
+      appLogger.e('Erreur lors de la sauvegarde de l\'état', error: e);
     }
   }
 
