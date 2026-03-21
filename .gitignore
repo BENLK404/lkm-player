@@ -1,9 +1,10 @@
-# Miscellaneous
+# ===== General =====
 *.zip
-*.class
+*.tar
 *.log
-*.pyc
+*.class
 *.swp
+*.swo
 .DS_Store
 .atom/
 .build/
@@ -13,46 +14,56 @@
 .swiftpm/
 migrate_working_dir/
 
-# IntelliJ related
+# ===== IDE =====
 *.iml
 *.ipr
 *.iws
 .idea/
+.vscode/
 
-# The .vscode folder contains launch configuration and tasks you configure in
-# VS Code which you may wish to be included in version control, so this line
-# is commented out by default.
-#.vscode/
-
-# Flutter/Dart/Pub related
+# ===== Flutter / Dart =====
 **/doc/api/
 **/ios/Flutter/.last_build_id
 .dart_tool/
+.flutter-plugins
 .flutter-plugins-dependencies
 .pub-cache/
 .pub/
-/build/
+**/build/
 /coverage/
 
-# Symbolication related
+# Symbolication
 app.*.symbols
-
-# Obfuscation related
+# Obfuscation
 app.*.map.json
 
-# Android Studio / Gradle build
-/android/app/debug
-/android/app/profile
-/android/app/release
-android/build/
+# Android Studio / Gradle
+**/android/app/debug
+**/android/app/profile
+**/android/app/release
+**/android/build/
 
-# Secrets & env (ne jamais commiter)
+# ===== Python =====
+venv/
+.venv/
+env/
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+.eggs/
+dist/
+
+# ===== Secrets & env =====
 .env
 .env.*
+*.env.local
+token.env
 *.keystore
 key.properties
 **/secrets/
 *.jks
 
-# Local config optionnelle
-# .vscode/
+# ===== Temp / Local =====
+**/local_resources/
+tmp/

@@ -1,0 +1,35 @@
+services:
+  # Bot Telegram (main.py)
+  bot:
+    container_name: lkm-bot
+    build:
+      context: ./services/api
+      dockerfile: Dockerfile
+      args:
+        - ENABLE_FLAC=${ENABLE_FLAC:-0}
+    volumes:
+      - type: bind
+        source: ./services/api/local_resources/
+        target: /tmp/local_resources/
+        read_only: true
+    restart: unless-stopped
+    env_file:
+      - ./services/api/token.env
+    environment:
+      - COOKIES_PATH=/tmp/local_resources/cookies.txt
+    command: ["python", "-u", "main.py"]
+
+  # API REST (uvicorn) pour LKM Player
+  api:
+    container_name: lkm-api
+    build:
+      context: ./services/api
+      dockerfile: Dockerfile
+      args:
+        - ENABLE_FLAC=${ENABLE_FLAC:-0}
+    restart: unless-stopped
+    env_file:
+      - ./services/api/token.env
+    ports:
+      - "8000:8000"
+    command: ["python", "-m", "uvicorn", "api.server:app", "--host", "0.0.0.0", "--port", "8000"]

@@ -1,177 +1,116 @@
-# 🎵 LKM Player
+# LKM Player
 
-**Un lecteur audio local open source, moderne et respectueux de ta vie privée.**
+**Monorepo — App mobile Flutter + API backend Python**
 
 [![Flutter](https://img.shields.io/badge/Flutter-3.2+-02569B?logo=flutter)](https://flutter.dev)
-[![Dart](https://img.shields.io/badge/Dart-3.2+-0175C2?logo=dart)](https://dart.dev)
+[![Python](https://img.shields.io/badge/Python-3.13+-3776AB?logo=python)](https://python.org)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688?logo=fastapi)](https://fastapi.tiangolo.com)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
 
-LKM Player est une application mobile Flutter qui lit **ta** bibliothèque musicale locale : scan, playlists, paroles (fichiers .lrc, tags ou API en ligne), égaliseur, thème clair/sombre, statistiques et suggestions. **Aucun compte, aucune pub, aucun tracking — tes fichiers restent sur ton appareil.**
+LKM Player est un lecteur audio open source composé de deux parties :
+
+- **`apps/mobile/`** — Application Flutter (Android/iOS) : lecture locale, playlists, paroles, égaliseur, thème clair/sombre
+- **`services/api/`** — Backend Python : API REST (FastAPI) pour le téléchargement depuis Deezer/YouTube/SoundCloud + bot Telegram
 
 > **Dépôt** : [github.com/BENLK404/lkm-player](https://github.com/BENLK404/lkm-player)
 
 ---
 
-## 🌟 Pourquoi LKM Player ?
+## Structure du monorepo
 
-| Tu en as marre de… | LKM Player te propose… |
-|--------------------|-------------------------|
-| Comptes obligatoires et abonnements | **Zéro compte** — tout est local |
-| Publicités et trackers | **Aucune pub**, aucune collecte de données |
-| Apps qui oublient tes playlists | **Cache persistant** : bibliothèque et paroles sauvegardés |
-| Paroles introuvables | **3 sources** : .lrc, tags, ou recherche en ligne (LRCLib, Lyrics.ovh) avec mise en cache |
-| Interface figée | **Thème clair / sombre / système**, UI fluide et lisible |
-
-Idéal si tu veux **reprendre le contrôle** de ta musique : tout reste sur ton téléphone, l’app ne dépend pas du cloud.
-
----
-
-## ✨ Fonctionnalités
-
-### 📚 Bibliothèque
-- **Scan local** de ta musique (albums, artistes, chansons)
-- **Recherche** par titre, artiste ou album
-- **Playlists personnalisées** : crée, renomme, ajoute ou retire des titres
-- **Cache Hive** : la bibliothèque est conservée entre les lancements, pas besoin de rescanner à chaque ouverture
-- Filtrage par durée minimale des morceaux (paramétrable)
-
-### 🎧 Lecteur
-- **File d’attente** : ajoute à la suite, joue un album ou une playlist en entier
-- **Shuffle** et **repeat** (tout / un seul / désactivé)
-- **Vitesse** : 1x, 1.5x, 2x
-- **Lecture en arrière-plan** avec notification et contrôles (pause, suivant, précédent)
-- **Mini lecteur** en bas de l’écran pour accès rapide
-
-### 📝 Paroles
-- **Fichiers .lrc** à côté du fichier audio
-- **Métadonnées** (tags) des MP3 / autres formats
-- **Recherche en ligne** (optionnelle) : LRCLib et Lyrics.ovh, paroles **mises en cache** pour les retrouver hors ligne ensuite
-- Affichage **synchronisé** (LRC) quand disponible
-- Réglage « Fonctionnalités en ligne » pour activer ou désactiver la recherche web
-
-### 🎯 Pour vous
-- **Écoutez aussi** : suggestions basées sur tes écoutes
-- **Artistes similaires** et découverte
-- **Tri et filtres** par genre et année
-
-### 📋 Playlists système
-- **Favoris** : tes titres préférés
-- **Récemment jouées** : historique d’écoute
-- **Les plus jouées** : titres les plus écoutés
-
-### ⚙️ Extras
-- **Égaliseur** pour ajuster les basses et aigus
-- **Minuteur de sommeil** : arrêt automatique après un délai
-- **Thème** : clair, sombre ou suivi du système
-- **Statistiques** : vue d’ensemble de ta bibliothèque et de ton écoute
-- **Visualiseur** audio pendant la lecture
-- **Partage** de titres (lien ou fichier selon le contexte)
+```text
+lkm-player/
+├── apps/
+│   └── mobile/              # App Flutter (Android/iOS)
+│       ├── lib/             # Code source Dart
+│       ├── android/
+│       ├── ios/
+│       └── pubspec.yaml
+│
+├── services/
+│   └── api/                 # Backend Python
+│       ├── api/             # FastAPI REST server
+│       ├── handlers/        # Logique Deezer/YouTube
+│       ├── dl_utils/        # Utilitaires de téléchargement
+│       ├── Dockerfile
+│       └── requirements.txt
+│
+├── docs/                    # Documentation
+├── .github/                 # Templates & workflows CI/CD
+├── docker-compose.yml       # Déploiement unifié
+└── Makefile                 # Commandes Make
+```
 
 ---
 
-## 🛠 Stack technique
-
-- **Flutter** 3.2+ / **Dart** 3.2+
-- **State** : [Riverpod](https://riverpod.dev) (providers + code généré)
-- **Modèles** : [Freezed](https://pub.dev/packages/freezed) + [Hive](https://docs.hivedb.dev) (stockage local)
-- **Audio** : [just_audio](https://pub.dev/packages/just_audio), [audio_service](https://pub.dev/packages/audio_service), [on_audio_query](https://pub.dev/packages/on_audio_query), [audiotagger](https://pub.dev/packages/audiotagger)
-- **Navigation** : [go_router](https://pub.dev/packages/go_router)
-- **UI** : Material Design 3, [flutter_animate](https://pub.dev/packages/flutter_animate), [flutter_lyric](https://pub.dev/packages/flutter_lyric) pour les paroles
-
-Architecture **Clean + Feature-First** : chaque fonctionnalité (music, player, settings, for_you, etc.) est isolée pour un code maintenable et évolutif.
-
----
-
-## 📸 Aperçu
-
-> *Tu peux ajouter ici des captures d’écran (bibliothèque, lecteur, paroles, paramètres) pour donner un aperçu visuel de l’app.*
-
----
-
-## 🚀 Démarrage rapide
+## Démarrage rapide
 
 ### Prérequis
+
 - [Flutter SDK](https://docs.flutter.dev/get-started/install) >= 3.2.0
+- [Python](https://python.org) >= 3.13
+- [Docker](https://docs.docker.com/get-docker/) (optionnel, pour le backend)
 
 ### Installation
 
 ```bash
 git clone https://github.com/BENLK404/lkm-player.git
 cd lkm-player
-flutter pub get
-dart run build_runner build --delete-conflicting-outputs
+make setup
 ```
 
-### Lancer l’app
+### Lancer l'app mobile
 
 ```bash
-flutter run
+make app-run
 ```
 
-### Build APK (release)
+### Lancer l'API (dev)
 
 ```bash
-flutter build apk
+make api-run
 ```
 
-L’APK sera généré dans `build/app/outputs/flutter-apk/app-release.apk`.
+### Docker (bot + API)
 
-Sur Android, configure les permissions et le service audio comme indiqué dans **[GETTING_STARTED.md](./GETTING_STARTED.md)**.
+```bash
+make docker-up
+```
+
+### Toutes les commandes
+
+```bash
+make help
+```
 
 ---
 
-## 📁 Structure du projet
+## Documentation
 
-```text
-lib/
-├── core/           # Routing, thème, utilitaires, providers globaux
-├── features/       # Par fonctionnalité
-│   ├── music/      # Bibliothèque, modèles, repository, cache, paroles
-│   ├── player/     # Lecture audio, état, écran now playing, égaliseur
-│   ├── settings/   # Paramètres, thème, stats, à propos
-│   ├── for_you/    # Onglet Pour Moi, suggestions
-│   ├── search/     # Recherche
-│   ├── playlist/   # Playlists et détails
-│   ├── album/      # Détail album
-│   ├── artist/     # Détail artiste
-│   └── online/     # Découverte en ligne (optionnel)
-└── shared/         # Widgets partagés (SongTile, MiniPlayer, …)
-```
-
-Détails : **[ARCHITECTURE.md](./ARCHITECTURE.md)**.
+| Fichier | Contenu |
+|---------|---------|
+| [GETTING_STARTED.md](./docs/GETTING_STARTED.md) | Installation détaillée, permissions Android |
+| [ARCHITECTURE.md](./docs/ARCHITECTURE.md) | Architecture et flux de données |
+| [CONTRIBUTING.md](./docs/CONTRIBUTING.md) | Comment contribuer |
+| [CONVENTIONS.md](./docs/CONVENTIONS.md) | Standards de code |
+| [DOCKER.md](./docs/DOCKER.md) | Déploiement Docker de l'API |
+| [UI_GUIDE.md](./docs/UI_GUIDE.md) | Guide UI/UX |
+| [TODO.md](./docs/TODO.md) | Roadmap |
 
 ---
 
-## 🤝 Rejoindre la communauté
+## Contribuer
 
 Les retours, idées et contributions sont les bienvenus.
 
-- **Discuter** : ouvrez une [Discussion](https://github.com/BENLK404/lkm-player/discussions) pour une idée, une question ou un partage.
-- **Bug ou idée** : [ouvrez une issue](https://github.com/BENLK404/lkm-player/issues).
-- **Contribuer** : lisez **[CONTRIBUTING.md](./CONTRIBUTING.md)** (conventions, comment proposer une PR).
+- **Discuter** : ouvrez une [Discussion](https://github.com/BENLK404/lkm-player/discussions)
+- **Bug ou idée** : [ouvrez une issue](https://github.com/BENLK404/lkm-player/issues)
+- **Contribuer** : lisez [CONTRIBUTING.md](./docs/CONTRIBUTING.md)
 
-En participant, vous acceptez notre **[Code de conduite](./CODE_OF_CONDUCT.md)**.
-
----
-
-## 📜 Licence
-
-Ce projet est sous **[licence MIT](./LICENSE)**. Tu peux l’utiliser, le modifier et le redistribuer librement.
+En participant, vous acceptez notre [Code de conduite](./docs/CODE_OF_CONDUCT.md).
 
 ---
 
-## 📚 Documentation
+## Licence
 
-| Fichier | Contenu |
-|--------|---------|
-| **[GETTING_STARTED.md](./GETTING_STARTED.md)** | Installation détaillée, permissions Android |
-| **[ARCHITECTURE.md](./ARCHITECTURE.md)** | Architecture et flux de données |
-| **[CONTRIBUTING.md](./CONTRIBUTING.md)** | Contribuer (conventions, comment proposer une PR) |
-| **[CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md)** | Règles de conduite |
-| **[CONVENTIONS.md](./CONVENTIONS.md)** | Standards de code du projet |
-| **[TODO.md](./TODO.md)** | Roadmap et tâches prévues |
-| **[LICENSE](./LICENSE)** | Licence du projet |
-
----
-
-*Fait avec Flutter • Aucun tracking • Ta musique, ton appareil.*
+Ce projet est sous [licence MIT](./LICENSE).
