@@ -538,105 +538,237 @@ class _ListenTimeCard extends StatelessWidget {
   }
 }
 
-/// Card "En cours de lecture" — regarde l'état du lecteur directement pour éviter
-/// tout décalage d'icône lors d'une mise en pause ou d'un stop.
+/// Card « En cours » — pochette + infos ouvrent l’écran lecture ; contrôles séparés.
 class _NowPlayingCard extends ConsumerWidget {
   final SongModel song;
 
   const _NowPlayingCard({required this.song});
 
+  void _openNowPlaying(BuildContext context) {
+    context.push(AppRouter.nowPlaying);
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final primary = theme.colorScheme.primary;
-    final isPlaying =
-        ref.watch(audioPlayerProvider.select((s) => s.isPlaying));
+    final scheme = theme.colorScheme;
+    final primary = scheme.primary;
 
-    return InkWell(
-      onTap: () {
-        if (isPlaying) {
-          ref.read(audioPlayerProvider.notifier).pause();
-        } else {
-          ref.read(audioPlayerProvider.notifier).resume();
-        }
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          border: Border(
-            left: BorderSide(color: primary, width: 3),
-          ),
+    return Material(
+      color: scheme.surfaceContainerLow,
+      elevation: 0,
+      shadowColor: Colors.transparent,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(22),
+        side: BorderSide(
+          color: scheme.outlineVariant.withValues(alpha: 0.45),
         ),
-        child: Padding(
-          padding: const EdgeInsets.only(left: 14),
-          child: Row(
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(6),
-                child: AlbumArtImage(
-                  albumArtPath: song.albumArtPath,
-                  songId: song.id,
-                  size: 54,
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 12, 10, 10),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () => _openNowPlaying(context),
+                    borderRadius: BorderRadius.circular(16),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: AlbumArtImage(
+                        albumArtPath: song.albumArtPath,
+                        songId: song.id,
+                        size: 76,
+                      ),
+                    ),
+                  ),
                 ),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(Icons.graphic_eq_rounded,
-                            size: 14, color: primary),
-                        const SizedBox(width: 4),
-                        Text(
-                          'En cours',
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: primary,
-                            fontWeight: FontWeight.bold,
-                          ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () => _openNowPlaying(context),
+                      borderRadius: BorderRadius.circular(12),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 6,
+                          horizontal: 4,
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      song.title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: primary.withValues(alpha: 0.12),
+                                borderRadius: BorderRadius.circular(100),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.equalizer_rounded,
+                                    size: 14,
+                                    color: primary,
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    'En cours de lecture',
+                                    style: theme.textTheme.labelMedium?.copyWith(
+                                      color: primary,
+                                      fontWeight: FontWeight.w700,
+                                      letterSpacing: 0.2,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              song.title,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: -0.3,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              song.artist,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: scheme.onSurfaceVariant,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                    Text(
-                      song.artist,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
-              const SizedBox(width: 12),
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 200),
-                child: Icon(
-                  isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                  key: ValueKey(isPlaying),
-                  color: primary,
-                  size: 36,
-                ),
-              ),
-            ],
+                const SizedBox(width: 6),
+                const _NowPlayingQuickControls(),
+              ],
+            ),
           ),
-        ),
+          const _NowPlayingCardProgressBar(),
+        ],
       ),
     );
   }
 }
 
-/// Card "Reprendre la lecture" (dernier son écouté).
+/// Play / pause + suivant (ne ouvre pas l’écran plein écran).
+class _NowPlayingQuickControls extends ConsumerWidget {
+  const _NowPlayingQuickControls();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final scheme = Theme.of(context).colorScheme;
+    final primary = scheme.primary;
+    final onPrimary = scheme.onPrimary;
+    final isPlaying =
+        ref.watch(audioPlayerProvider.select((s) => s.isPlaying));
+    final notifier = ref.read(audioPlayerProvider.notifier);
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Material(
+          color: primary,
+          shape: const CircleBorder(),
+          clipBehavior: Clip.antiAlias,
+          elevation: 0,
+          child: InkWell(
+            onTap: () {
+              if (isPlaying) {
+                notifier.pause();
+              } else {
+                notifier.resume();
+              }
+            },
+            customBorder: const CircleBorder(),
+            child: SizedBox(
+              width: 50,
+              height: 50,
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 200),
+                switchInCurve: Curves.easeOut,
+                switchOutCurve: Curves.easeIn,
+                child: Icon(
+                  isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                  key: ValueKey<bool>(isPlaying),
+                  color: onPrimary,
+                  size: 28,
+                ),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Material(
+          color: scheme.surfaceContainerHighest.withValues(alpha: 0.65),
+          shape: const CircleBorder(),
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: () => notifier.next(),
+            customBorder: const CircleBorder(),
+            child: SizedBox(
+              width: 44,
+              height: 44,
+              child: Icon(
+                Icons.skip_next_rounded,
+                size: 24,
+                color: scheme.onSurface,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _NowPlayingCardProgressBar extends ConsumerWidget {
+  const _NowPlayingCardProgressBar();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final scheme = Theme.of(context).colorScheme;
+    final position =
+        ref.watch(audioPlayerProvider.select((s) => s.position));
+    final duration =
+        ref.watch(audioPlayerProvider.select((s) => s.duration));
+    final maxMs = duration.inMilliseconds;
+    final value = maxMs > 0
+        ? (position.inMilliseconds / maxMs).clamp(0.0, 1.0)
+        : 0.0;
+
+    return ClipRRect(
+      borderRadius: const BorderRadius.vertical(bottom: Radius.circular(22)),
+      child: LinearProgressIndicator(
+        value: maxMs > 0 ? value : 0,
+        minHeight: 3,
+        backgroundColor: scheme.outlineVariant.withValues(alpha: 0.28),
+        color: scheme.primary.withValues(alpha: 0.85),
+      ),
+    );
+  }
+}
+
+/// Card « Reprendre » — même famille visuelle que la carte en cours.
 class _ResumeLastCard extends StatelessWidget {
   final SongModel song;
   final VoidCallback onTap;
@@ -646,27 +778,32 @@ class _ResumeLastCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final primary = theme.colorScheme.primary;
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          border: Border(
-            left: BorderSide(
-                color: theme.colorScheme.outlineVariant, width: 3),
-          ),
+    final scheme = theme.colorScheme;
+    final primary = scheme.primary;
+    final onPrimary = scheme.onPrimary;
+
+    return Material(
+      color: scheme.surfaceContainerLow,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(22),
+        side: BorderSide(
+          color: scheme.outlineVariant.withValues(alpha: 0.45),
         ),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.only(left: 14),
+          padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
           child: Row(
             children: [
               ClipRRect(
-                borderRadius: BorderRadius.circular(6),
+                borderRadius: BorderRadius.circular(16),
                 child: AlbumArtImage(
                   albumArtPath: song.albumArtPath,
                   songId: song.id,
-                  size: 54,
+                  size: 76,
                 ),
               ),
               const SizedBox(width: 14),
@@ -674,38 +811,65 @@ class _ResumeLastCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Reprendre',
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: primary,
-                        fontWeight: FontWeight.bold,
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: scheme.onSurfaceVariant.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(100),
+                      ),
+                      child: Text(
+                        'Reprendre',
+                        style: theme.textTheme.labelMedium?.copyWith(
+                          color: scheme.onSurfaceVariant,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.2,
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: 8),
                     Text(
                       song.title,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.3,
                       ),
                     ),
+                    const SizedBox(height: 2),
                     Text(
                       song.artist,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(width: 12),
-              Icon(
-                Icons.play_arrow_rounded,
+              const SizedBox(width: 8),
+              Material(
                 color: primary,
-                size: 36,
+                shape: const CircleBorder(),
+                clipBehavior: Clip.antiAlias,
+                child: InkWell(
+                  onTap: onTap,
+                  customBorder: const CircleBorder(),
+                  child: SizedBox(
+                    width: 50,
+                    height: 50,
+                    child: Icon(
+                      Icons.play_arrow_rounded,
+                      color: onPrimary,
+                      size: 28,
+                    ),
+                  ),
+                ),
               ),
             ],
           ),

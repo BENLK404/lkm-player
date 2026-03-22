@@ -24,6 +24,8 @@ class DownloadSessionTask {
     required this.status,
     this.progress = 0,
     this.errorMessage,
+    /// Album parent quand [item] est une piste téléchargée depuis la fiche album.
+    this.trackParentAlbum,
   });
 
   final String id;
@@ -31,6 +33,7 @@ class DownloadSessionTask {
   final DownloadTaskUiStatus status;
   final double progress;
   final String? errorMessage;
+  final DeezerSearchResult? trackParentAlbum;
 
   String get title => item.isAlbum ? item.displayTitle : item.title;
   String get subtitle => item.artist;
@@ -47,6 +50,7 @@ class DownloadSessionTask {
       status: status ?? this.status,
       progress: progress ?? this.progress,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
+      trackParentAlbum: trackParentAlbum,
     );
   }
 }
@@ -196,13 +200,17 @@ class DownloadSessionNotifier extends StateNotifier<DownloadSessionState> {
     state = state.copyWith(history: next);
   }
 
-  Future<void> enqueue(DeezerSearchResult item) async {
+  Future<void> enqueue(
+    DeezerSearchResult item, {
+    DeezerSearchResult? trackParentAlbum,
+  }) async {
     final id = _uuid.v4();
     final task = DownloadSessionTask(
       id: id,
       item: item,
       status: DownloadTaskUiStatus.queued,
       progress: 0,
+      trackParentAlbum: trackParentAlbum,
     );
     state = state.copyWith(activeTasks: [...state.activeTasks, task]);
     unawaited(_pump());
@@ -301,10 +309,14 @@ class DownloadSessionNotifier extends StateNotifier<DownloadSessionState> {
               },
             );
           } else {
+            final parent = task.trackParentAlbum;
             result = await downloadTrackAndAddToLibrary(
               _ref,
               task.item,
               cancelToken: _activeToken,
+              sourceAlbumDeezerId: parent?.id,
+              sourceAlbumArtist: parent?.artist,
+              sourceAlbumTitle: parent?.displayTitle,
               onDownloadProgress: (p) {
                 final cur = _taskById(tid);
                 if (cur != null &&

@@ -98,8 +98,8 @@ class _OnlineScreenState extends ConsumerState<OnlineScreen> {
               focusNode: _focusNode,
               onChanged: () => setState(() {}),
               onClear: () {
-                _searchController.clear();
-                ref.read(onlineSearchStateProvider.notifier).clear();
+                          _searchController.clear();
+                          ref.read(onlineSearchStateProvider.notifier).clear();
                 setState(() {});
               },
               onSubmit: (value) {
@@ -168,26 +168,26 @@ class _OnlineScreenState extends ConsumerState<OnlineScreen> {
           slivers: [
             SliverFillRemaining(
               hasScrollBody: false,
-              child: Padding(
+        child: Padding(
                 padding: const EdgeInsets.fromLTRB(32, 0, 32, 120),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
                       Icons.downloading_rounded,
                       size: 56,
                       color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.65),
                     ),
                     const SizedBox(height: 16),
-                    Text(
+              Text(
                       'Téléchargements en cours',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.w700,
-                          ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              Text(
                       'Ouvre la file pour mettre en pause, annuler ou voir l’historique.',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -203,14 +203,14 @@ class _OnlineScreenState extends ConsumerState<OnlineScreen> {
                     const SizedBox(height: 12),
                     Text(
                       'Ou lance une recherche pour ajouter d’autres titres.',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
                 ),
+                textAlign: TextAlign.center,
               ),
+            ],
+          ),
+        ),
             ),
           ],
         );
@@ -242,8 +242,8 @@ class _OnlineScreenState extends ConsumerState<OnlineScreen> {
               height: _albumStripHeight,
               child: ListView.separated(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-                scrollDirection: Axis.horizontal,
-                itemCount: albums.length,
+              scrollDirection: Axis.horizontal,
+              itemCount: albums.length,
                 separatorBuilder: (_, __) => const SizedBox(width: 14),
                 itemBuilder: (context, index) {
                   final album = albums[index];
@@ -337,7 +337,7 @@ class _OnlineScreenState extends ConsumerState<OnlineScreen> {
                       children: [
                         ClipRRect(
                           borderRadius: BorderRadius.circular(12),
-                          child: SizedBox(
+      child: SizedBox(
                             width: 76,
                             height: 76,
                             child: album.imgUrl != null && album.imgUrl!.isNotEmpty
@@ -352,9 +352,9 @@ class _OnlineScreenState extends ConsumerState<OnlineScreen> {
                         ),
                         const SizedBox(width: 14),
                         Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
                               Text(
                                 album.displayTitle,
                                 maxLines: 2,
@@ -448,7 +448,12 @@ class _OnlineScreenState extends ConsumerState<OnlineScreen> {
                                   isDownloading: isDl,
                                   progress: isDl ? dlProgress : null,
                                   onDownload: () {
-                                    ref.read(downloadSessionProvider.notifier).enqueue(track);
+                                    ref
+                                        .read(downloadSessionProvider.notifier)
+                                        .enqueue(
+                                          track,
+                                          trackParentAlbum: album,
+                                        );
                                   },
                                 );
                               },
@@ -822,31 +827,31 @@ class _AlbumCard extends StatelessWidget {
                             ),
                           ),
                         ),
-                      ),
-                  ],
                 ),
+              ],
+            ),
               ),
             ),
           ),
           const SizedBox(height: 10),
-          Text(
-            album.displayTitle,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+            Text(
+              album.displayTitle,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700, fontSize: 13),
-          ),
+              ),
           const SizedBox(height: 2),
-          Text(
-            album.artist,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+            Text(
+              album.artist,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             style: textTheme.bodySmall?.copyWith(
               color: scheme.onSurfaceVariant,
               fontSize: 12,
             ),
-          ),
-        ],
-      ),
+            ),
+          ],
+        ),
     );
   }
 }
