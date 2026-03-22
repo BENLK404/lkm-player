@@ -151,11 +151,17 @@ class DownloadResult {
 }
 
 /// Télécharge un morceau via l'API, l'enregistre sur l'appareil et l'ajoute à la bibliothèque.
+///
+/// [sourceAlbumDeezerId] / [sourceAlbumArtist] / [sourceAlbumTitle] : depuis la fiche album
+/// en ligne → même dossier `Artiste - Album` que le ZIP et même [albumId] que l’album Deezer.
 Future<DownloadResult> downloadTrackAndAddToLibrary(
   Ref ref,
   DeezerSearchResult track, {
   DownloadCancelToken? cancelToken,
   void Function(double progress)? onDownloadProgress,
+  String? sourceAlbumDeezerId,
+  String? sourceAlbumArtist,
+  String? sourceAlbumTitle,
 }) async {
   final client = ref.read(downloadApiClientProvider);
   if (client == null || !client.isConfigured) {
@@ -192,7 +198,38 @@ Future<DownloadResult> downloadTrackAndAddToLibrary(
     final safeTitle = _sanitizeFileName(track.title);
     final safeArtist = _sanitizeFileName(track.artist);
     final fileName = '$safeArtist - $safeTitle.mp3';
-    final filePath = path.join(downloadDir.path, fileName);
+
+    // Regrouper dans `Musio/Artiste - Album/` (même convention que le ZIP album).
+    final sa = sourceAlbumArtist?.trim();
+    final st = sourceAlbumTitle?.trim();
+    final albumLabel = track.album?.trim();
+    final String targetDirPath;
+
+    if (sa != null && st != null && sa.isNotEmpty && st.isNotEmpty) {
+      final albumFolderName = '${_sanitizeFileName(sa)} - ${_sanitizeFileName(st)}';
+      targetDirPath = path.join(downloadDir.path, albumFolderName);
+      final albumDir = Directory(targetDirPath);
+      if (!await albumDir.exists()) {
+        await albumDir.create(recursive: true);
+      }
+    } else if (albumLabel != null && albumLabel.isNotEmpty) {
+      final albumFolderName =
+          '${_sanitizeFileName(track.artist)} - ${_sanitizeFileName(albumLabel)}';
+      targetDirPath = path.join(downloadDir.path, albumFolderName);
+      final albumDir = Directory(targetDirPath);
+      if (!await albumDir.exists()) {
+        await albumDir.create(recursive: true);
+      }
+    } else {
+      targetDirPath = downloadDir.path;
+    }
+
+    var filePath = path.join(targetDirPath, fileName);
+    if (await File(filePath).exists()) {
+      final stem = path.basenameWithoutExtension(fileName);
+      final ext = path.extension(fileName);
+      filePath = path.join(targetDirPath, '${stem}_${track.id}$ext');
+    }
     final file = File(filePath);
 
     await file.writeAsBytes(bytes);
@@ -228,6 +265,20 @@ Future<DownloadResult> downloadTrackAndAddToLibrary(
     }
 
     final songId = 'deezer_${track.id}';
+    final sid = sourceAlbumDeezerId?.trim();
+    final String? libraryAlbumId;
+    if (sid != null && sid.isNotEmpty) {
+      libraryAlbumId = sid;
+    } else if (sa != null && st != null && sa.isNotEmpty && st.isNotEmpty) {
+      libraryAlbumId =
+          'deezer_online_${_sanitizeFileName(sa)}__${_sanitizeFileName(st)}';
+    } else if (albumLabel != null && albumLabel.isNotEmpty) {
+      libraryAlbumId =
+          'deezer_online_${_sanitizeFileName(track.artist)}__${_sanitizeFileName(albumLabel)}';
+    } else {
+      libraryAlbumId = null;
+    }
+
     final song = SongModel(
       id: songId,
       title: title,
@@ -238,7 +289,7 @@ Future<DownloadResult> downloadTrackAndAddToLibrary(
       albumArtPath: albumArtPath,
       year: year,
       trackNumber: trackNumber,
-      albumId: 'deezer_track_${track.id}',
+      albumId: libraryAlbumId ?? 'deezer_track_${track.id}',
       artistId: _deezerArtistId(track.artist),
       dateAdded: DateTime.now().millisecondsSinceEpoch ~/ 1000,
     );
