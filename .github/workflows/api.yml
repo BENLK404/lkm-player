@@ -37,5 +37,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build Docker image
-        run: docker build -t lkm-api ./services/api
+      - name: Build Docker images
+        run: |
+          docker build -f services/api/Dockerfile.api -t lkm-api ./services/api
+          docker build -f services/api/Dockerfile.bot -t lkm-bot ./services/api

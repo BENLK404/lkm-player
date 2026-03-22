@@ -32,7 +32,8 @@ lkm-player/
 │       ├── api/             # FastAPI REST server
 │       ├── handlers/        # Logique Deezer/YouTube
 │       ├── dl_utils/        # Utilitaires de téléchargement
-│       ├── Dockerfile
+│       ├── Dockerfile.api   # Image FastAPI / uvicorn
+│       ├── Dockerfile.bot   # Image bot Telegram
 │       └── requirements.txt
 │
 ├── docs/                    # Documentation

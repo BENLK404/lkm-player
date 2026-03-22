@@ -4,7 +4,7 @@ services:
     container_name: lkm-bot
     build:
       context: ./services/api
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.bot
       args:
         - ENABLE_FLAC=${ENABLE_FLAC:-0}
     volumes:
@@ -24,7 +24,7 @@ services:
     container_name: lkm-api
     build:
       context: ./services/api
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.api
       args:
         - ENABLE_FLAC=${ENABLE_FLAC:-0}
     restart: unless-stopped
