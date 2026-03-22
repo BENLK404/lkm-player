@@ -145,9 +145,8 @@ class _OnlineScreenState extends ConsumerState<OnlineScreen> {
 
     if (searchState.isLoading) {
       return const _StatePage(
-        icon: Icons.hourglass_top_rounded,
+        leading: _RotatingSearchIcon(),
         title: 'Recherche…',
-        subtitle: 'Interrogation de Deezer',
         showProgress: true,
       );
     }
@@ -377,8 +376,8 @@ class _OnlineScreenState extends ConsumerState<OnlineScreen> {
                                   Navigator.of(sheetContext).pop();
                                   _downloadAlbum(context, album);
                                 },
-                                icon: const Icon(Icons.folder_zip_rounded, size: 20),
-                                label: const Text('Télécharger l’album (ZIP)'),
+                                icon: const Icon(Icons.download_for_offline_rounded, size: 25),
+                                label: const Text('Télécharger l’album'),
                               ),
                             ],
                           ),
@@ -1018,19 +1017,66 @@ class _LinearDownloadBar extends StatelessWidget {
 
 // ——— États vides / erreur ———
 
+/// Sablier animé pour l’état « recherche en cours » (Flutter natif, sans dépendance).
+class _RotatingSearchIcon extends StatefulWidget {
+  const _RotatingSearchIcon();
+
+  @override
+  State<_RotatingSearchIcon> createState() => _RotatingSearchIconState();
+}
+
+class _RotatingSearchIconState extends State<_RotatingSearchIcon>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1400),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return RotationTransition(
+      turns: _controller,
+      child: Icon(
+        Icons.hourglass_top_rounded,
+        size: 56,
+        color: scheme.onSurfaceVariant.withValues(alpha: 0.75),
+      ),
+    );
+  }
+}
+
 class _StatePage extends StatelessWidget {
   const _StatePage({
-    required this.icon,
     required this.title,
-    required this.subtitle,
+    this.icon,
+    this.leading,
+    this.subtitle,
     this.iconGradient = false,
     this.isError = false,
     this.showProgress = false,
-  });
+  }) : assert(
+          leading != null || icon != null,
+          'Fournir icon ou leading',
+        );
 
-  final IconData icon;
+  final IconData? icon;
+  /// Si non null, remplace l’affichage basé sur [icon] (ex. icône animée).
+  final Widget? leading;
   final String title;
-  final String subtitle;
+  final String? subtitle;
   final bool iconGradient;
   final bool isError;
   final bool showProgress;
@@ -1046,7 +1092,9 @@ class _StatePage extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            if (iconGradient)
+            if (leading != null)
+              leading!
+            else if (iconGradient)
               Container(
                 padding: const EdgeInsets.all(28),
                 decoration: BoxDecoration(
@@ -1060,11 +1108,11 @@ class _StatePage extends StatelessWidget {
                     ],
                   ),
                 ),
-                child: Icon(icon, size: 52, color: scheme.primary),
+                child: Icon(icon!, size: 52, color: scheme.primary),
               )
             else
               Icon(
-                icon,
+                icon!,
                 size: 56,
                 color: isError ? scheme.error : scheme.onSurfaceVariant.withValues(alpha: 0.75),
               ),
@@ -1076,7 +1124,7 @@ class _StatePage extends StatelessWidget {
             ),
             const SizedBox(height: 10),
             Text(
-              subtitle,
+              subtitle ?? '',
               style: textTheme.bodyMedium?.copyWith(
                 color: scheme.onSurfaceVariant,
                 height: 1.35,
