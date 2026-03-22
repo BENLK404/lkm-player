@@ -29,7 +29,8 @@ docker-compose.yml                # Déploiement unifié (racine)
 apps/mobile/pubspec.yaml          # Dépendances Flutter
 apps/mobile/analysis_options.yaml # Configuration lint Dart
 services/api/requirements.txt     # Dépendances Python
-services/api/Dockerfile           # Image Docker de l'API
+services/api/Dockerfile.api       # Image Docker FastAPI
+services/api/Dockerfile.bot       # Image Docker bot Telegram
 ```
 
 ### Scripts
@@ -126,7 +127,8 @@ lkm-player/
 │
 ├──  services/
 │   └── api/                 # Backend Python
-│       ├── Dockerfile
+│       ├── Dockerfile.api
+│       ├── Dockerfile.bot
 │       ├── requirements.txt
 │       ├── api/             # FastAPI REST server
 │       │   └── server.py

@@ -6,6 +6,8 @@ class DeezerSearchResult {
     required this.title,
     required this.artist,
     this.album,
+    /// ID album Deezer (quand connu) — pour regrouper les pistes téléchargées à la pièce.
+    this.deezerAlbumId,
     this.imgUrl,
     this.previewUrl,
   });
@@ -15,6 +17,7 @@ class DeezerSearchResult {
   final String title;
   final String artist;
   final String? album;
+  final String? deezerAlbumId;
   final String? imgUrl;
   final String? previewUrl;
 
@@ -24,12 +27,19 @@ class DeezerSearchResult {
     final titleValue = idType == 'album'
         ? (json['album'] as String? ?? json['title'] as String? ?? '')
         : (json['title'] as String? ?? json['album'] as String? ?? '');
+    final rawAlbumId = json['album_id'];
+    final parsedAlbumId = rawAlbumId == null
+        ? null
+        : (rawAlbumId is int ? rawAlbumId.toString() : rawAlbumId as String?);
+    final normalizedAlbumId =
+        (parsedAlbumId != null && parsedAlbumId.isNotEmpty) ? parsedAlbumId : null;
     return DeezerSearchResult(
       id: json['id']?.toString() ?? '',
       idType: idType,
       title: titleValue,
       artist: json['artist'] as String? ?? 'Artiste inconnu',
       album: json['album'] as String?,
+      deezerAlbumId: normalizedAlbumId,
       imgUrl: json['img_url'] as String?,
       previewUrl: json['preview_url'] as String?,
     );
