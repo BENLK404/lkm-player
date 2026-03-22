@@ -1,0 +1,39 @@
+services:
+  bot:
+    build:
+      context: ./services/api
+      dockerfile: Dockerfile.bot
+      args:
+        - ENABLE_FLAC=${ENABLE_FLAC:-0}
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - COOKIES_PATH=/tmp/local_resources/cookies.txt
+    volumes:
+      - cookies-data:/tmp/local_resources
+    networks:
+      - dokploy-network
+    command: ["python", "-u", "main.py"]
+
+  api:
+    build:
+      context: ./services/api
+      dockerfile: Dockerfile.api
+      args:
+        - ENABLE_FLAC=${ENABLE_FLAC:-0}
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - 8000
+    networks:
+      - dokploy-network
+    command: ["python", "-m", "uvicorn", "api.server:app", "--host", "0.0.0.0", "--port", "8000"]
+
+volumes:
+  cookies-data:
+
+networks:
+  dokploy-network:
+    external: true

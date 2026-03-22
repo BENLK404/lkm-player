@@ -1,0 +1,24 @@
+diff --git a/android/src/main/java/com/alexmercerind/flutter_media_metadata/FlutterMediaMetadataPlugin.java b/android/src/main/java/com/alexmercerind/flutter_media_metadata/FlutterMediaMetadataPlugin.java
+index 1234567..abcdefg 100644
+--- a/android/src/main/java/com/alexmercerind/flutter_media_metadata/FlutterMediaMetadataPlugin.java
++++ b/android/src/main/java/com/alexmercerind/flutter_media_metadata/FlutterMediaMetadataPlugin.java
+@@ -1,5 +1,6 @@
+ package com.alexmercerind.flutter_media_metadata;
+ 
++import java.io.IOException;
+ import java.util.HashMap;
+ import java.lang.Runnable;
+ import java.util.concurrent.CompletableFuture;
+@@ -38,7 +39,11 @@ public class FlutterMediaMetadataPlugin implements FlutterPlugin, MethodCallHandl
+           final HashMap<String, Object> response = new HashMap<String, Object>();
+           response.put("metadata", retriever.getMetadata());
+           response.put("albumArt", retriever.getAlbumArt());
+-          retriever.release();
++          try {
++            retriever.release();
++          } catch (IOException e) {
++            // ignore
++          }
+           new Handler(Looper.getMainLooper())
+               .post(new Runnable() {
+                 @Override
