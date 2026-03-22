@@ -1049,10 +1049,24 @@ class _RotatingSearchIconState extends State<_RotatingSearchIcon>
     final scheme = Theme.of(context).colorScheme;
     return RotationTransition(
       turns: _controller,
-      child: Icon(
-        Icons.hourglass_top_rounded,
-        size: 56,
-        color: scheme.onSurfaceVariant.withValues(alpha: 0.75),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              scheme.primary.withValues(alpha: 0.25),
+              scheme.tertiary.withValues(alpha: 0.2),
+            ],
+          ),
+        ),
+        child: Icon(
+          Icons.hourglass_top_rounded,
+          size: 40,
+          color: scheme.onSurfaceVariant.withValues(alpha: 0.75),
+        ),
       ),
     );
   }
