@@ -16,6 +16,8 @@ services:
       - dokploy-network
     command: ["python", "-u", "main.py"]
 
+  # Routage Traefik : pour les apps Compose, l’onglet « Domains » ne suffit pas toujours.
+  # Définir API_PUBLIC_HOST dans l’environnement Dokploy (ex. lkm.emmanuelebeh.dev), même valeur que le Host du domaine.
   api:
     build:
       context: ./services/api
@@ -29,6 +31,14 @@ services:
       - 8000
     networks:
       - dokploy-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=dokploy-network"
+      - "traefik.http.routers.lkm-player-api.rule=Host(`${API_PUBLIC_HOST}`)"
+      - "traefik.http.routers.lkm-player-api.entrypoints=websecure"
+      - "traefik.http.routers.lkm-player-api.tls.certResolver=letsencrypt"
+      - "traefik.http.routers.lkm-player-api.service=lkm-player-api"
+      - "traefik.http.services.lkm-player-api.loadbalancer.server.port=8000"
     command: ["python", "-m", "uvicorn", "api.server:app", "--host", "0.0.0.0", "--port", "8000"]
 
 volumes:
