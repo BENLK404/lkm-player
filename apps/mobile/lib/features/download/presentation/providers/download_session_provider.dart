@@ -64,6 +64,8 @@ class DownloadHistoryEntry {
     this.filePath,
     this.errorMessage,
     this.trackCount,
+    /// Pour une piste : id album Deezer si connu (re-téléchargement / regroupement).
+    this.trackDeezerAlbumId,
   });
 
   final String id;
@@ -76,6 +78,7 @@ class DownloadHistoryEntry {
   final String? filePath;
   final String? errorMessage;
   final int? trackCount;
+  final String? trackDeezerAlbumId;
 
   DeezerSearchResult toDeezerItem() {
     if (isAlbum) {
@@ -92,6 +95,7 @@ class DownloadHistoryEntry {
       idType: 'track',
       title: title,
       artist: subtitle,
+      deezerAlbumId: trackDeezerAlbumId,
     );
   }
 }
@@ -329,6 +333,8 @@ class DownloadSessionNotifier extends StateNotifier<DownloadSessionState> {
                 at: DateTime.now(),
                 filePath: result.filePath,
                 trackCount: result.trackCount,
+                trackDeezerAlbumId:
+                    task.item.isAlbum ? null : task.item.deezerAlbumId,
               ),
             );
             state = state.copyWith(
@@ -350,6 +356,8 @@ class DownloadSessionNotifier extends StateNotifier<DownloadSessionState> {
                 outcome: DownloadTaskUiStatus.failed,
                 at: DateTime.now(),
                 errorMessage: result.error ?? 'Échec',
+                trackDeezerAlbumId:
+                    task.item.isAlbum ? null : task.item.deezerAlbumId,
               ),
             );
             state = state.copyWith(
@@ -377,6 +385,8 @@ class DownloadSessionNotifier extends StateNotifier<DownloadSessionState> {
                   subtitle: task.subtitle,
                   outcome: DownloadTaskUiStatus.cancelled,
                   at: DateTime.now(),
+                  trackDeezerAlbumId:
+                      task.item.isAlbum ? null : task.item.deezerAlbumId,
                 ),
               );
             }

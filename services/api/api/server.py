@@ -165,6 +165,7 @@ async def album_tracks(album_id: str):
             "title": t.get("title", ""),
             "artist": artist_name,
             "album": album_title,
+            "album_id": aid,
             "img_url": cover_url,
             "preview_url": t.get("preview", ""),
         })

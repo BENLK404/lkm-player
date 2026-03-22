@@ -228,6 +228,10 @@ Future<DownloadResult> downloadTrackAndAddToLibrary(
     }
 
     final songId = 'deezer_${track.id}';
+    // Même clé d'album que le ZIP (id Deezer) pour regrouper les pistes téléchargées à la pièce.
+    final libraryAlbumId = (track.deezerAlbumId != null && track.deezerAlbumId!.isNotEmpty)
+        ? track.deezerAlbumId!
+        : 'deezer_track_${track.id}';
     final song = SongModel(
       id: songId,
       title: title,
@@ -238,7 +242,7 @@ Future<DownloadResult> downloadTrackAndAddToLibrary(
       albumArtPath: albumArtPath,
       year: year,
       trackNumber: trackNumber,
-      albumId: 'deezer_track_${track.id}',
+      albumId: libraryAlbumId,
       artistId: _deezerArtistId(track.artist),
       dateAdded: DateTime.now().millisecondsSinceEpoch ~/ 1000,
     );
