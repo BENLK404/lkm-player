@@ -45,5 +45,7 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSAppleMusicUsageDescription</key>
+	<string>$(PROJECT_NAME) requires access to media library</string>
 </dict>
 </plist>
