@@ -4,10 +4,16 @@ import 'package:go_router/go_router.dart';
 import 'package:musio/core/routing/app_router.dart';
 import 'package:musio/features/player/presentation/providers/audio_player_provider.dart';
 
-/// Barre de lecture compacte, **complémentaire** de la carte « En cours » (Pour toi) :
-/// pas de pochette ni « suivant » ici — accès **file d’attente**, **à suivre**, lecture / pause.
+/// Mini lecteur : barre de progression en bas (fixe ou [seekableProgress] pour glisser).
+/// File d’attente, « à suivre », lecture / pause.
 class MiniPlayer extends ConsumerWidget {
-  const MiniPlayer({super.key});
+  const MiniPlayer({
+    super.key,
+    /// Si true : [Slider] sous le bloc principal — la position audio (et les paroles) suivent le geste.
+    this.seekableProgress = false,
+  });
+
+  final bool seekableProgress;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -40,7 +46,7 @@ class MiniPlayer extends ConsumerWidget {
             borderRadius: radius,
           ),
           child: SizedBox(
-            height: 70,
+            height: seekableProgress ? 82 : 70,
             child: Column(
               children: [
                 Expanded(
@@ -139,25 +145,107 @@ class MiniPlayer extends ConsumerWidget {
                     ),
                   ),
                 ),
-                ClipRRect(
-                  borderRadius: const BorderRadius.vertical(
-                    bottom: Radius.circular(18),
-                  ),
-                  child: LinearProgressIndicator(
-                    value: playerState.duration.inMilliseconds > 0
-                        ? playerState.position.inMilliseconds /
-                            playerState.duration.inMilliseconds
-                        : 0,
-                    backgroundColor:
-                        scheme.outlineVariant.withValues(alpha: 0.25),
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      scheme.primary.withValues(alpha: 0.9),
+                if (seekableProgress)
+                  _SeekableProgressStrip(
+                    scheme: scheme,
+                    positionMs: playerState.position.inMilliseconds,
+                    durationMs: playerState.duration.inMilliseconds,
+                    onSeek: (ms) => ref
+                        .read(audioPlayerProvider.notifier)
+                        .seek(Duration(milliseconds: ms)),
+                  )
+                else
+                  ClipRRect(
+                    borderRadius: const BorderRadius.vertical(
+                      bottom: Radius.circular(18),
                     ),
-                    minHeight: 3,
+                    child: LinearProgressIndicator(
+                      value: playerState.duration.inMilliseconds > 0
+                          ? playerState.position.inMilliseconds /
+                              playerState.duration.inMilliseconds
+                          : 0,
+                      backgroundColor:
+                          scheme.outlineVariant.withValues(alpha: 0.25),
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        scheme.primary.withValues(alpha: 0.9),
+                      ),
+                      minHeight: 3,
+                    ),
                   ),
-                ),
               ],
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Barre tactile : pendant le glissement, le pouce suit le doigt ; les seek mettent à jour les paroles.
+class _SeekableProgressStrip extends StatefulWidget {
+  const _SeekableProgressStrip({
+    required this.scheme,
+    required this.positionMs,
+    required this.durationMs,
+    required this.onSeek,
+  });
+
+  final ColorScheme scheme;
+  final int positionMs;
+  final int durationMs;
+  final void Function(int milliseconds) onSeek;
+
+  @override
+  State<_SeekableProgressStrip> createState() => _SeekableProgressStripState();
+}
+
+class _SeekableProgressStripState extends State<_SeekableProgressStrip> {
+  bool _dragging = false;
+  double _dragValue = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    final maxMs = widget.durationMs > 0 ? widget.durationMs : 1;
+    final fromPlayer = (widget.positionMs / maxMs).clamp(0.0, 1.0);
+    final value = (_dragging ? _dragValue : fromPlayer).clamp(0.0, 1.0);
+
+    return ClipRRect(
+      borderRadius: const BorderRadius.vertical(
+        bottom: Radius.circular(18),
+      ),
+      child: ColoredBox(
+        color: widget.scheme.outlineVariant.withValues(alpha: 0.12),
+        child: SliderTheme(
+          data: SliderTheme.of(context).copyWith(
+            trackHeight: 3,
+            thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 5),
+            overlayShape: const RoundSliderOverlayShape(overlayRadius: 14),
+            activeTrackColor: widget.scheme.primary.withValues(alpha: 0.95),
+            inactiveTrackColor:
+                widget.scheme.outlineVariant.withValues(alpha: 0.35),
+            thumbColor: widget.scheme.primary,
+          ),
+          child: Slider(
+            value: value,
+            onChangeStart: widget.durationMs > 0
+                ? (_) {
+                    setState(() {
+                      _dragging = true;
+                      _dragValue = fromPlayer;
+                    });
+                  }
+                : null,
+            onChanged: widget.durationMs > 0
+                ? (v) {
+                    setState(() => _dragValue = v);
+                    final ms =
+                        (v * widget.durationMs).round().clamp(0, widget.durationMs);
+                    widget.onSeek(ms);
+                  }
+                : null,
+            onChangeEnd: widget.durationMs > 0
+                ? (_) => setState(() => _dragging = false)
+                : null,
           ),
         ),
       ),

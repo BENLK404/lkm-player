@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:math' as math;
+import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -11,6 +12,8 @@ import 'package:musio/features/music/data/models/song_model.dart';
 import 'package:musio/features/music/presentation/providers/music_provider.dart';
 import 'package:musio/features/player/data/models/player_state.dart';
 import 'package:musio/features/player/presentation/providers/audio_player_provider.dart';
+import 'package:musio/features/player/presentation/providers/now_playing_design_provider.dart';
+import 'package:musio/features/player/presentation/providers/now_playing_tuning_provider.dart';
 import 'package:musio/features/player/presentation/providers/sleep_timer_provider.dart';
 import 'package:musio/features/player/presentation/widgets/equalizer_sheet.dart';
 import 'package:musio/features/settings/presentation/providers/settings_provider.dart';
@@ -54,6 +57,26 @@ class _NowPlayingBody extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final design = ref.watch(nowPlayingDesignProvider).valueOrNull ??
+        NowPlayingDesign.classic;
+    return switch (design) {
+      NowPlayingDesign.classic => _ClassicNowPlayingLayout(song: song),
+      NowPlayingDesign.immersive => _ImmersiveNowPlayingLayout(song: song),
+      NowPlayingDesign.minimal => _MinimalNowPlayingLayout(song: song),
+      NowPlayingDesign.vinyl => _VinylNowPlayingLayout(song: song),
+    };
+  }
+}
+
+// ─── Mises en page (design au choix) ───────────────────────────────────────
+
+class _ClassicNowPlayingLayout extends StatelessWidget {
+  const _ClassicNowPlayingLayout({required this.song});
+
+  final SongModel song;
+
+  @override
+  Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return Scaffold(
       backgroundColor: scheme.surface,
@@ -68,7 +91,7 @@ class _NowPlayingBody extends ConsumerWidget {
                   children: [
                     const SizedBox(height: 8),
                     RepaintBoundary(
-                      child: _AlbumCoverCard(song: song),
+                      child: _AlbumCoverCard(song: song, design: NowPlayingDesign.classic),
                     ),
                     const SizedBox(height: 24),
                     _TitleRow(song: song),
@@ -90,18 +113,165 @@ class _NowPlayingBody extends ConsumerWidget {
   }
 }
 
+class _ImmersiveNowPlayingLayout extends StatelessWidget {
+  const _ImmersiveNowPlayingLayout({required this.song});
+
+  final SongModel song;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          _BlurredArtBackdrop(song: song),
+          SafeArea(
+            child: Column(
+              children: [
+                const _TopBar(inverseChrome: true),
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Column(
+                      children: [
+                        const SizedBox(height: 12),
+                        RepaintBoundary(
+                          child: _AlbumCoverCard(
+                            song: song,
+                            design: NowPlayingDesign.immersive,
+                          ),
+                        ),
+                        const SizedBox(height: 28),
+                        _TitleRow(song: song, lightOnDark: true),
+                        const SizedBox(height: 24),
+                        const _LinearSeekSection(lightOnDark: true),
+                        const SizedBox(height: 28),
+                        const _MainTransportRow(lightOnDark: true),
+                        const SizedBox(height: 28),
+                        _BottomActionsPill(song: song, lightOnDark: true),
+                        const SizedBox(height: 20),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MinimalNowPlayingLayout extends StatelessWidget {
+  const _MinimalNowPlayingLayout({required this.song});
+
+  final SongModel song;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Scaffold(
+      backgroundColor: scheme.surface,
+      body: SafeArea(
+        child: Column(
+          children: [
+            const _TopBar(),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 28),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 32),
+                    RepaintBoundary(
+                      child: _AlbumCoverCard(
+                        song: song,
+                        design: NowPlayingDesign.minimal,
+                      ),
+                    ),
+                    const SizedBox(height: 36),
+                    _TitleRow(song: song, centered: true),
+                    const SizedBox(height: 32),
+                    const _LinearSeekSection(),
+                    const SizedBox(height: 36),
+                    const _MainTransportRow(),
+                    const SizedBox(height: 40),
+                    _BottomActionsPill(song: song),
+                    const SizedBox(height: 24),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _VinylNowPlayingLayout extends StatelessWidget {
+  const _VinylNowPlayingLayout({required this.song});
+
+  final SongModel song;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Scaffold(
+      backgroundColor: scheme.surfaceContainerLowest,
+      body: SafeArea(
+        child: Column(
+          children: [
+            const _TopBar(),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 16),
+                    RepaintBoundary(
+                      child: _AlbumCoverCard(
+                        song: song,
+                        design: NowPlayingDesign.vinyl,
+                      ),
+                    ),
+                    const SizedBox(height: 28),
+                    _TitleRow(song: song),
+                    const SizedBox(height: 22),
+                    const _LinearSeekSection(),
+                    const SizedBox(height: 26),
+                    const _MainTransportRow(),
+                    const SizedBox(height: 30),
+                    _BottomActionsPill(song: song),
+                    const SizedBox(height: 16),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _TopBar extends ConsumerWidget {
-  const _TopBar();
+  const _TopBar({this.inverseChrome = false});
+
+  final bool inverseChrome;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final scheme = Theme.of(context).colorScheme;
-    final onIcon = scheme.onSurface;
+    final onIcon = inverseChrome ? Colors.white : scheme.onSurface;
+    final titleColor = inverseChrome ? Colors.white : scheme.onSurface;
     return Padding(
       padding: const EdgeInsets.fromLTRB(8, 4, 8, 8),
       child: Row(
         children: [
           _RoundChrome(
+            inverse: inverseChrome,
             child: IconButton(
               onPressed: () => Navigator.maybePop(context),
               icon: const Icon(Icons.keyboard_arrow_down_rounded),
@@ -114,11 +284,12 @@ class _TopBar extends ConsumerWidget {
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w600,
-                    color: scheme.onSurface,
+                    color: titleColor,
                   ),
             ),
           ),
           _RoundChrome(
+            inverse: inverseChrome,
             child: IconButton(
               onPressed: () => _showVolumeSheet(context, ref),
               icon: const Icon(Icons.volume_up_rounded),
@@ -128,6 +299,7 @@ class _TopBar extends ConsumerWidget {
           ),
           const SizedBox(width: 4),
           _RoundChrome(
+            inverse: inverseChrome,
             child: IconButton(
               onPressed: () => context.push(AppRouter.queue),
               icon: const Icon(Icons.queue_music_rounded),
@@ -142,15 +314,19 @@ class _TopBar extends ConsumerWidget {
 }
 
 class _RoundChrome extends StatelessWidget {
-  const _RoundChrome({required this.child});
+  const _RoundChrome({required this.child, this.inverse = false});
 
   final Widget child;
+  final bool inverse;
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final bg = inverse
+        ? Colors.white.withValues(alpha: 0.14)
+        : scheme.surfaceContainerHigh;
     return Material(
-      color: scheme.surfaceContainerHigh,
+      color: bg,
       shape: const CircleBorder(),
       clipBehavior: Clip.antiAlias,
       child: SizedBox(
@@ -162,112 +338,289 @@ class _RoundChrome extends StatelessWidget {
   }
 }
 
-/// Pochette avec coins très arrondis ; image redimensionnée pour limiter la mémoire.
-class _AlbumCoverCard extends StatelessWidget {
-  const _AlbumCoverCard({required this.song});
-
-  final SongModel song;
-
-  @override
-  Widget build(BuildContext context) {
-    final width = MediaQuery.sizeOf(context).width - 40;
-    final dpr = MediaQuery.devicePixelRatioOf(context);
-    final cachePx = (width * dpr).round();
-
-    return AspectRatio(
-      aspectRatio: 1,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(28),
-        child: _coverImage(context, width, cachePx, Theme.of(context).colorScheme),
-      ),
+Widget _nowPlayingCoverImage(
+  BuildContext context,
+  SongModel song,
+  double width,
+  int cachePx,
+  ColorScheme scheme,
+) {
+  final path = song.albumArtPath;
+  if (path != null && path.startsWith('content://')) {
+    return AlbumArtImage(
+      songId: song.id,
+      albumArtPath: path,
+      size: width,
+      fit: BoxFit.cover,
+      borderRadius: BorderRadius.zero,
     );
   }
-
-  Widget _coverImage(
-    BuildContext context,
-    double width,
-    int cachePx,
-    ColorScheme scheme,
-  ) {
-    final path = song.albumArtPath;
-    if (path != null && path.startsWith('content://')) {
-      return AlbumArtImage(
-        songId: song.id,
-        albumArtPath: path,
-        size: width,
-        fit: BoxFit.cover,
-        borderRadius: BorderRadius.zero,
-      );
-    }
-    if (path != null && File(path).existsSync()) {
-      return Image.file(
-        File(path),
-        width: width,
-        height: width,
-        fit: BoxFit.cover,
-        cacheWidth: cachePx,
-        cacheHeight: cachePx,
-        errorBuilder: (_, __, ___) => _placeholder(scheme),
-      );
-    }
-    return _placeholder(scheme);
-  }
-
-  Widget _placeholder(ColorScheme scheme) {
-    return ColoredBox(
-      color: scheme.surfaceContainerHighest,
-      child: Center(
-        child: Icon(
-          Icons.music_note_rounded,
-          size: 80,
-          color: scheme.onSurfaceVariant,
-        ),
-      ),
+  if (path != null && File(path).existsSync()) {
+    return Image.file(
+      File(path),
+      width: width,
+      height: width,
+      fit: BoxFit.cover,
+      cacheWidth: cachePx,
+      cacheHeight: cachePx,
+      errorBuilder: (_, __, ___) => _nowPlayingCoverPlaceholder(scheme),
     );
   }
+  return _nowPlayingCoverPlaceholder(scheme);
 }
 
-class _TitleRow extends ConsumerWidget {
-  const _TitleRow({required this.song});
+Widget _nowPlayingCoverPlaceholder(ColorScheme scheme) {
+  return ColoredBox(
+    color: scheme.surfaceContainerHighest,
+    child: Center(
+      child: Icon(
+        Icons.music_note_rounded,
+        size: 80,
+        color: scheme.onSurfaceVariant,
+      ),
+    ),
+  );
+}
+
+/// Fond pochette floutée (mode immersion) — paramètres depuis les réglages.
+class _BlurredArtBackdrop extends ConsumerWidget {
+  const _BlurredArtBackdrop({required this.song});
 
   final SongModel song;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final tuning =
+        ref.watch(nowPlayingTuningProvider).valueOrNull ?? const NowPlayingTuning();
+    final blur = tuning.immersiveBlurSigma.clamp(20.0, 80.0);
+    final darken = tuning.immersiveOverlayDarken.clamp(0.05, 0.95);
+
+    final size = MediaQuery.sizeOf(context);
     final scheme = Theme.of(context).colorScheme;
+    final dpr = MediaQuery.devicePixelRatioOf(context);
+    final side = math.max(size.width, size.height) * 1.35;
+    final cachePx = (side * dpr).round();
+
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        Positioned.fill(
+          child: ImageFiltered(
+            imageFilter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
+            child: FittedBox(
+              fit: BoxFit.cover,
+              child: SizedBox(
+                width: side,
+                height: side,
+                child: _nowPlayingCoverImage(
+                  context,
+                  song,
+                  side,
+                  cachePx,
+                  scheme,
+                ),
+              ),
+            ),
+          ),
+        ),
+        ColoredBox(color: Colors.black.withValues(alpha: darken)),
+        DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Colors.black.withValues(alpha: 0.55),
+                Colors.transparent,
+                Colors.black.withValues(alpha: 0.9),
+              ],
+              stops: const [0.0, 0.42, 1.0],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Pochette — forme selon [design] et réglages persistés.
+class _AlbumCoverCard extends ConsumerWidget {
+  const _AlbumCoverCard({
+    required this.song,
+    this.design = NowPlayingDesign.classic,
+  });
+
+  final SongModel song;
+  final NowPlayingDesign design;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final tuning =
+        ref.watch(nowPlayingTuningProvider).valueOrNull ?? const NowPlayingTuning();
+    final screenW = MediaQuery.sizeOf(context).width;
+    final scheme = Theme.of(context).colorScheme;
+
+    final double side = switch (design) {
+      NowPlayingDesign.classic => screenW - 40,
+      NowPlayingDesign.immersive => screenW - 48,
+      NowPlayingDesign.minimal =>
+        (screenW * tuning.minimalCoverFraction).clamp(200.0, 340.0),
+      NowPlayingDesign.vinyl =>
+        (screenW - 56).clamp(200.0, tuning.vinylCoverMaxSide),
+    };
+
+    final discPad = tuning.vinylDiscPadding.clamp(4.0, 24.0);
+    final ring = discPad * 2 + 8;
+
+    final dpr = MediaQuery.devicePixelRatioOf(context);
+    final cachePx = (side * dpr).round();
+
+    final cover = _nowPlayingCoverImage(context, song, side, cachePx, scheme);
+
+    switch (design) {
+      case NowPlayingDesign.vinyl:
+        return Center(
+          child: Container(
+            width: side + ring,
+            height: side + ring,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: const Color(0xFF1A1A1A),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.45),
+                  blurRadius: 24,
+                  offset: const Offset(0, 12),
+                ),
+              ],
+            ),
+            padding: EdgeInsets.all(discPad),
+            child: ClipOval(child: cover),
+          ),
+        );
+      case NowPlayingDesign.minimal:
+        return Center(
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(20),
+            child: SizedBox(
+              width: side,
+              height: side,
+              child: cover,
+            ),
+          ),
+        );
+      case NowPlayingDesign.immersive:
+        return AspectRatio(
+          aspectRatio: 1,
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.5),
+                  blurRadius: 28,
+                  offset: const Offset(0, 14),
+                ),
+              ],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: cover,
+            ),
+          ),
+        );
+      case NowPlayingDesign.classic:
+        return AspectRatio(
+          aspectRatio: 1,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(28),
+            child: cover,
+          ),
+        );
+    }
+  }
+}
+
+class _TitleRow extends ConsumerWidget {
+  const _TitleRow({
+    required this.song,
+    this.lightOnDark = false,
+    this.centered = false,
+  });
+
+  final SongModel song;
+  final bool lightOnDark;
+  final bool centered;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final scheme = Theme.of(context).colorScheme;
+    final titleColor = lightOnDark ? Colors.white : scheme.onSurface;
+    final artistColor =
+        lightOnDark ? Colors.white.withValues(alpha: 0.72) : scheme.onSurfaceVariant;
+    final chipBg = lightOnDark
+        ? Colors.white.withValues(alpha: 0.14)
+        : scheme.surfaceContainerHigh;
+    final lyricsIcon = lightOnDark ? Colors.white : scheme.primary;
+
+    final textBlock = Column(
+      crossAxisAlignment:
+          centered ? CrossAxisAlignment.center : CrossAxisAlignment.start,
+      children: [
+        Text(
+          song.title,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          textAlign: centered ? TextAlign.center : TextAlign.start,
+          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.w800,
+                color: titleColor,
+                letterSpacing: -0.5,
+              ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          song.artist,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          textAlign: centered ? TextAlign.center : TextAlign.start,
+          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                color: artistColor,
+                fontWeight: FontWeight.w500,
+              ),
+        ),
+      ],
+    );
+
+    if (centered) {
+      return Column(
+        children: [
+          textBlock,
+          const SizedBox(height: 16),
+          Material(
+            color: chipBg,
+            borderRadius: BorderRadius.circular(14),
+            clipBehavior: Clip.antiAlias,
+            child: InkWell(
+              onTap: () => context.push(AppRouter.lyrics),
+              child: SizedBox(
+                width: 48,
+                height: 48,
+                child: Icon(Icons.lyrics_outlined, color: lyricsIcon),
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                song.title,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.w800,
-                      color: scheme.onSurface,
-                      letterSpacing: -0.5,
-                    ),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                song.artist,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: scheme.onSurfaceVariant,
-                      fontWeight: FontWeight.w500,
-                    ),
-              ),
-            ],
-          ),
-        ),
+        Expanded(child: textBlock),
         const SizedBox(width: 12),
         Material(
-          color: scheme.surfaceContainerHigh,
+          color: chipBg,
           borderRadius: BorderRadius.circular(14),
           clipBehavior: Clip.antiAlias,
           child: InkWell(
@@ -275,10 +628,7 @@ class _TitleRow extends ConsumerWidget {
             child: SizedBox(
               width: 48,
               height: 48,
-              child: Icon(
-                Icons.lyrics_outlined,
-                color: scheme.primary,
-              ),
+              child: Icon(Icons.lyrics_outlined, color: lyricsIcon),
             ),
           ),
         ),
@@ -295,11 +645,15 @@ class _WavySeekSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final position = ref.watch(audioPlayerProvider.select((s) => s.position));
     final duration = ref.watch(audioPlayerProvider.select((s) => s.duration));
+    final tuning =
+        ref.watch(nowPlayingTuningProvider).valueOrNull ?? const NowPlayingTuning();
+    final amp = tuning.classicWaveAmplitude.clamp(2.0, 14.0);
 
     return _WavySeekBar(
       position: position,
       duration: duration,
       onSeek: (d) => ref.read(audioPlayerProvider.notifier).seek(d),
+      waveAmplitude: amp,
     );
   }
 }
@@ -309,11 +663,13 @@ class _WavySeekBar extends StatefulWidget {
     required this.position,
     required this.duration,
     required this.onSeek,
+    this.waveAmplitude = 5,
   });
 
   final Duration position;
   final Duration duration;
   final ValueChanged<Duration> onSeek;
+  final double waveAmplitude;
 
   @override
   State<_WavySeekBar> createState() => _WavySeekBarState();
@@ -378,7 +734,7 @@ class _WavySeekBarState extends State<_WavySeekBar> {
                     activeColor: scheme.primary,
                     inactiveColor: scheme.outlineVariant,
                     thumbRingColor: scheme.surface,
-                    amplitude: 5,
+                    amplitude: widget.waveAmplitude,
                   ),
                 ),
               ),
@@ -494,8 +850,91 @@ class _WavyProgressPainter extends CustomPainter {
   }
 }
 
+/// Barre de position classique (sliders) — vinyle, minimal, immersion.
+class _LinearSeekSection extends ConsumerWidget {
+  const _LinearSeekSection({this.lightOnDark = false});
+
+  final bool lightOnDark;
+
+  static String _fmt(Duration d) {
+    final m = d.inMinutes;
+    final s = d.inSeconds.remainder(60);
+    return '${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final position =
+        ref.watch(audioPlayerProvider.select((s) => s.position));
+    final duration =
+        ref.watch(audioPlayerProvider.select((s) => s.duration));
+    final scheme = Theme.of(context).colorScheme;
+    final maxMs = duration.inMilliseconds;
+    final progress = maxMs > 0
+        ? (position.inMilliseconds / maxMs).clamp(0.0, 1.0)
+        : 0.0;
+
+    final inactive = lightOnDark
+        ? Colors.white.withValues(alpha: 0.28)
+        : scheme.outlineVariant.withValues(alpha: 0.4);
+    final active = lightOnDark ? Colors.white : scheme.primary;
+    final textC = lightOnDark
+        ? Colors.white.withValues(alpha: 0.78)
+        : scheme.onSurfaceVariant;
+
+    return Column(
+      children: [
+        SliderTheme(
+          data: SliderTheme.of(context).copyWith(
+            trackHeight: 4,
+            thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
+            overlayShape: const RoundSliderOverlayShape(overlayRadius: 18),
+            activeTrackColor: active,
+            inactiveTrackColor: inactive,
+            thumbColor: active,
+          ),
+          child: Slider(
+            value: progress.clamp(0.0, 1.0),
+            onChanged: maxMs > 0
+                ? (v) {
+                    ref.read(audioPlayerProvider.notifier).seek(
+                          Duration(milliseconds: (v * maxMs).round()),
+                        );
+                  }
+                : null,
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                _fmt(position),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: textC,
+                    ),
+              ),
+              Text(
+                _fmt(duration),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: textC,
+                    ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class _MainTransportRow extends ConsumerWidget {
-  const _MainTransportRow();
+  const _MainTransportRow({this.lightOnDark = false});
+
+  final bool lightOnDark;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -504,16 +943,20 @@ class _MainTransportRow extends ConsumerWidget {
         ref.watch(audioPlayerProvider.select((s) => s.isPlaying));
     final notifier = ref.read(audioPlayerProvider.notifier);
 
+    final playBg = lightOnDark ? Colors.white : scheme.primary;
+    final playIcon = lightOnDark ? Colors.black : scheme.onPrimary;
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         _SideTransportButton(
           icon: Icons.skip_previous_rounded,
           onPressed: () => notifier.previous(),
+          lightOnDark: lightOnDark,
         ),
         const SizedBox(width: 20),
         Material(
-          color: scheme.primary,
+          color: playBg,
           borderRadius: BorderRadius.circular(22),
           elevation: 0,
           child: InkWell(
@@ -531,7 +974,7 @@ class _MainTransportRow extends ConsumerWidget {
               height: 76,
               child: Icon(
                 isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                color: scheme.onPrimary,
+                color: playIcon,
                 size: 42,
               ),
             ),
@@ -541,6 +984,7 @@ class _MainTransportRow extends ConsumerWidget {
         _SideTransportButton(
           icon: Icons.skip_next_rounded,
           onPressed: () => notifier.next(),
+          lightOnDark: lightOnDark,
         ),
       ],
     );
@@ -551,16 +995,22 @@ class _SideTransportButton extends StatelessWidget {
   const _SideTransportButton({
     required this.icon,
     required this.onPressed,
+    this.lightOnDark = false,
   });
 
   final IconData icon;
   final VoidCallback onPressed;
+  final bool lightOnDark;
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final bg = lightOnDark
+        ? Colors.white.withValues(alpha: 0.14)
+        : scheme.surfaceContainerHigh;
+    final ic = lightOnDark ? Colors.white : scheme.primary;
     return Material(
-      color: scheme.surfaceContainerHigh,
+      color: bg,
       borderRadius: BorderRadius.circular(16),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
@@ -568,7 +1018,7 @@ class _SideTransportButton extends StatelessWidget {
         child: SizedBox(
           width: 56,
           height: 56,
-          child: Icon(icon, color: scheme.primary, size: 30),
+          child: Icon(icon, color: ic, size: 30),
         ),
       ),
     );
@@ -576,9 +1026,10 @@ class _SideTransportButton extends StatelessWidget {
 }
 
 class _BottomActionsPill extends ConsumerWidget {
-  const _BottomActionsPill({required this.song});
+  const _BottomActionsPill({required this.song, this.lightOnDark = false});
 
   final SongModel song;
+  final bool lightOnDark;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -602,13 +1053,16 @@ class _BottomActionsPill extends ConsumerWidget {
 
     final notifier = ref.read(audioPlayerProvider.notifier);
     final scheme = Theme.of(context).colorScheme;
-    final muted = scheme.onSurfaceVariant;
-    final active = scheme.primary;
+    final muted =
+        lightOnDark ? Colors.white.withValues(alpha: 0.55) : scheme.onSurfaceVariant;
+    final active = lightOnDark ? Colors.white : scheme.primary;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       decoration: BoxDecoration(
-        color: scheme.surfaceContainer,
+        color: lightOnDark
+            ? Colors.white.withValues(alpha: 0.1)
+            : scheme.surfaceContainer,
         borderRadius: BorderRadius.circular(999),
       ),
       child: Row(

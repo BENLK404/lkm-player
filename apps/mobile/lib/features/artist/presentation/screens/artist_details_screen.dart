@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:musio/features/artist/presentation/providers/artist_wikipedia_provider.dart';
 import 'package:musio/features/music/presentation/providers/music_provider.dart';
 import 'package:musio/features/player/presentation/providers/audio_player_provider.dart';
@@ -40,9 +41,6 @@ class _ArtistDetailsScreenState extends ConsumerState<ArtistDetailsScreen> {
     try {
       final artist = artists.firstWhere((a) => a.id == widget.artistId);
       if (artist.imagePath != null) {
-        // Here we ideally want to load the image from file, but artist image logic in MusicService
-        // uses album art path of its first song.
-        // The UI uses AlbumArtImageLarge to resolve this.
         final imageProvider = FileImage(File(artist.imagePath!));
         final palette = await PaletteGenerator.fromImageProvider(
           imageProvider,
@@ -61,6 +59,7 @@ class _ArtistDetailsScreenState extends ConsumerState<ArtistDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     final artists = ref.watch(allArtistsProvider);
     final songs = ref.watch(artistSongsProvider(widget.artistId));
     final albums = ref.watch(allAlbumsProvider);
@@ -72,128 +71,196 @@ class _ArtistDetailsScreenState extends ConsumerState<ArtistDetailsScreen> {
     }
 
     final artist = artists.firstWhere((a) => a.id == widget.artistId);
-
-    // Gestion intelligente du chargement pour éviter le clignotement
-    // On utilise directement la liste retournée par le provider synchrone
-    if (songs.isEmpty) {
-      // Si la liste est vide, on peut afficher un message ou un loader si on sait que ça charge
-      // Mais comme le provider est synchrone, s'il est vide c'est qu'il n'y a pas de chansons
-    }
-
     final artistAlbums =
         albums.where((album) => album.artist == artist.name).toList();
 
-    // Apply the diluted solid color background
-    final backgroundColor = dominantColor != null
-        ? Color.lerp(
-            Theme.of(context).scaffoldBackgroundColor, dominantColor!, 0.15)
-        : Theme.of(context).scaffoldBackgroundColor;
+    final heroGradient = LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [
+        if (dominantColor != null)
+          dominantColor!.withValues(alpha: 0.45)
+        else
+          scheme.primaryContainer.withValues(alpha: 0.9),
+        scheme.surfaceContainerHighest.withValues(alpha: 0.95),
+        scheme.surface,
+      ],
+    );
 
     return Scaffold(
-      backgroundColor: backgroundColor,
+      backgroundColor: scheme.surface,
       body: CustomScrollView(
+        physics: const BouncingScrollPhysics(
+          parent: AlwaysScrollableScrollPhysics(),
+        ),
         slivers: [
-          // App Bar avec photo artiste
           SliverAppBar(
-            expandedHeight: 300,
             pinned: true,
-            backgroundColor: backgroundColor,
-            iconTheme: const IconThemeData(color: Colors.white),
-            flexibleSpace: FlexibleSpaceBar(
-              title: Text(
-                artist.name,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-              background: Stack(
-                fit: StackFit.expand,
-                children: [
-                  Container(color: backgroundColor),
-                  AlbumArtImageLarge(
-                    songId:
-                        artist.songIds.isNotEmpty ? artist.songIds.first : '0',
-                    albumArtPath: artist.imagePath,
-                    heroTag: 'artist-art-${artist.id}',
-                    // placeholderIcon: const Icon(Icons.person, size: 100),
+            backgroundColor: scheme.surface,
+            surfaceTintColor: Colors.transparent,
+            foregroundColor: scheme.onSurface,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back_rounded),
+              onPressed: () => context.pop(),
+            ),
+            title: Text(
+              artist.name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.3,
                   ),
-                  // Slight gradient to make text readable
-                  const DecoratedBox(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [Colors.transparent, Colors.black54],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
             ),
           ),
-
-          // Statistiques
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(24),
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Positioned.fill(
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(gradient: heroGradient),
+                      ),
+                    ),
+                    Positioned(
+                      right: -30,
+                      top: -20,
+                      child: IgnorePointer(
+                        child: Container(
+                          width: 120,
+                          height: 120,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: scheme.primary.withValues(alpha: 0.12),
+                          ),
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 24, horizontal: 16),
+                      child: Center(
+                        child: Hero(
+                          tag: 'artist-art-${artist.id}',
+                          child: Material(
+                            color: Colors.transparent,
+                            child: Container(
+                              width: 200,
+                              height: 200,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(20),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: scheme.shadow.withValues(alpha: 0.2),
+                                    blurRadius: 24,
+                                    offset: const Offset(0, 12),
+                                  ),
+                                ],
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(20),
+                                child: AlbumArtImageLarge(
+                                  songId: artist.songIds.isNotEmpty
+                                      ? artist.songIds.first
+                                      : '0',
+                                  albumArtPath: artist.imagePath,
+                                  size: 200,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                alignment: WrapAlignment.center,
                 children: [
-                  _buildStat(context, artist.albumCount.toString(), 'Albums'),
-                  _buildStat(context, artist.trackCount.toString(), 'Chansons'),
+                  _DetailStatChip(
+                    icon: Icons.album_rounded,
+                    label:
+                        '${artist.albumCount} album${artist.albumCount != 1 ? 's' : ''}',
+                    scheme: scheme,
+                  ),
+                  _DetailStatChip(
+                    icon: Icons.audiotrack_rounded,
+                    label:
+                        '${artist.trackCount} titre${artist.trackCount != 1 ? 's' : ''}',
+                    scheme: scheme,
+                  ),
                 ],
               ),
             ),
           ),
-
-          // Divider
           SliverToBoxAdapter(
             child: Divider(
-              color: Colors.white.withValues(alpha: 0.1),
+              height: 32,
               thickness: 1,
+              color: scheme.outlineVariant.withValues(alpha: 0.4),
+              indent: 20,
+              endIndent: 20,
             ),
           ),
-
-          // Biographie Wikipedia (cache + API)
           SliverToBoxAdapter(
             child: _WikipediaSection(artistName: artist.name),
           ),
-
-          // Actions
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
               child: Row(
                 children: [
                   Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: () {
-                        ref.read(audioPlayerProvider.notifier).play(songs, 0);
-                      },
-                      icon: const Icon(Icons.play_arrow),
+                    child: FilledButton.icon(
+                      onPressed: songs.isEmpty
+                          ? null
+                          : () {
+                              ref
+                                  .read(audioPlayerProvider.notifier)
+                                  .play(songs, 0);
+                            },
+                      icon: const Icon(Icons.play_arrow_rounded),
                       label: const Text('Lire tout'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Theme.of(context).colorScheme.primary,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      style: FilledButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
                       ),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: OutlinedButton.icon(
-                      onPressed: () {
-                        ref.read(audioPlayerProvider.notifier).play(songs, 0);
-                        ref.read(audioPlayerProvider.notifier).toggleShuffle();
-                      },
-                      icon: const Icon(Icons.shuffle),
+                      onPressed: songs.isEmpty
+                          ? null
+                          : () {
+                              ref
+                                  .read(audioPlayerProvider.notifier)
+                                  .play(songs, 0);
+                              ref
+                                  .read(audioPlayerProvider.notifier)
+                                  .toggleShuffle();
+                            },
+                      icon: const Icon(Icons.shuffle_rounded),
                       label: const Text('Mélanger'),
                       style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        side: const BorderSide(color: Colors.white24),
-                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
                       ),
                     ),
                   ),
@@ -201,117 +268,139 @@ class _ArtistDetailsScreenState extends ConsumerState<ArtistDetailsScreen> {
               ),
             ),
           ),
-
-          // Top chansons
           SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Text(
-                'Top chansons',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-              ),
-            ),
+            child: _sectionHeader(context, 'Top chansons'),
           ),
-
-          SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (context, index) {
-                final song = songs[index];
-                return Theme(
-                  data: Theme.of(context).copyWith(
-                    // Ensure text contrasts well with potentially dark background
-                    textTheme: Theme.of(context).textTheme.apply(
-                          bodyColor: Colors.white,
-                          displayColor: Colors.white,
-                        ),
-                    iconTheme: const IconThemeData(color: Colors.white),
-                  ),
-                  child: SongTile(
+          if (songs.isEmpty)
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Text(
+                  'Aucun morceau pour cet artiste.',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                      ),
+                ),
+              ),
+            )
+          else
+            SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (context, index) {
+                  final song = songs[index];
+                  return SongTile(
                     song: song,
                     playlist: songs,
                     songIndex: index,
-                    showIndex: true, // Afficher le numéro de piste
-                  ),
-                );
-              },
-              childCount: songs.length,
-            ),
-          ),
-
-          // Albums
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Text(
-                'Albums',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-              ),
-            ),
-          ),
-
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            sliver: SliverGrid(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-                childAspectRatio: 0.75,
-              ),
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  final album = artistAlbums[index];
-                  // Temporarily ignore text coloring for album card inside
-                  return Theme(
-                      data: Theme.of(context).copyWith(
-                        textTheme: Theme.of(context).textTheme.apply(
-                              bodyColor: Colors.white,
-                              displayColor: Colors.white,
-                            ),
-                      ),
-                      child: AlbumCard(album: album));
+                    showIndex: true,
+                  );
                 },
-                childCount: artistAlbums.length,
+                childCount: songs.length,
               ),
             ),
-          ),
-
-          // Espace pour le mini player
-          const SliverToBoxAdapter(
-            child: SizedBox(height: 72),
-          ),
+          if (artistAlbums.isNotEmpty) ...[
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: _sectionHeader(context, 'Albums'),
+              ),
+            ),
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 120),
+              sliver: SliverGrid(
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 14,
+                  mainAxisSpacing: 20,
+                  childAspectRatio: 0.72,
+                ),
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) {
+                    final album = artistAlbums[index];
+                    return AlbumCard(
+                      album: album,
+                      showTrackBadge: true,
+                      elevatedStyle: true,
+                    );
+                  },
+                  childCount: artistAlbums.length,
+                ),
+              ),
+            ),
+          ] else
+            const SliverToBoxAdapter(child: SizedBox(height: 100)),
         ],
       ),
       bottomSheet: const MiniPlayer(),
     );
   }
 
-  Widget _buildStat(BuildContext context, String value, String label) {
-    return Column(
-      children: [
-        Text(
-          value,
-          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color:
-                    Theme.of(context).colorScheme.primary, // Apple music pink
-              ),
+  Widget _sectionHeader(BuildContext context, String title) {
+    final scheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 10),
+      child: Row(
+        children: [
+          Container(
+            width: 4,
+            height: 22,
+            decoration: BoxDecoration(
+              color: scheme.primary,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              title,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.3,
+                  ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DetailStatChip extends StatelessWidget {
+  const _DetailStatChip({
+    required this.icon,
+    required this.label,
+    required this.scheme,
+  });
+
+  final IconData icon;
+  final String label;
+  final ColorScheme scheme;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHighest.withValues(alpha: 0.85),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: scheme.outlineVariant.withValues(alpha: 0.35),
         ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: Theme.of(context)
-              .textTheme
-              .bodySmall
-              ?.copyWith(color: Colors.white70),
-        ),
-      ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 18, color: scheme.primary),
+          const SizedBox(width: 8),
+          Text(
+            label,
+            style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -324,6 +413,7 @@ class _WikipediaSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final scheme = Theme.of(context).colorScheme;
     final asyncInfo = ref.watch(artistWikipediaInfoProvider(artistName));
     return asyncInfo.when(
       data: (info) {
@@ -331,15 +421,16 @@ class _WikipediaSection extends ConsumerWidget {
           return const SizedBox.shrink();
         }
         return Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 'À propos',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.primary,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                      color: scheme.primary,
+                      letterSpacing: -0.2,
                     ),
               ),
               const SizedBox(height: 8),
@@ -348,21 +439,23 @@ class _WikipediaSection extends ConsumerWidget {
                 maxLines: 6,
                 overflow: TextOverflow.ellipsis,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Colors.white70,
-                      height: 1.4,
+                      color: scheme.onSurfaceVariant,
+                      height: 1.45,
                     ),
               ),
-              const SizedBox(height: 8),
             ],
           ),
         );
       },
-      loading: () => const Padding(
-        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      loading: () => Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         child: SizedBox(
           height: 24,
           width: 24,
-          child: CircularProgressIndicator(strokeWidth: 2),
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            color: scheme.primary,
+          ),
         ),
       ),
       error: (_, __) => const SizedBox.shrink(),

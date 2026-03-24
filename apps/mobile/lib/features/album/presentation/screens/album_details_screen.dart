@@ -175,73 +175,118 @@ class _AlbumDetailsScreenState extends ConsumerState<AlbumDetailsScreen> {
     }
     final album = albums[albumIndex];
 
-    final backgroundColor = dominantColor != null
-        ? Color.lerp(
-            Theme.of(context).scaffoldBackgroundColor, dominantColor!, 0.35)!
-        : Theme.of(context).scaffoldBackgroundColor;
+    final scheme = Theme.of(context).colorScheme;
     final playButtonColor = dominantColor != null
-        ? _vibrantButtonColor(dominantColor!, Theme.of(context).colorScheme)
-        : Theme.of(context).colorScheme.primary;
+        ? _vibrantButtonColor(dominantColor!, scheme)
+        : scheme.primary;
+
+    final heroGradient = LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [
+        if (dominantColor != null)
+          dominantColor!.withValues(alpha: 0.4)
+        else
+          scheme.primaryContainer.withValues(alpha: 0.95),
+        scheme.surfaceContainerHighest.withValues(alpha: 0.9),
+        scheme.surface,
+      ],
+    );
 
     // First song for art display in popup
     final firstSong = songs.isNotEmpty ? songs.first : null;
 
     return Scaffold(
-      backgroundColor: backgroundColor,
+      backgroundColor: scheme.surface,
       body: CustomScrollView(
+        physics: const BouncingScrollPhysics(
+          parent: AlwaysScrollableScrollPhysics(),
+        ),
         slivers: [
-          // En-tête immersif
           SliverAppBar(
-            expandedHeight: 340,
             pinned: true,
-            stretch: true,
-            backgroundColor: backgroundColor,
+            backgroundColor: scheme.surface,
+            surfaceTintColor: Colors.transparent,
+            foregroundColor: scheme.onSurface,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back_rounded),
+              onPressed: () => context.pop(),
+            ),
+            title: Text(
+              album.name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.3,
+                  ),
+            ),
             actions: [
               IconButton(
-                icon: Icon(Icons.delete_outline,
-                    color: Theme.of(context).colorScheme.error),
+                icon: Icon(Icons.delete_outline_rounded,
+                    color: scheme.error),
                 onPressed: () => _confirmDeleteAlbum(context, ref, album),
                 tooltip: 'Supprimer l\'album',
               ),
             ],
-            flexibleSpace: FlexibleSpaceBar(
-              background: Stack(
-                fit: StackFit.expand,
-                children: [
-                  Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const SizedBox(height: 40),
-                        Container(
-                          width: 180,
-                          height: 180,
+          ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 20),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(24),
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Positioned.fill(
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(gradient: heroGradient),
+                      ),
+                    ),
+                    Positioned(
+                      left: -24,
+                      bottom: -16,
+                      child: IgnorePointer(
+                        child: Container(
+                          width: 100,
+                          height: 100,
                           decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.3),
-                                blurRadius: 20,
-                                offset: const Offset(0, 10),
-                              ),
-                            ],
-                          ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(12),
-                            child: AlbumArtImage(
-                              albumArtPath: album.albumArtPath,
-                              songId: album.songIds.isNotEmpty
-                                  ? album.songIds.first
-                                  : '0',
-                              size: 180,
-                              fit: BoxFit.cover,
-                            ),
+                            shape: BoxShape.circle,
+                            color: scheme.tertiary.withValues(alpha: 0.15),
                           ),
                         ),
-                        const SizedBox(height: 16),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 24),
-                          child: Text(
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
+                      child: Column(
+                        children: [
+                          Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(20),
+                              boxShadow: [
+                                BoxShadow(
+                                  color:
+                                      scheme.shadow.withValues(alpha: 0.22),
+                                  blurRadius: 24,
+                                  offset: const Offset(0, 12),
+                                ),
+                              ],
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(20),
+                              child: AlbumArtImage(
+                                albumArtPath: album.albumArtPath,
+                                songId: album.songIds.isNotEmpty
+                                    ? album.songIds.first
+                                    : '0',
+                                size: 200,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          Text(
                             album.name,
                             textAlign: TextAlign.center,
                             maxLines: 2,
@@ -250,167 +295,130 @@ class _AlbumDetailsScreenState extends ConsumerState<AlbumDetailsScreen> {
                                 .textTheme
                                 .headlineSmall
                                 ?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: -0.6,
+                                  height: 1.1,
+                                  color: scheme.onSurface,
                                 ),
                           ),
-                        ),
-                        const SizedBox(height: 4),
-                        // Artiste — affichage simple
-                        if (album.artist.isNotEmpty)
-                          Text(
-                            album.artist,
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleMedium
-                                ?.copyWith(
-                                  color: Colors.white70,
-                                ),
-                          )
-                        else
-                          Text(
-                            album.artist,
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleMedium
-                                ?.copyWith(
-                                  color: Colors.white70,
-                                ),
-                          ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          // Informations et Actions
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      if (songs.isNotEmpty && songs.first.year != null)
-                        Text(
-                          '${songs.first.year} • ',
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodyMedium
-                              ?.copyWith(color: Colors.white60),
-                        ),
-                      Text(
-                        '${album.trackCount} titre${album.trackCount > 1 ? 's' : ''}',
-                        style: Theme.of(context)
-                            .textTheme
-                            .bodyMedium
-                            ?.copyWith(color: Colors.white60),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: () {
-                            if (songs.isNotEmpty) {
-                              ref
-                                  .read(audioPlayerProvider.notifier)
-                                  .play(songs, 0);
-                            }
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: playButtonColor,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30),
+                          if (album.artist.isNotEmpty) ...[
+                            const SizedBox(height: 6),
+                            Text(
+                              album.artist,
+                              textAlign: TextAlign.center,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleMedium
+                                  ?.copyWith(
+                                    color: scheme.onSurfaceVariant,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                             ),
-                            elevation: 0,
-                          ),
-                          child: const Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
+                          ],
+                          const SizedBox(height: 14),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            alignment: WrapAlignment.center,
                             children: [
-                              Icon(Icons.play_arrow_rounded),
-                              SizedBox(width: 8),
-                              Text('Lecture',
-                                  style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold)),
+                              if (songs.isNotEmpty && songs.first.year != null)
+                                _AlbumDetailStatChip(
+                                  icon: Icons.calendar_today_rounded,
+                                  label: '${songs.first.year}',
+                                  scheme: scheme,
+                                ),
+                              _AlbumDetailStatChip(
+                                icon: Icons.audiotrack_rounded,
+                                label:
+                                    '${album.trackCount} titre${album.trackCount > 1 ? 's' : ''}',
+                                scheme: scheme,
+                              ),
                             ],
                           ),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      ElevatedButton(
-                        onPressed: () {
-                          if (songs.isNotEmpty) {
-                            ref
-                                .read(audioPlayerProvider.notifier)
-                                .play(songs, 0);
-                            ref
-                                .read(audioPlayerProvider.notifier)
-                                .toggleShuffle();
-                          }
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white.withValues(alpha: 0.15),
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
+                          const SizedBox(height: 22),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: FilledButton(
+                                  onPressed: songs.isEmpty
+                                      ? null
+                                      : () {
+                                          ref
+                                              .read(audioPlayerProvider
+                                                  .notifier)
+                                              .play(songs, 0);
+                                        },
+                                  style: FilledButton.styleFrom(
+                                    backgroundColor: playButtonColor,
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 14),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                  ),
+                                  child: const Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(Icons.play_arrow_rounded),
+                                      SizedBox(width: 8),
+                                      Text(
+                                        'Lecture',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w800,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              IconButton.filledTonal(
+                                onPressed: songs.isEmpty
+                                    ? null
+                                    : () {
+                                        ref
+                                            .read(audioPlayerProvider
+                                                .notifier)
+                                            .play(songs, 0);
+                                        ref
+                                            .read(audioPlayerProvider
+                                                .notifier)
+                                            .toggleShuffle();
+                                      },
+                                icon: const Icon(Icons.shuffle_rounded),
+                                tooltip: 'Lecture aléatoire',
+                              ),
+                            ],
                           ),
-                          elevation: 0,
-                          shadowColor: Colors.transparent,
-                        ),
-                        child: const Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [Icon(Icons.shuffle_rounded)],
-                        ),
+                        ],
                       ),
-                    ],
-                  ),
-                ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
-
-          // Liste des chansons
+          SliverToBoxAdapter(
+            child: _albumSectionHeader(context, 'Morceaux'),
+          ),
           SliverList(
             delegate: SliverChildBuilderDelegate(
               (context, index) {
                 final song = songs[index];
-                return Theme(
-                  data: Theme.of(context).copyWith(
-                    textTheme: Theme.of(context).textTheme.apply(
-                          bodyColor: Colors.white,
-                          displayColor: Colors.white,
-                        ),
-                    iconTheme: const IconThemeData(color: Colors.white),
-                  ),
-                  child: SongTile(
-                    song: song,
-                    playlist: songs,
-                    songIndex: index,
-                    showIndex: true,
-                  ),
+                return SongTile(
+                  song: song,
+                  playlist: songs,
+                  songIndex: index,
+                  showIndex: true,
                 );
               },
               childCount: songs.length,
             ),
           ),
-
-          // Divider(
-          //   color: Colors.white12,
-          //   thickness: 1,
-          // ),
-
-          // === BIO ARTISTE WIKIPEDIA (en bas de la liste) ===
           if (album.artist.isNotEmpty && songs.isNotEmpty)
             SliverToBoxAdapter(
               child: Padding(
@@ -426,13 +434,80 @@ class _AlbumDetailsScreenState extends ConsumerState<AlbumDetailsScreen> {
                 ),
               ),
             ),
-
           const SliverToBoxAdapter(
-            child: SizedBox(height: 80),
+            child: SizedBox(height: 100),
           ),
         ],
       ),
       bottomSheet: const MiniPlayer(),
+    );
+  }
+
+  Widget _albumSectionHeader(BuildContext context, String title) {
+    final scheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 10),
+      child: Row(
+        children: [
+          Container(
+            width: 4,
+            height: 22,
+            decoration: BoxDecoration(
+              color: scheme.primary,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              title,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.3,
+                  ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AlbumDetailStatChip extends StatelessWidget {
+  const _AlbumDetailStatChip({
+    required this.icon,
+    required this.label,
+    required this.scheme,
+  });
+
+  final IconData icon;
+  final String label;
+  final ColorScheme scheme;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: scheme.surface.withValues(alpha: 0.72),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: scheme.outlineVariant.withValues(alpha: 0.35),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 18, color: scheme.primary),
+          const SizedBox(width: 8),
+          Text(
+            label,
+            style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -449,6 +524,7 @@ class _WikiDescriptionText extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final scheme = Theme.of(context).colorScheme;
     final asyncInfo = ref.watch(artistWikipediaInfoProvider(artistName));
 
     return asyncInfo.when(
@@ -462,7 +538,9 @@ class _WikiDescriptionText extends ConsumerWidget {
             Text(
               'À propos de $artistName',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w800,
+                    color: scheme.primary,
+                    letterSpacing: -0.2,
                   ),
             ),
             const SizedBox(height: 8),
@@ -470,22 +548,20 @@ class _WikiDescriptionText extends ConsumerWidget {
               info.extract,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                color: Colors.white70,
-                fontSize: 14,
-                height: 1.4,
-              ),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                    height: 1.45,
+                  ),
             ),
             const SizedBox(height: 6),
             GestureDetector(
               onTap: onArtistTap,
               child: Text(
                 'Voir plus',
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.primary,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                ),
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      color: scheme.primary,
+                      fontWeight: FontWeight.w800,
+                    ),
               ),
             ),
           ],

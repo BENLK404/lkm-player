@@ -63,6 +63,15 @@ class SettingsScreen extends ConsumerWidget {
             loading: () => const SizedBox.shrink(),
             error: (_, __) => const SizedBox.shrink(),
           ),
+          ListTile(
+            leading: const Icon(Icons.play_circle_outline_rounded),
+            title: const Text('Écran lecture en cours'),
+            subtitle: const Text(
+              'Style d’affichage et réglages fins (classique, immersion…)',
+            ),
+            trailing: const Icon(Icons.chevron_right_rounded),
+            onTap: () => context.push(AppRouter.nowPlayingAppearanceHub),
+          ),
           sleepTimerDefault.when(
             data: (minutes) => ListTile(
               title: const Text('Minuteur de sommeil (défaut)'),

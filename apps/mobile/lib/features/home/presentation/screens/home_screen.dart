@@ -14,16 +14,9 @@ import 'package:musio/shared/widgets/mini_player.dart';
 import 'package:musio/shared/widgets/song_tile.dart';
 
 import '../../../player/presentation/providers/audio_player_provider.dart';
-
-// Provider pour le nombre de colonnes dans la grille d'albums
-final albumGridColumnsProvider = StateProvider<double>((ref) => 2.0);
-// Provider pour le mode d'affichage des chansons (true = liste, false = grille)
-final songDisplayModeProvider = StateProvider<bool>((ref) => true);
-
-/// Mode de sélection multiple : null = inactif, 'songs' = pistes, 'albums' = albums.
-final selectionModeProvider = StateProvider<String?>((ref) => null);
-final selectedSongIdsProvider = StateProvider<Set<String>>((ref) => {});
-final selectedAlbumIdsProvider = StateProvider<Set<String>>((ref) => {});
+import '../providers/home_tab_providers.dart';
+import '../widgets/offline_albums_library.dart';
+import '../widgets/titres_alphabet_scroll.dart';
 
 class OfflineHomeScreen extends ConsumerStatefulWidget {
   const OfflineHomeScreen({super.key});
@@ -398,16 +391,18 @@ class _OfflineHomeScreenState extends ConsumerState<OfflineHomeScreen> {
       return _buildEmptyState();
     }
 
+    final sortedByTitle = sortByTitle(songs, (s) => s.title);
+
     return RefreshIndicator(
       onRefresh: () async {
         await ref.read(musicProvider.notifier).rescanLibrary();
       },
       child: isList
-          ? ListView.separated(
-              itemCount: songs.length,
+          ? TitresAlphabetScrollView(
+              sortedSongs: sortedByTitle,
+              physics: const AlwaysScrollableScrollPhysics(),
               separatorBuilder: (context, index) => const Divider(height: 1),
-              itemBuilder: (context, index) {
-                final song = songs[index];
+              tileBuilder: (context, index, song) {
                 final isSelected = selectedIds.contains(song.id);
                 if (isSongSelection) {
                   return InkWell(
@@ -438,7 +433,7 @@ class _OfflineHomeScreenState extends ConsumerState<OfflineHomeScreen> {
                         Expanded(
                           child: SongTile(
                             song: song,
-                            playlist: songs,
+                            playlist: sortedByTitle,
                             songIndex: index,
                             showTrailingMenu: false,
                           ),
@@ -449,7 +444,7 @@ class _OfflineHomeScreenState extends ConsumerState<OfflineHomeScreen> {
                 }
                 return SongTile(
                   song: song,
-                  playlist: songs,
+                  playlist: sortedByTitle,
                   songIndex: index,
                   onLongPress: () {
                     ref.read(selectionModeProvider.notifier).state = 'songs';
@@ -532,76 +527,15 @@ class _OfflineHomeScreenState extends ConsumerState<OfflineHomeScreen> {
   }
 
   Widget _buildAlbumsTab(List<AlbumModel> albums) {
-    final columns = ref.watch(albumGridColumnsProvider);
-    final selectionMode = ref.watch(selectionModeProvider);
-    final selectedIds = ref.watch(selectedAlbumIdsProvider);
-    final isAlbumSelection = selectionMode == 'albums';
-
     if (albums.isEmpty) {
       return _buildEmptyState();
     }
 
-    return RefreshIndicator(
+    return OfflineAlbumsLibrary(
+      albums: albums,
       onRefresh: () async {
         await ref.read(musicProvider.notifier).rescanLibrary();
       },
-      child: GridView.builder(
-        padding: const EdgeInsets.all(16),
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: columns.round(),
-          crossAxisSpacing: 16,
-          mainAxisSpacing: 16,
-          childAspectRatio: 0.75,
-        ),
-        itemCount: albums.length,
-        itemBuilder: (context, index) {
-          final album = albums[index];
-          final isSelected = selectedIds.contains(album.id);
-          if (isAlbumSelection) {
-            return InkWell(
-              onTap: () {
-                final next = Set<String>.from(selectedIds);
-                if (isSelected) {
-                  next.remove(album.id);
-                } else {
-                  next.add(album.id);
-                }
-                ref.read(selectedAlbumIdsProvider.notifier).state = next;
-              },
-              child: Stack(
-                children: [
-                  AlbumCard(album: album, onTap: () {}),
-                  Positioned(
-                    top: 8,
-                    left: 8,
-                    child: Checkbox(
-                      value: isSelected,
-                      onChanged: (_) {
-                        final next = Set<String>.from(selectedIds);
-                        if (isSelected) {
-                          next.remove(album.id);
-                        } else {
-                          next.add(album.id);
-                        }
-                        ref.read(selectedAlbumIdsProvider.notifier).state =
-                            next;
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }
-          return GestureDetector(
-            onLongPress: () {
-              ref.read(selectionModeProvider.notifier).state = 'albums';
-              ref.read(selectedSongIdsProvider.notifier).state = {};
-              ref.read(selectedAlbumIdsProvider.notifier).state = {album.id};
-            },
-            child: AlbumCard(album: album),
-          );
-        },
-      ),
     );
   }
 

@@ -12,7 +12,6 @@ import 'package:musio/shared/widgets/album_art_image.dart';
 import 'package:musio/shared/widgets/playlist_card.dart';
 import 'package:musio/shared/widgets/song_card.dart';
 import 'package:musio/shared/widgets/song_tile.dart';
-import 'package:musio/shared/widgets/vinyl_card.dart';
 
 class ForYouScreen extends ConsumerWidget {
   const ForYouScreen({super.key});
@@ -46,12 +45,6 @@ class ForYouScreen extends ConsumerWidget {
 
           final favorites = state.songs.where((s) => s.isFavorite).toList();
           final playlists = state.playlists;
-
-          // Total listen time in milliseconds
-          final totalListenMs = state.songs.fold<int>(
-            0,
-            (sum, s) => sum + (s.playCount * s.duration),
-          );
 
           // Artiste le plus écouté (basé sur le total des playCount)
           final artistTotalPlayCount = <String, int>{};
@@ -87,24 +80,17 @@ class ForYouScreen extends ConsumerWidget {
           final currentSong = playerState.currentSong;
 
           return ListView(
-            padding: const EdgeInsets.symmetric(vertical: 24.0),
+            padding: const EdgeInsets.only(top: 8, bottom: 24),
             children: [
-              // === TEMPS D'ÉCOUTE TOTAL ===
-              if (totalListenMs > 0)
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-                  child: _ListenTimeCard(totalMs: totalListenMs),
-                ),
-
-              // === EN COURS / REPRENDRE ===
+              // === EN COURS / REPRENDRE (pas de barre de progression : voir mini lecteur) ===
               if (currentSong != null)
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
                   child: _NowPlayingCard(song: currentSong),
                 )
               else if (recentlyPlayed.isNotEmpty)
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
                   child: _ResumeLastCard(
                     song: recentlyPlayed.first,
                     onTap: () => ref
@@ -113,12 +99,18 @@ class ForYouScreen extends ConsumerWidget {
                   ),
                 ),
 
-              // === 5 DERNIERS MORCEAUX ÉCOUTÉS ===
+              // === ÉCOUTÉS RÉCEMMENT (liste — la section vinyles a été retirée, doublon) ===
               if (recentlyPlayed.isNotEmpty) ...[
-                _buildSectionHeader(context, '5 derniers morceaux',
-                    showSeeAll: recentlyPlayed.length > 5,
-                    onTapSeeAll: () => _navigateToSongList(
-                        context, 'Écoutés récemment', recentlyPlayed)),
+                _buildSectionHeader(
+                  context,
+                  'Écoutés récemment',
+                  showSeeAll: recentlyPlayed.length > 5,
+                  onTapSeeAll: () => _navigateToSongList(
+                    context,
+                    'Écoutés récemment',
+                    recentlyPlayed,
+                  ),
+                ),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 4.0),
                   child: ListView.builder(
@@ -135,13 +127,16 @@ class ForYouScreen extends ConsumerWidget {
                     },
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 20),
               ],
 
               // === ARTISTES LES PLUS ÉCOUTÉS (16:9 mini banners) ===
               if (topArtistEntries.isNotEmpty) ...[
-                _buildSectionHeader(context, 'Artistes favoris',
-                    showSeeAll: false),
+                _buildSectionHeader(
+                  context,
+                  'Artistes favoris',
+                  showSeeAll: false,
+                ),
                 SizedBox(
                   height: 150,
                   child: ListView.separated(
@@ -163,24 +158,7 @@ class ForYouScreen extends ConsumerWidget {
                     },
                   ),
                 ),
-                const SizedBox(height: 28),
-              ],
-
-              // === REPRENDRE LA LECTURE (vinyl) ===
-              if (recentlyPlayed.length > 1) ...[
-                _buildSectionHeader(
-                  context,
-                  'Reprendre la lecture',
-                  showSeeAll: true,
-                  onTapSeeAll: () => _navigateToSongList(
-                      context, 'Écoutés récemment', recentlyPlayed),
-                ),
-                _buildHorizontalVinylList(
-                  context,
-                  ref,
-                  recentlyPlayed.skip(1).take(4).toList(),
-                ),
-                const SizedBox(height: 32),
+                const SizedBox(height: 24),
               ],
 
               // === VOS COUPS DE CŒUR ===
@@ -257,31 +235,44 @@ class ForYouScreen extends ConsumerWidget {
 
   Widget _buildSectionHeader(BuildContext context, String title,
       {bool showSeeAll = false, VoidCallback? onTapSeeAll}) {
+    final scheme = Theme.of(context).colorScheme;
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 10),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Text(
-            title,
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
-                ),
+          Container(
+            width: 4,
+            height: 22,
+            decoration: BoxDecoration(
+              color: scheme.primary,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              title,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.2,
+                  ),
+            ),
           ),
           if (showSeeAll)
-            InkWell(
-              onTap: onTapSeeAll,
-              borderRadius: BorderRadius.circular(12),
-              child: Padding(
-                padding: const EdgeInsets.all(4.0),
-                child: Text(
-                  'Voir tout',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.primary,
-                        fontWeight: FontWeight.w600,
-                      ),
-                ),
+            TextButton(
+              onPressed: onTapSeeAll,
+              style: TextButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              child: Text(
+                'Tout voir',
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      color: scheme.primary,
+                      fontWeight: FontWeight.w700,
+                    ),
               ),
             ),
         ],
@@ -333,35 +324,6 @@ class ForYouScreen extends ConsumerWidget {
             child: SongCard(
               song: song,
               subtitleWidget: subtitleWidget,
-              onTap: () {
-                ref.read(audioPlayerProvider.notifier).play(songs, index);
-              },
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildHorizontalVinylList(
-      BuildContext context, WidgetRef ref, List<SongModel> songs) {
-    if (songs.isEmpty) {
-      return const SizedBox.shrink();
-    }
-
-    return SizedBox(
-      height: 180,
-      child: ListView.separated(
-        padding: const EdgeInsets.symmetric(horizontal: 20.0),
-        scrollDirection: Axis.horizontal,
-        itemCount: songs.length,
-        separatorBuilder: (context, index) => const SizedBox(width: 20),
-        itemBuilder: (context, index) {
-          final song = songs[index];
-          return SizedBox(
-            width: 130,
-            child: VinylCard(
-              song: song,
               onTap: () {
                 ref.read(audioPlayerProvider.notifier).play(songs, index);
               },
@@ -469,68 +431,162 @@ class ForYouScreen extends ConsumerWidget {
   }
 }
 
-/// Card affichant le temps total d'écoute.
-class _ListenTimeCard extends StatelessWidget {
-  final int totalMs;
+/// Salutation + résumé de la bibliothèque (données utiles, sans texte générique).
+class _ForYouHeader extends StatelessWidget {
+  const _ForYouHeader({
+    required this.trackCount,
+    required this.albumCount,
+    required this.playlistCount,
+    required this.favoritesCount,
+  });
 
-  const _ListenTimeCard({required this.totalMs});
+  final int trackCount;
+  final int albumCount;
+  final int playlistCount;
+  final int favoritesCount;
 
-  String _formatTotal(int ms) {
-    final duration = Duration(milliseconds: ms);
-    final hours = duration.inHours;
-    final minutes = duration.inMinutes.remainder(60);
-    if (hours > 0) {
-      return '${hours}h ${minutes}min';
-    }
-    return '${minutes}min';
+  static String _greeting() {
+    final h = DateTime.now().hour;
+    if (h < 5) return 'Bonne nuit';
+    if (h < 12) return 'Bonjour';
+    if (h < 18) return 'Bon après-midi';
+    return 'Bonsoir';
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final primary = theme.colorScheme.primary;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [primary.withValues(alpha: 0.18), primary.withValues(alpha: 0.06)],
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-        ),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: primary.withValues(alpha: 0.18)),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        spacing: 16,
+    final scheme = theme.colorScheme;
+    final weekday = [
+      'lundi',
+      'mardi',
+      'mercredi',
+      'jeudi',
+      'vendredi',
+      'samedi',
+      'dimanche',
+    ][DateTime.now().weekday - 1];
+    final day = DateTime.now().day;
+    final month = [
+      'janvier',
+      'février',
+      'mars',
+      'avril',
+      'mai',
+      'juin',
+      'juillet',
+      'août',
+      'septembre',
+      'octobre',
+      'novembre',
+      'décembre',
+    ][DateTime.now().month - 1];
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 14, 20, 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          Text(
+            _greeting(),
+            style: theme.textTheme.headlineMedium?.copyWith(
+              fontWeight: FontWeight.w900,
+              letterSpacing: -0.8,
+              height: 1.05,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '$weekday $day $month',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: scheme.onSurfaceVariant,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 14),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
             children: [
-              Text(
-                'Temps d\'écoute total',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-                  fontWeight: FontWeight.w500,
-                ),
+              _LibStatChip(
+                icon: Icons.music_note_rounded,
+                value: trackCount,
+                label: trackCount > 1 ? 'titres' : 'titre',
+                scheme: scheme,
               ),
-              const SizedBox(height: 2),
-              Text(
-                _formatTotal(totalMs),
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: primary,
-                ),
+              _LibStatChip(
+                icon: Icons.album_rounded,
+                value: albumCount,
+                label: albumCount > 1 ? 'albums' : 'album',
+                scheme: scheme,
               ),
+              _LibStatChip(
+                icon: Icons.playlist_play_rounded,
+                value: playlistCount,
+                label: playlistCount > 1 ? 'playlists' : 'playlist',
+                scheme: scheme,
+              ),
+              if (favoritesCount > 0)
+                _LibStatChip(
+                  icon: Icons.favorite_rounded,
+                  value: favoritesCount,
+                  label: favoritesCount > 1 ? 'favoris' : 'favori',
+                  scheme: scheme,
+                  iconColor: scheme.error,
+                ),
             ],
           ),
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: primary.withValues(alpha: 0.15),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(Icons.headphones_rounded, color: primary, size: 24),
+        ],
+      ),
+    );
+  }
+}
+
+class _LibStatChip extends StatelessWidget {
+  const _LibStatChip({
+    required this.icon,
+    required this.value,
+    required this.label,
+    required this.scheme,
+    this.iconColor,
+  });
+
+  final IconData icon;
+  final int value;
+  final String label;
+  final ColorScheme scheme;
+  final Color? iconColor;
+
+  @override
+  Widget build(BuildContext context) {
+    final ic = iconColor ?? scheme.primary;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHighest.withValues(alpha: 0.65),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: scheme.outlineVariant.withValues(alpha: 0.4),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 18, color: ic),
+          const SizedBox(width: 8),
+          Text(
+            '$value',
+            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
+          ),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w600,
+                ),
           ),
         ],
       ),
@@ -663,7 +719,6 @@ class _NowPlayingCard extends ConsumerWidget {
               ],
             ),
           ),
-          const _NowPlayingCardProgressBar(),
         ],
       ),
     );
@@ -737,33 +792,6 @@ class _NowPlayingQuickControls extends ConsumerWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _NowPlayingCardProgressBar extends ConsumerWidget {
-  const _NowPlayingCardProgressBar();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final scheme = Theme.of(context).colorScheme;
-    final position =
-        ref.watch(audioPlayerProvider.select((s) => s.position));
-    final duration =
-        ref.watch(audioPlayerProvider.select((s) => s.duration));
-    final maxMs = duration.inMilliseconds;
-    final value = maxMs > 0
-        ? (position.inMilliseconds / maxMs).clamp(0.0, 1.0)
-        : 0.0;
-
-    return ClipRRect(
-      borderRadius: const BorderRadius.vertical(bottom: Radius.circular(22)),
-      child: LinearProgressIndicator(
-        value: maxMs > 0 ? value : 0,
-        minHeight: 3,
-        backgroundColor: scheme.outlineVariant.withValues(alpha: 0.28),
-        color: scheme.primary.withValues(alpha: 0.85),
-      ),
     );
   }
 }

@@ -13,6 +13,11 @@ import 'package:musio/features/player/presentation/screens/queue_full_screen.dar
 import 'package:musio/features/playlist/presentation/screens/playlist_details_screen.dart';
 import 'package:musio/features/search/presentation/screens/search_screen.dart';
 import 'package:musio/features/settings/presentation/screens/about_screen.dart';
+import 'package:musio/features/settings/presentation/screens/now_playing_appearance/classic_now_playing_style_screen.dart';
+import 'package:musio/features/settings/presentation/screens/now_playing_appearance/immersive_now_playing_style_screen.dart';
+import 'package:musio/features/settings/presentation/screens/now_playing_appearance/minimal_now_playing_style_screen.dart';
+import 'package:musio/features/settings/presentation/screens/now_playing_appearance/now_playing_style_hub_screen.dart';
+import 'package:musio/features/settings/presentation/screens/now_playing_appearance/vinyl_now_playing_style_screen.dart';
 import 'package:musio/features/settings/presentation/screens/settings_screen.dart';
 import 'package:musio/features/settings/presentation/screens/stats_screen.dart';
 import 'package:musio/shared/screens/song_list_screen.dart';
@@ -30,6 +35,16 @@ class AppRouter {
   static const String settings = '/settings';
   static const String about = '/settings/about';
   static const String stats = '/settings/stats';
+  static const String nowPlayingAppearanceHub =
+      '/settings/now-playing-appearance';
+  static const String nowPlayingStyleClassic =
+      '/settings/now-playing-appearance/classic';
+  static const String nowPlayingStyleImmersive =
+      '/settings/now-playing-appearance/immersive';
+  static const String nowPlayingStyleMinimal =
+      '/settings/now-playing-appearance/minimal';
+  static const String nowPlayingStyleVinyl =
+      '/settings/now-playing-appearance/vinyl';
   static const String songList = '/song-list';
   static const String lyrics = '/lyrics';
   static const String queue = '/queue';
@@ -118,6 +133,68 @@ class AppRouter {
                 return FadeTransition(opacity: animation, child: child);
               },
             ),
+          ),
+          GoRoute(
+            path: 'now-playing-appearance',
+            name: 'now-playing-appearance',
+            pageBuilder: (context, state) => CustomTransitionPage(
+              key: state.pageKey,
+              child: const NowPlayingStyleHubScreen(),
+              transitionsBuilder:
+                  (context, animation, secondaryAnimation, child) {
+                return FadeTransition(opacity: animation, child: child);
+              },
+            ),
+            routes: [
+              GoRoute(
+                path: 'classic',
+                name: 'now-playing-style-classic',
+                pageBuilder: (context, state) => CustomTransitionPage(
+                  key: state.pageKey,
+                  child: const ClassicNowPlayingStyleScreen(),
+                  transitionsBuilder:
+                      (context, animation, secondaryAnimation, child) {
+                    return FadeTransition(opacity: animation, child: child);
+                  },
+                ),
+              ),
+              GoRoute(
+                path: 'immersive',
+                name: 'now-playing-style-immersive',
+                pageBuilder: (context, state) => CustomTransitionPage(
+                  key: state.pageKey,
+                  child: const ImmersiveNowPlayingStyleScreen(),
+                  transitionsBuilder:
+                      (context, animation, secondaryAnimation, child) {
+                    return FadeTransition(opacity: animation, child: child);
+                  },
+                ),
+              ),
+              GoRoute(
+                path: 'minimal',
+                name: 'now-playing-style-minimal',
+                pageBuilder: (context, state) => CustomTransitionPage(
+                  key: state.pageKey,
+                  child: const MinimalNowPlayingStyleScreen(),
+                  transitionsBuilder:
+                      (context, animation, secondaryAnimation, child) {
+                    return FadeTransition(opacity: animation, child: child);
+                  },
+                ),
+              ),
+              GoRoute(
+                path: 'vinyl',
+                name: 'now-playing-style-vinyl',
+                pageBuilder: (context, state) => CustomTransitionPage(
+                  key: state.pageKey,
+                  child: const VinylNowPlayingStyleScreen(),
+                  transitionsBuilder:
+                      (context, animation, secondaryAnimation, child) {
+                    return FadeTransition(opacity: animation, child: child);
+                  },
+                ),
+              ),
+            ],
           ),
         ],
       ),
