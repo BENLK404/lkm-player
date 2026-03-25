@@ -1,0 +1,47 @@
+---
+const year = new Date().getFullYear();
+---
+
+<footer class="border-t border-neutral-800 px-6 py-12">
+  <div class="mx-auto flex max-w-6xl flex-col items-center justify-between gap-6 md:flex-row">
+    <div>
+      <a href="/" class="text-lg font-bold tracking-tight">
+        LKM<span class="text-indigo-400">Player</span>
+      </a>
+      <p class="mt-1 text-sm text-neutral-500">
+        Lecteur audio open source &middot; MIT License
+      </p>
+    </div>
+
+    <nav class="flex gap-6 text-sm text-neutral-400">
+      <a
+        href="https://github.com/BENLK404/lkm-player"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="transition-colors hover:text-white"
+      >
+        GitHub
+      </a>
+      <a
+        href="https://github.com/BENLK404/lkm-player/releases"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="transition-colors hover:text-white"
+      >
+        Releases
+      </a>
+      <a
+        href="https://github.com/BENLK404/lkm-player/discussions"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="transition-colors hover:text-white"
+      >
+        Discussions
+      </a>
+    </nav>
+
+    <p class="text-sm text-neutral-500">
+      &copy; {year} LKM Player
+    </p>
+  </div>
+</footer>

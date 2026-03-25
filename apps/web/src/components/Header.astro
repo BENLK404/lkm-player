@@ -1,0 +1,87 @@
+---
+const navLinks = [
+  { label: 'Fonctionnalités', href: '#features' },
+  { label: 'Découvrir', href: '#showcase' },
+  { label: 'Télécharger', href: '#cta' },
+];
+---
+
+<header class="fixed top-0 z-50 w-full" data-header>
+  <nav
+    class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4 transition-colors duration-300"
+  >
+    <a href="/" class="text-xl font-bold tracking-tight">
+      LKM<span class="text-indigo-400">Player</span>
+    </a>
+
+    <ul class="hidden items-center gap-8 md:flex">
+      {
+        navLinks.map((link) => (
+          <li>
+            <a
+              href={link.href}
+              class="text-sm text-neutral-400 transition-colors hover:text-white"
+            >
+              {link.label}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+
+    <a
+      href="#cta"
+      class="hidden rounded-full bg-indigo-500 px-5 py-2 text-sm font-medium transition-colors hover:bg-indigo-400 md:inline-block"
+    >
+      Télécharger
+    </a>
+
+    <button
+      class="flex flex-col gap-1.5 md:hidden"
+      aria-label="Menu"
+      data-mobile-toggle
+    >
+      <span class="block h-0.5 w-6 bg-white transition-transform"></span>
+      <span class="block h-0.5 w-6 bg-white transition-opacity"></span>
+      <span class="block h-0.5 w-6 bg-white transition-transform"></span>
+    </button>
+  </nav>
+
+  <div
+    class="hidden flex-col items-center gap-4 bg-neutral-950/95 px-6 pb-6 backdrop-blur md:hidden"
+    data-mobile-menu
+  >
+    {
+      navLinks.map((link) => (
+        <a
+          href={link.href}
+          class="text-neutral-400 transition-colors hover:text-white"
+        >
+          {link.label}
+        </a>
+      ))
+    }
+    <a
+      href="#cta"
+      class="mt-2 rounded-full bg-indigo-500 px-5 py-2 text-sm font-medium"
+    >
+      Télécharger
+    </a>
+  </div>
+</header>
+
+<script>
+  const header = document.querySelector('[data-header]') as HTMLElement;
+  const toggle = document.querySelector('[data-mobile-toggle]');
+  const menu = document.querySelector('[data-mobile-menu]');
+
+  window.addEventListener('scroll', () => {
+    header.classList.toggle('bg-neutral-950/80', window.scrollY > 40);
+    header.classList.toggle('backdrop-blur-lg', window.scrollY > 40);
+  });
+
+  toggle?.addEventListener('click', () => {
+    menu?.classList.toggle('hidden');
+    menu?.classList.toggle('flex');
+  });
+</script>

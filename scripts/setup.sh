@@ -28,8 +28,16 @@ source .venv/bin/activate
 pip install -q -r requirements.txt
 echo "  ✓ pip install"
 
+# Landing Page (Astro)
+echo ""
+echo "▸ Landing Page (apps/web)"
+cd "$REPO_ROOT/apps/web"
+pnpm install
+echo "  ✓ pnpm install"
+
 echo ""
 echo "=== Setup terminé ==="
 echo "  → make app-run     pour lancer l'app Flutter"
 echo "  → make api-run     pour lancer l'API"
+echo "  → make web-dev     pour lancer la landing page"
 echo "  → make docker-up   pour lancer via Docker"

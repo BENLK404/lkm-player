@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://lkm-player.app/sitemap-index.xml

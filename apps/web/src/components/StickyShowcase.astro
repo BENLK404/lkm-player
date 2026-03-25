@@ -1,0 +1,76 @@
+---
+const steps = [
+  {
+    id: 'step-local',
+    title: 'Écoute locale',
+    description:
+      'Scanne automatiquement tes fichiers audio. Pas besoin de connexion, tout reste sur ton appareil.',
+    visual: '🎧',
+  },
+  {
+    id: 'step-download',
+    title: 'Téléchargement intégré',
+    description:
+      'Cherche et télécharge depuis Deezer, YouTube ou SoundCloud directement dans l\'app.',
+    visual: '⬇️',
+  },
+  {
+    id: 'step-playlist',
+    title: 'Organisation parfaite',
+    description:
+      'Playlists, favoris, albums, artistes. Retrouve ta musique en un clin d\'œil.',
+    visual: '📂',
+  },
+  {
+    id: 'step-player',
+    title: 'Lecteur complet',
+    description:
+      'Égaliseur, paroles, file d\'attente, thème personnalisable. Tout est là.',
+    visual: '🎶',
+  },
+];
+---
+
+<section id="showcase" class="px-6 py-32">
+  <div class="mx-auto grid max-w-6xl gap-12 lg:grid-cols-2 lg:gap-20">
+    <div class="lg:sticky lg:top-32 lg:self-start">
+      <h2 class="text-4xl font-bold tracking-tight md:text-5xl" data-reveal>
+        Comment ça<br />
+        <span class="text-indigo-400">marche&nbsp;?</span>
+      </h2>
+      <p class="mt-4 text-lg text-neutral-400" data-reveal>
+        De la découverte à l'écoute, en quelques étapes.
+      </p>
+
+      <div
+        class="mt-10 hidden aspect-square items-center justify-center rounded-3xl border border-neutral-800 bg-neutral-900/60 lg:flex"
+        data-showcase-visual
+      >
+        <span class="text-8xl transition-all duration-500" data-showcase-icon>
+          {steps[0].visual}
+        </span>
+      </div>
+    </div>
+
+    <div class="flex flex-col gap-24 lg:gap-48 lg:py-24">
+      {
+        steps.map((step, i) => (
+          <div
+            class="showcase-step rounded-2xl border border-neutral-800 bg-neutral-900/40 p-8 transition-all duration-500 lg:border-transparent lg:bg-transparent"
+            data-step-index={i}
+            data-step-visual={step.visual}
+          >
+            <span class="mb-2 block text-sm font-medium text-indigo-400">
+              0{i + 1}
+            </span>
+            <h3 class="mb-3 text-2xl font-bold">{step.title}</h3>
+            <p class="text-neutral-400 leading-relaxed">{step.description}</p>
+            <span class="mt-6 block text-center text-6xl lg:hidden">
+              {step.visual}
+            </span>
+          </div>
+        ))
+      }
+    </div>
+  </div>
+</section>

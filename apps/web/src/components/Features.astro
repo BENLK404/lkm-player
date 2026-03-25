@@ -1,0 +1,64 @@
+---
+const features = [
+  {
+    icon: '🎵',
+    title: 'Lecture locale',
+    description: 'Lis tes fichiers audio locaux sans connexion. MP3, FLAC, WAV et plus.',
+  },
+  {
+    icon: '📋',
+    title: 'Playlists intelligentes',
+    description: 'Crée et organise tes playlists. Favoris, récemment écoutés, les plus joués.',
+  },
+  {
+    icon: '🎤',
+    title: 'Paroles synchronisées',
+    description: 'Affiche les paroles en temps réel pendant la lecture de tes morceaux.',
+  },
+  {
+    icon: '🎛️',
+    title: 'Égaliseur intégré',
+    description: 'Ajuste le son avec l\'égaliseur et les préréglages audio personnalisables.',
+  },
+  {
+    icon: '🌙',
+    title: 'Thème sombre',
+    description: 'Interface claire ou sombre qui s\'adapte à tes préférences système.',
+  },
+  {
+    icon: '🔒',
+    title: 'Respect de ta vie privée',
+    description: 'Open source, aucune télémétrie, aucune publicité. Ton lecteur, tes données.',
+  },
+];
+---
+
+<section id="features" class="px-6 py-32">
+  <div class="mx-auto max-w-6xl">
+    <div class="mb-16 text-center" data-reveal>
+      <h2 class="text-4xl font-bold tracking-tight md:text-5xl">
+        Tout ce qu'il te faut
+      </h2>
+      <p class="mt-4 text-lg text-neutral-400">
+        Simple, rapide, et pensé pour toi.
+      </p>
+    </div>
+
+    <div class="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+      {
+        features.map((feature) => (
+          <article
+            class="group rounded-2xl border border-neutral-800 bg-neutral-900/50 p-8 transition-colors hover:border-indigo-500/40 hover:bg-neutral-900"
+            data-reveal
+          >
+            <span class="mb-4 block text-3xl">{feature.icon}</span>
+            <h3 class="mb-2 text-lg font-semibold">{feature.title}</h3>
+            <p class="text-sm leading-relaxed text-neutral-400">
+              {feature.description}
+            </p>
+          </article>
+        ))
+      }
+    </div>
+  </div>
+</section>

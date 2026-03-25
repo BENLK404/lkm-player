@@ -1,15 +1,16 @@
 # LKM Player
 
-**Monorepo — App mobile Flutter + API backend Python**
+**Monorepo — App mobile Flutter + API backend Python + Landing Page Astro**
 
 [![Flutter](https://img.shields.io/badge/Flutter-3.2+-02569B?logo=flutter)](https://flutter.dev)
 [![Python](https://img.shields.io/badge/Python-3.13+-3776AB?logo=python)](https://python.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688?logo=fastapi)](https://fastapi.tiangolo.com)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
 
-LKM Player est un lecteur audio open source composé de deux parties :
+LKM Player est un lecteur audio open source composé de trois parties :
 
 - **`apps/mobile/`** — Application Flutter (Android/iOS) : lecture locale, playlists, paroles, égaliseur, thème clair/sombre
+- **`apps/web/`** — Landing page (Astro) : site statique, SEO optimisé, animations scroll
 - **`services/api/`** — Backend Python : API REST (FastAPI) pour le téléchargement depuis Deezer/YouTube/SoundCloud + bot Telegram
 
 > **Dépôt** : [github.com/BENLK404/lkm-player](https://github.com/BENLK404/lkm-player)
@@ -21,11 +22,15 @@ LKM Player est un lecteur audio open source composé de deux parties :
 ```text
 lkm-player/
 ├── apps/
-│   └── mobile/              # App Flutter (Android/iOS)
-│       ├── lib/             # Code source Dart
-│       ├── android/
-│       ├── ios/
-│       └── pubspec.yaml
+│   ├── mobile/              # App Flutter (Android/iOS)
+│   │   ├── lib/             # Code source Dart
+│   │   ├── android/
+│   │   ├── ios/
+│   │   └── pubspec.yaml
+│   └── web/                 # Landing page (Astro + Tailwind)
+│       ├── src/             # Pages, composants, styles
+│       ├── public/          # Assets statiques
+│       └── package.json
 │
 ├── services/
 │   └── api/                 # Backend Python
@@ -50,6 +55,7 @@ lkm-player/
 
 - [Flutter SDK](https://docs.flutter.dev/get-started/install) >= 3.2.0
 - [Python](https://python.org) >= 3.13
+- [Node.js](https://nodejs.org) >= 22 + [pnpm](https://pnpm.io) (pour la landing page)
 - [Docker](https://docs.docker.com/get-docker/) (optionnel, pour le backend)
 
 ### Installation
@@ -70,6 +76,12 @@ make app-run
 
 ```bash
 make api-run
+```
+
+### Lancer la landing page
+
+```bash
+make web-dev
 ```
 
 ### Docker (bot + API)

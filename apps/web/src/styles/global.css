@@ -1,0 +1,60 @@
+@import "tailwindcss";
+
+/* ── Scroll-driven reveal animations ── */
+
+.reveal-hidden {
+  opacity: 0;
+  transform: translateY(24px);
+}
+
+.revealed {
+  animation: reveal 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes reveal {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Smooth scroll ── */
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* ── Scroll snap (full-screen sections, optional) ── */
+
+@media (min-width: 1024px) {
+  .snap-container {
+    scroll-snap-type: y proximity;
+  }
+
+  .snap-section {
+    scroll-snap-align: start;
+  }
+}
+
+/* ── Showcase step active state transition ── */
+
+.showcase-step {
+  transition: border-color 0.4s ease, background-color 0.4s ease, opacity 0.4s ease;
+}
+
+/* ── Popup animation utility ── */
+
+.popup-enter {
+  animation: popup 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes popup {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
