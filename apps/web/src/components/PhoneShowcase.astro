@@ -1,0 +1,66 @@
+---
+const showcases = [
+  {
+    src: '/showcases/for_me_showcase.png',
+    alt: 'LKM Player — écran Pour moi',
+  },
+  {
+    src: '/showcases/artist_details_showcase.png',
+    alt: 'LKM Player — fiche artiste',
+  },
+  {
+    src: '/showcases/album_details_showcase.png',
+    alt: 'LKM Player — détail album',
+  },
+  {
+    src: '/showcases/now_playing_showcase.png',
+    alt: 'LKM Player — lecture en cours',
+  },
+  {
+    src: '/showcases/lyrics_showcase.png',
+    alt: 'LKM Player — paroles synchronisées',
+  },
+];
+---
+
+<section class="relative overflow-hidden py-20 md:py-24 lg:py-28">
+  <div class="px-10">
+    <div class="mx-auto max-w-3xl text-center" data-reveal>
+      <h2 class="text-4xl font-bold tracking-tight text-neutral-900 md:text-6xl">
+        LKM Player en action,<br />
+        ecran par ecran
+      </h2>
+      <p class="mx-auto mt-5 max-w-2xl text-sm text-neutral-500 md:text-base">
+        Decouvre l'interface de l'application: lecture, playlists, recherche,
+        bibliotheque et controle audio dans un flux fluide.
+      </p>
+    </div>
+
+    <div class="relative mt-24" data-reveal>
+      <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5 lg:gap-6">
+        {
+          showcases.map((item, i) => (
+            <div
+              class:list={[
+                'relative w-full overflow-hidden',
+                i === 1 && 'lg:-translate-y-4',
+                i === 2 && 'lg:-translate-y-8',
+                i === 3 && 'lg:-translate-y-4',
+                i === 4 && 'col-span-2 sm:col-span-1',
+              ]}
+            >
+              <img
+                src={item.src}
+                alt=""
+                loading="lazy"
+                decoding="async"
+                class="size-full object-cover"
+              />
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </div>
+</section>
+

@@ -21,9 +21,17 @@ function initRevealAnimations() {
 
 function initStickyShowcase() {
   const steps = document.querySelectorAll<HTMLElement>('.showcase-step');
-  const icon = document.querySelector<HTMLElement>('[data-showcase-icon]');
+  const screenImage = document.querySelector<HTMLImageElement>(
+    '[data-showcase-screen-image]',
+  );
 
-  if (!icon || steps.length === 0) return;
+  if (steps.length === 0) return;
+  let activeStepIndex = 0;
+
+  const setShowcaseContent = (step: HTMLElement) => {
+    const nextImage = step.dataset.screenImage ?? '';
+    if (screenImage && nextImage) screenImage.src = nextImage;
+  };
 
   const observer = new IntersectionObserver(
     (entries) => {
@@ -31,28 +39,12 @@ function initStickyShowcase() {
         if (!entry.isIntersecting) continue;
 
         const step = entry.target as HTMLElement;
-        const visual = step.dataset.stepVisual;
+        const nextIndex = Number(step.dataset.stepIndex ?? 0);
+        if (nextIndex === activeStepIndex) continue;
 
-        if (visual) {
-          icon.style.opacity = '0';
-          icon.style.transform = 'scale(0.8)';
-          setTimeout(() => {
-            icon.textContent = visual;
-            icon.style.opacity = '1';
-            icon.style.transform = 'scale(1)';
-          }, 200);
-        }
+        setShowcaseContent(step);
+        activeStepIndex = nextIndex;
 
-        for (const s of steps) {
-          s.classList.toggle(
-            'lg:border-indigo-500/30',
-            s === step,
-          );
-          s.classList.toggle(
-            'lg:bg-neutral-900/40',
-            s === step,
-          );
-        }
       }
     },
     { threshold: 0.6 },
