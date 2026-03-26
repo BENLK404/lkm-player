@@ -48,6 +48,7 @@ const steps = [
             data-step-title={step.title}
             data-step-description={step.description}
             data-screen-image={step.screenImage}
+            data-reveal
           >
             <article class="w-full p-8 transition-all duration-300">
               {/* <span class="mb-2 block text-sm font-medium text-indigo-400">
@@ -68,6 +69,7 @@ const steps = [
       <div
         class="mx-auto hidden w-full max-w-[380px] lg:block"
         data-showcase-visual
+        data-reveal
       >
         <img
           src={steps[0].screenImage}

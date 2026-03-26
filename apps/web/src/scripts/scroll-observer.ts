@@ -55,7 +55,64 @@ function initStickyShowcase() {
   }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+function initPhoneParallax() {
+  const root = document.querySelector<HTMLElement>('[data-phone-parallax-root]');
+  if (!root) return; 
+  if (root.dataset.parallaxReady === 'true') return;
+  root.dataset.parallaxReady = 'true';
+
+  const items = root.querySelectorAll<HTMLElement>('[data-parallax-item]');
+  if (items.length === 0) return;
+
+  let ticking = false;
+
+  const updateParallax = () => {
+    const rect = root.getBoundingClientRect();
+    const viewportHeight = window.innerHeight;
+    const sectionCenter = rect.top + rect.height / 2;
+    const viewportCenter = viewportHeight / 2;
+    const maxTravel = viewportHeight / 2 + rect.height / 2;
+    const normalized = Math.min(
+      1,
+      Math.max(-1, (sectionCenter - viewportCenter) / maxTravel),
+    );
+    const baseShift = normalized * 300;
+
+    for (const item of items) {
+      const strength = Number(item.dataset.parallaxStrength ?? 1);
+      const speed = 0.45 + strength * 0.24;
+      const shiftY = baseShift * speed;
+      item.style.transform = `translate3d(0, ${shiftY}px, 0)`;
+    }
+
+    ticking = false;
+  };
+
+  const scheduleUpdate = () => {
+    if (ticking) return;
+    ticking = true;
+    window.requestAnimationFrame(updateParallax);
+  };
+
+  for (const item of items) {
+    item.style.willChange = 'transform';
+  }
+
+  window.addEventListener('scroll', scheduleUpdate, { passive: true });
+  window.addEventListener('resize', scheduleUpdate);
+  scheduleUpdate();
+}
+
+function initScrollEffects() {
   initRevealAnimations();
   initStickyShowcase();
-});
+  initPhoneParallax();
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initScrollEffects, { once: true });
+} else {
+  initScrollEffects();
+}
+
+document.addEventListener('astro:page-load', initScrollEffects);
