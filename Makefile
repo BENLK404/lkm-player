@@ -1,6 +1,6 @@
 .PHONY: help setup app-run app-build app-test app-analyze app-codegen \
        api-run api-bot api-lint \
-       web-install web-dev web-build web-preview \
+       web-install web-check web-dev web-build web-preview \
        docker-up docker-down docker-build docker-logs
 
 help: ## Affiche cette aide
@@ -35,6 +35,9 @@ app-codegen: ## Génère le code (Freezed, Riverpod, JSON)
 
 web-install: ## Installe les dépendances web (pnpm)
 	cd apps/web && pnpm install
+
+web-check: ## Vérifie Astro + TypeScript (astro check)
+	cd apps/web && pnpm check
 
 web-dev: ## Lance le serveur de dev Astro
 	cd apps/web && pnpm dev
