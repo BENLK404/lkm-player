@@ -1,0 +1,112 @@
+---
+const features = [
+  {
+    icon: 'music',
+    title: 'Lecture locale',
+    description: 'Lis tes fichiers audio locaux sans connexion. MP3, FLAC, WAV et plus.',
+  },
+  {
+    icon: 'playlist',
+    title: 'Playlists intelligentes',
+    description: 'Crée et organise tes playlists. Favoris, récemment écoutés, les plus joués.',
+  },
+  {
+    icon: 'lyrics',
+    title: 'Paroles synchronisées',
+    description: 'Affiche les paroles en temps réel pendant la lecture de tes morceaux.',
+  },
+  {
+    icon: 'equalizer',
+    title: 'Égaliseur intégré',
+    description: 'Ajuste le son avec l\'égaliseur et les préréglages audio personnalisables.',
+  },
+  {
+    icon: 'theme',
+    title: 'Thème sombre',
+    description: 'Interface claire ou sombre qui s\'adapte à tes préférences système.',
+  },
+  {
+    icon: 'privacy',
+    title: 'Respect de ta vie privée',
+    description: 'Open source, aucune télémétrie, aucune publicité. Ton lecteur, tes données.',
+  },
+];
+---
+
+<section id="features" class="px-10 py-32 md:px-16 lg:px-28 xl:px-40 2xl:px-52">
+  <div class="w-full">
+    <div class="mb-16 text-center" data-reveal>
+      <h2 class="text-4xl font-bold tracking-tight md:text-5xl">
+        Tout ce qu'il te faut
+      </h2>
+      <p class="mt-4 text-lg text-neutral-600">
+        Simple, rapide, et pensé pour toi.
+      </p>
+    </div>
+
+    <div class="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+      {
+        features.map((feature) => (
+          <article
+            class="group rounded-2xl border border-neutral-200 bg-white p-8 transition-colors hover:border-indigo-500/40 hover:bg-indigo-50/30"
+            data-reveal
+          >
+            <span class="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-indigo-100 text-indigo-600">
+              {feature.icon === 'music' && (
+                <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M9 18V6l10-2v12" />
+                  <circle cx="6" cy="18" r="3" />
+                  <circle cx="18" cy="16" r="3" />
+                </svg>
+              )}
+              {feature.icon === 'playlist' && (
+                <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <line x1="4" y1="6" x2="15" y2="6" />
+                  <line x1="4" y1="12" x2="15" y2="12" />
+                  <line x1="4" y1="18" x2="11" y2="18" />
+                  <polygon points="19 9 22 11 19 13 19 9" />
+                </svg>
+              )}
+              {feature.icon === 'lyrics' && (
+                <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M9 18V6l10-2v12" />
+                  <circle cx="6" cy="18" r="3" />
+                  <circle cx="18" cy="16" r="3" />
+                  <line x1="3" y1="4" x2="7" y2="4" />
+                </svg>
+              )}
+              {feature.icon === 'equalizer' && (
+                <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <line x1="4" y1="21" x2="4" y2="14" />
+                  <line x1="4" y1="10" x2="4" y2="3" />
+                  <line x1="12" y1="21" x2="12" y2="12" />
+                  <line x1="12" y1="8" x2="12" y2="3" />
+                  <line x1="20" y1="21" x2="20" y2="16" />
+                  <line x1="20" y1="12" x2="20" y2="3" />
+                  <line x1="2" y1="12" x2="6" y2="12" />
+                  <line x1="10" y1="10" x2="14" y2="10" />
+                  <line x1="18" y1="14" x2="22" y2="14" />
+                </svg>
+              )}
+              {feature.icon === 'theme' && (
+                <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" />
+                </svg>
+              )}
+              {feature.icon === 'privacy' && (
+                <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M12 3l7 4v5c0 5-3.5 8.5-7 9-3.5-.5-7-4-7-9V7l7-4z" />
+                  <path d="M9 12l2 2 4-4" />
+                </svg>
+              )}
+            </span>
+            <h3 class="mb-2 text-lg font-semibold">{feature.title}</h3>
+            <p class="text-sm leading-relaxed text-neutral-600">
+              {feature.description}
+            </p>
+          </article>
+        ))
+      }
+    </div>
+  </div>
+</section>

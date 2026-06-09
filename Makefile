@@ -1,5 +1,6 @@
 .PHONY: help setup app-run app-build app-test app-analyze app-codegen \
        api-run api-bot api-lint \
+       web-install web-check web-dev web-build web-preview \
        docker-up docker-down docker-build docker-logs
 
 help: ## Affiche cette aide
@@ -8,9 +9,10 @@ help: ## Affiche cette aide
 
 # ───────────── Setup ─────────────
 
-setup: ## Installation complète (Flutter + Python)
+setup: ## Installation complète (Flutter + Python + Web)
 	cd apps/mobile && flutter pub get
 	cd services/api && pip install -r requirements.txt
+	cd apps/web && pnpm install
 
 # ───────────── Flutter (Mobile App) ─────────────
 
@@ -28,6 +30,23 @@ app-analyze: ## Analyse statique Flutter
 
 app-codegen: ## Génère le code (Freezed, Riverpod, JSON)
 	cd apps/mobile && dart run build_runner build --delete-conflicting-outputs
+
+# ───────────── Landing Page (Astro) ─────────────
+
+web-install: ## Installe les dépendances web (pnpm)
+	cd apps/web && pnpm install
+
+web-check: ## Vérifie Astro + TypeScript (astro check)
+	cd apps/web && pnpm check
+
+web-dev: ## Lance le serveur de dev Astro
+	cd apps/web && pnpm dev
+
+web-build: ## Build statique de la landing page
+	cd apps/web && pnpm build
+
+web-preview: ## Preview du build statique
+	cd apps/web && pnpm preview
 
 # ───────────── API Python ─────────────
 

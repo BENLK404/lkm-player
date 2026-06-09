@@ -1,0 +1,31 @@
+---
+import AndroidIcon from './AndroidIcon.astro';
+---
+
+<header class="fixed top-0 z-50 w-full" data-header>
+  <nav
+    class="flex w-full items-center justify-between px-10 py-4 transition-colors duration-300 md:px-16 lg:px-28 xl:px-40 2xl:px-52"
+  >
+    <a href="/" class="inline-flex items-center gap-2 font-medium text-neutral-900">
+      LKMPlayer
+      <AndroidIcon class="h-5 w-5 shrink-0 text-neutral-800" />
+    </a>
+
+    <a
+      href="#cta"
+      class="inline-flex items-center gap-2 rounded-full border border-neutral-500 px-5 py-2 text-sm font-medium text-neutral-500 transition-colors hover:border-neutral-900 hover:text-neutral-900"
+    >
+      Télécharger l'app
+      <AndroidIcon class="h-4 w-4 shrink-0" />
+    </a>
+  </nav>
+
+<script>
+  const header = document.querySelector('[data-header]') as HTMLElement;
+
+  window.addEventListener('scroll', () => {
+    header.classList.toggle('bg-white/80', window.scrollY > 40);
+    header.classList.toggle('backdrop-blur-lg', window.scrollY > 40);
+  });
+</script>
+</header>

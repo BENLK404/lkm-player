@@ -1,0 +1,25 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+import Hero from '../components/Hero.astro';
+import PhoneShowcase from '../components/PhoneShowcase.astro';
+import Features from '../components/Features.astro';
+import StickyShowcase from '../components/StickyShowcase.astro';
+import CTA from '../components/CTA.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<BaseLayout
+  title="LKM Player — Lecteur audio open source"
+  description="LKM Player est un lecteur audio mobile open source : lecture locale, playlists, paroles synchronisées, égaliseur, thème sombre. Gratuit, sans pub, sans télémétrie."
+>
+  <Header />
+  <main>
+    <Hero />
+    <PhoneShowcase />
+    <Features />
+    <StickyShowcase />
+    <CTA />
+  </main>
+  <Footer />
+</BaseLayout>

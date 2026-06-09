@@ -1,0 +1,80 @@
+---
+import AndroidIcon from './AndroidIcon.astro';
+---
+
+<section id="hero" class="mt-16 h-[calc(100vh-4rem)] py-8 md:py-10 lg:py-12">
+  <div class="relative z-10 h-full px-10 md:px-16 lg:px-28 xl:px-40 2xl:px-52">
+    <div class="grid h-full items-stretch gap-12 lg:grid-cols-2">
+      <div class="flex flex-col justify-center">
+        <p class="mb-5 text-[11px] font-semibold uppercase tracking-[0.22em] text-indigo-500">
+          LKM player · open source · mobile
+        </p>
+
+        <h1 class="text-5xl font-bold leading-[0.95] tracking-tight text-neutral-900 md:text-7xl">
+          Toute ta musique<br />
+          dans ta poche
+        </h1>
+
+        <p class="mt-6 max-w-sm text-base leading-relaxed text-neutral-600 md:text-lg">
+          Lance, organise et ecoute tes sons localement avec une app rapide,
+          gratuite et sans pub.
+        </p>
+
+        <div class="mt-8 flex items-center gap-5">
+          <a
+            href="https://github.com/BENLK404/lkm-player/releases"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center gap-2 rounded-full bg-neutral-900 px-8 py-3 font-medium text-white hover:bg-neutral-700"
+          >
+            Télécharger l'APK
+            <AndroidIcon />
+          </a>
+          <a
+            href="#features"
+            class="text-sm font-semibold text-neutral-500 transition-colors hover:text-neutral-900"
+          >
+            En savoir plus
+          </a>
+        </div>
+      </div>
+
+      <div
+        class="relative h-full min-h-[420px] rounded-4xl border border-neutral-200 bg-neutral-100"
+      >
+        <div class="absolute -left-14 top-[58%] flex items-center justify-center gap-2 rounded-xl bg-white p-2 text-sm font-medium text-neutral-700 shadow-sm">
+          <div class="flex size-11 flex-none items-center justify-center rounded-md bg-rose-400 text-white">
+            <svg class="size-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+              <path d="M8 7h8" />
+              <path d="M8 11h6" />
+            </svg>
+          </div>
+          <span class="text-sm font-medium text-neutral-700">Bibliothèque locale, hors ligne</span>
+        </div>
+
+        <div class="absolute -right-12 top-34 flex items-center justify-center gap-2 rounded-xl bg-white p-2 text-sm font-medium text-neutral-700 shadow-sm">
+          <div class="flex size-11 flex-none items-center justify-center rounded-md bg-sky-400 text-white">
+            <svg class="size-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M9 18V5l12-2v13" />
+              <circle cx="6" cy="18" r="3" />
+              <circle cx="18" cy="16" r="3" />
+            </svg>
+          </div>
+          <span class="text-sm font-medium text-neutral-700">Paroles synchronisées</span>
+        </div>
+
+        <div class="absolute bottom-20 -right-8 flex items-center justify-center gap-2 rounded-xl bg-white p-2 text-sm font-medium text-neutral-700 shadow-sm">
+          <div class="flex size-11 flex-none items-center justify-center rounded-md bg-emerald-400 text-white">
+            <svg class="size-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+              <path d="M9 12l2 2 4-4" />
+            </svg>
+          </div>
+          <span class="text-sm font-medium text-neutral-700">Open source, sans pub ni tracking</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

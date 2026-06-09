@@ -1,0 +1,87 @@
+---
+const steps = [
+  {
+    id: 'step-local',
+    title: 'Écoute locale',
+    description:
+      "Scanne automatiquement tes fichiers audio et organise ta bibliothèque sans effort. Aucun compte requis, aucune connexion obligatoire: toute ta musique reste disponible hors ligne, directement sur ton appareil.",
+    visual: '🎧',
+    screenImage: '/showcases/my_album_showcase.png',
+  },
+  // {
+  //   id: 'step-download',
+  //   title: 'Téléchargement intégré',
+  //   description:
+  //     "Recherche un titre, un album ou une playlist puis télécharge-le en quelques secondes depuis Deezer, YouTube ou SoundCloud. Tout est intégré dans l'app pour éviter de jongler entre plusieurs outils.",
+  //   visual: '⬇️',
+  //   screenTitle: 'Recherche & téléchargement',
+  //   screenBody: 'Un morceau, un album ou une playlist en un clic.',
+  // },
+  {
+    id: 'step-playlist',
+    title: 'Organisation parfaite',
+    description:
+      "Crée des playlists personnalisées, épingle tes favoris et classe facilement tes morceaux par album ou artiste. Tu retrouves toujours la bonne musique au bon moment, sans perdre de temps.",
+    visual: '📂',
+    screenImage: '/showcases/for_me_showcase.png',
+  },
+  {
+    id: 'step-player',
+    title: 'Lecteur complet',
+    description:
+      "Profite d'un lecteur complet avec égaliseur, paroles synchronisées, file d'attente dynamique et thème personnalisable. Une expérience d'écoute fluide, pensée pour s'adapter à tes habitudes.",
+    visual: '🎶',
+    screenImage: '/showcases/now_playing_showcase.png',
+  },
+];
+---
+
+<section id="showcase" class="px-10 py-32 md:px-16 lg:px-28 xl:px-40 2xl:px-52">
+  <div class="grid w-full gap-12 lg:grid-cols-2 lg:gap-20">
+    <div class="flex flex-col gap-10 lg:gap-0">
+      {
+        steps.map((step, i) => (
+          <div
+            class="showcase-step flex min-h-[56vh] items-center lg:min-h-[72vh]"
+            data-step-index={i}
+            data-step-visual={step.visual}
+            data-step-title={step.title}
+            data-step-description={step.description}
+            data-screen-image={step.screenImage}
+            data-reveal
+          >
+            <article class="w-full p-8 transition-all duration-300">
+              {/* <span class="mb-2 block text-sm font-medium text-indigo-400">
+                {String(i + 1).padStart(2, '0')}
+              </span> */}
+              <h3 class="mb-3 text-5xl font-bold">{step.title}</h3>
+              <p class="text-neutral-600 leading-relaxed">{step.description}</p>
+              <span class="mt-6 block text-center text-6xl lg:hidden">
+                {step.visual}
+              </span>
+            </article>
+          </div>
+        ))
+      }
+    </div>
+
+    <div class="lg:sticky lg:top-30 lg:self-start">
+      <div
+        class="mx-auto hidden w-full max-w-75 lg:block"
+        data-showcase-visual
+        data-reveal
+      >
+        <img
+          src={steps[0].screenImage}
+          alt=""
+          width={1080}
+          height={2400}
+          class="block h-auto w-full transition-all duration-300 ease-out"
+          data-showcase-screen-image
+          loading="lazy"
+          decoding="async"
+        />
+      </div>
+    </div>
+  </div>
+</section>
